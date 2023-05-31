@@ -1,0 +1,25 @@
+# DataSource Config
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    username: root
+    password: Beihang2022!
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+logging:
+  config: classpath:log4j2.xml
+
+server:
+  servlet:
+    session:
+      timeout: 3600s
+
+minio:
+  endpoint: http://192.168.8.74:9000
+  accessKey: plus
+  secretKey: Tf13706212370
+  bucket: trustchain
