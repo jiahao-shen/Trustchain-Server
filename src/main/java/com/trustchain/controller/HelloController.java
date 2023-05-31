@@ -66,4 +66,8 @@ public class HelloController {
             return ResponseEntity.status(HttpStatus.OK).body("no");
         }
     }
+
+    public void test(){
+
+    }
 }
