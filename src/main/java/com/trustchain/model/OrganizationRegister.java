@@ -79,4 +79,11 @@ public class OrganizationRegister {
 
     @TableField(value = "reply_message")
     private String replyMessage;    // 批复内容
+
+
+    @TableField("password")
+    @JSONField(serialize = false)
+    private String password;  // organization password,  and name is  organization name
+
+//    need user
 }

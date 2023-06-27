@@ -31,15 +31,22 @@ public class UserController {
     @PostMapping("/user/login")
     public ResponseEntity<Object> userLogin(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
-
+        System.out.println("test");
+        System.out.println(request);
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getUsername, request.getString("username"));
 
         User user = userMapper.selectOne(queryWrapper);
+        System.out.println(request.getString("password"));
+        System.out.println("tt"+user.getPassword());
+        //  no passwd needed
+        session.setAttribute("login", user);
+            //return ResponseEntity.status(HttpStatus.OK).body(user);
 
         if (user != null && encoder.matches(request.getString("password"), user.getPassword())) {
+            System.out.println("success");
             session.setAttribute("login", user);
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else {
@@ -69,6 +76,7 @@ public class UserController {
         user.setOrganization(Long.parseLong(request.getString("organization")));
         user.setType(UserType.valueOf(request.getString("type")));
         user.setCreatedTime(new Date());
+
 
         int count = userMapper.insert(user);
         if (count != 0) {

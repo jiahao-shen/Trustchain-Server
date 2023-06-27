@@ -46,7 +46,7 @@ public class APIRegister {
     private HttpMethod method;
 
     @TableField("introduction")
-    private String introducation;
+    private String introduction;
 
     @TableField("category")
     private String category;

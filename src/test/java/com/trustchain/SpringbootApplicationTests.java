@@ -14,6 +14,7 @@ import com.trustchain.fabric.FabricGateway;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.mapper.UserMapper;
+import io.minio.MinioClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -24,9 +25,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import io.minio.MinioClient;
 
 @SpringBootTest
 class SpringbootApplicationTests {
@@ -255,6 +259,32 @@ class SpringbootApplicationTests {
         OrganizationRegister or = registerOrganizationMapper.selectById(Long.parseLong("1593230328973996033"));
 
         System.out.println(JSONObject.toJSONString(or));
+    }
+
+    @Test
+    void testjdbc(){
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            //String url = "jdbc:mysql://localhost:3306/trustchain?";
+            String url = "jdbc:mysql://localhost:3306/trustchain?serverTimezone=UTC&characterEncoding=UTF-8&allowMultiQueries=true";
+            String user = "root";
+            String pwd = "Beihang2022!";
+            Connection conn = (Connection) DriverManager.getConnection(url, user, pwd);
+            System.out.println("success");
+            conn.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    //test upload file to minio
+    @Test
+    void testuploadminio(){
+        try{
+            minioService.upLoadObject("test.txt","test.txt");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
 

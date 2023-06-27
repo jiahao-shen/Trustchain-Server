@@ -62,7 +62,7 @@ public class APIController {
         apiRegister.setOrganization(login.getOrganization());
         apiRegister.setUrl(request.getString("url"));
         apiRegister.setMethod(HttpMethod.valueOf(request.getString("method")));
-        apiRegister.setIntroducation(request.getString("introduction"));
+        apiRegister.setIntroduction(request.getString("introduction"));
         apiRegister.setCategory(request.getString("category"));
         apiRegister.setAuthorize(request.getString("authorize"));
         apiRegister.setVersion(request.getString("version"));
@@ -118,7 +118,7 @@ public class APIController {
         api.setName(apiRegister.getName());
         api.setUrl(apiRegister.getUrl());
         api.setMethod(apiRegister.getMethod());
-        api.setIntroducation(apiRegister.getIntroducation());
+        api.setIntroducation(apiRegister.getIntroduction());
         api.setCategory(apiRegister.getCategory());
         api.setAuthorize(apiRegister.getAuthorize());
         api.setVersion(apiRegister.getVersion());
@@ -289,6 +289,29 @@ public class APIController {
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+
+//  error ??
+    @PostMapping("/api/register/information")
+    public ResponseEntity<Object> getApiRegisterInformation(@RequestBody JSONObject request, HttpSession session) {
+        System.out.println(request);
+        User login = (User) session.getAttribute("login");
+
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
+        }
+
+        LambdaQueryWrapper<APIRegister> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(APIRegister::getSerialNumber, request.getString("serialNumber"));
+        APIRegister apiRegisterInfo = apiRegisterMapper.selectOne(queryWrapper);
+
+        System.out.println(apiRegisterInfo);
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiRegisterInfo);
+    }
+
+
 }
 
 

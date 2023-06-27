@@ -80,4 +80,18 @@ public class MinioService {
         });
     }
 
+    public void upLoadObject(String filename, String filepath) throws Exception{
+        try{
+            client.uploadObject(
+                    UploadObjectArgs.builder()
+                            .bucket(config.getBucket())
+                            .object(filename)
+                            .filename(filepath)
+                            .build()
+            );
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 }

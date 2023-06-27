@@ -2,13 +2,22 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    #url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/trustchain?serverTimezone=UTC&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
     username: root
     password: Beihang2022!
   servlet:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+  mail:
+    host: smtp.qq.com
+    port: 587
+    default-encoding: UTF-8
+    username: 904620522@qq.com
+    password: cqucgfmqmmizbfha
+    from: 904620522@qq.com
+
 
 logging:
   config: classpath:log4j2.xml
@@ -19,7 +28,9 @@ server:
       timeout: 3600s
 
 minio:
-  endpoint: http://192.168.8.74:9000
-  accessKey: plus
-  secretKey: Tf13706212370
-  bucket: trustchain
+  endpoint: http://192.168.8.66:9000
+  accessKey: Beihang
+  secretKey: Beihang2022
+  bucket: trust-chain
+
+
