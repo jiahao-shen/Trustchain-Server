@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @EnableAsync
 @SpringBootApplication
+@EnableCaching
 @MapperScan("com.trustchain.mapper")
 public class SpringbootApplication extends WebMvcConfigurationSupport {
     private static final Logger logger = LogManager.getLogger(SpringbootApplication.class);

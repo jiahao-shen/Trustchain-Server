@@ -147,10 +147,13 @@ public class APIController {
         apiRegisterMapper.updateById(apiRegister);
 
         // 存储上链
-        fabricService.saveAPI(api);
+        //fabricService.saveAPI(api);
 
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
+
+
+
 
 
     @GetMapping("/api/list/my")
@@ -165,9 +168,13 @@ public class APIController {
         queryWrapper.eq(API::getAuthor, login.getId());
 
         List<API> myAPIList = apiMapper.selectList(queryWrapper);
+        //TODO: add api that we can invoke
+
 
         return ResponseEntity.status(HttpStatus.OK).body(myAPIList);
     }
+
+
 
     @GetMapping("/api/list/all")
     public ResponseEntity<Object> allAPIList(HttpSession session) {
@@ -181,6 +188,8 @@ public class APIController {
     }
 
 
+
+//    request to invoke a api
     @PostMapping("/api/invoke/apply")
     public ResponseEntity<Object> apiInvokeApply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
@@ -220,6 +229,7 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body("调用申请成功");
     }
 
+    // api request list  target: normal user      these two are the same??
     @GetMapping("/api/invoke/apply/list")
     public ResponseEntity<Object> apiInvokeApplyList(HttpSession session) {
         User login = (User) session.getAttribute("login");
@@ -236,6 +246,8 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body(apiInvokeApplyList);
     }
 
+
+    // api approval list  target: admin user
     @GetMapping("/api/invoke/approval/list")
     public ResponseEntity<Object> apiInvokeApprovalList(HttpSession session) {
         User login = (User) session.getAttribute("login");
@@ -311,7 +323,34 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body(apiRegisterInfo);
     }
 
+    static class apiInvokeAndInfo{
+        public APIInvoke apiInvoke;
+        public API api;
+    }
+    // return api info and  api invoke
+    @PostMapping("/api/invoke/information")
+    public ResponseEntity<Object> getApiInvokeInformation(@RequestBody JSONObject request, HttpSession session) {
+        System.out.println(request);
+        User login = (User) session.getAttribute("login");
+        //TODO: authority organize
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
+        }
+        apiInvokeAndInfo  invokeInfo = new apiInvokeAndInfo();
 
+        LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
+        invokeWrapper.eq(APIInvoke::getSerialNumber, request.getString("serialNumber"));
+        APIInvoke apiInvokeInfo = apiInvokeMapper.selectOne(invokeWrapper);
+        invokeInfo.apiInvoke = apiInvokeInfo;
+
+        LambdaQueryWrapper<API> infoWrapper = new LambdaQueryWrapper<>();
+        infoWrapper.eq(API::getId, apiInvokeInfo.getId());
+        API apiInfo = apiMapper.selectOne(infoWrapper);
+        invokeInfo.api = apiInfo;
+
+        System.out.println(invokeInfo);
+        return ResponseEntity.status(HttpStatus.OK).body(invokeInfo);
+    }
 }
 
 

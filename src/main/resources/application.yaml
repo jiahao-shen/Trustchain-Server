@@ -17,6 +17,18 @@ spring:
     username: 904620522@qq.com
     password: cqucgfmqmmizbfha
     from: 904620522@qq.com
+  redis:
+    host: localhost  #this machine
+    port: 6379
+    password: Beihang2022
+    database: 0
+    timeout: 0
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: 1ms
+        max-idle: 4
+        min-idle: 0
 
 
 logging:
@@ -28,7 +40,8 @@ server:
       timeout: 3600s
 
 minio:
-  endpoint: http://192.168.8.66:9000
+#  endpoint: http://192.168.8.213:9000
+  endpoint: http://localhost:9000
   accessKey: Beihang
   secretKey: Beihang2022
   bucket: trust-chain

@@ -27,7 +27,8 @@ public class User {
     private String username;
 
     @TableField("password")
-    @JSONField(serialize = false)
+// This function make password can be ignored
+//    @JSONField(serialize = false)
     private String password;
 
     @TableField("type")
