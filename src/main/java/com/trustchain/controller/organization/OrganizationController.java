@@ -238,7 +238,7 @@ public class OrganizationController {
         Boolean IsOk = emailService.send(organization.getEmail(), "Your Name is:"+organization.getName() + "\n"+ "Your Password is:"+organizationRegister.getPassword(),
                 "Welcome to Data Share Platform");
         if (IsOk) {
-            return ResponseEntity.status(HttpStatus.OK).body(true);
+            return ResponseEntity.status(HttpStatus.OK).body("success");
         }{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("email false");
         }
@@ -319,7 +319,7 @@ public class OrganizationController {
                                                                 HttpSession session) {
 //        logger.info(request);
 //        System.out.println("in");
-        System.out.println(request);
+
         OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
         organizationInfo.setName(request.getString("name"));
         organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
@@ -329,7 +329,7 @@ public class OrganizationController {
         organizationInfo.setAddress(request.getString("address"));
         organizationInfo.setIntroduction(request.getString("introduction"));
         //    update logo
-        System.out.println(123);
+
         Long orgID = organizationInfo.getId();
 
         String logoPath = String.format("organization/%s/logo.jpg", orgID);
@@ -339,9 +339,9 @@ public class OrganizationController {
         //String newLogoPath = String.format("organization/%s/logo.jpg", orgID);
         //minioService.copy(logoPath,organizationInfo.getLogo());
         //minioService.copy(logoPath,newLogoPath);
-        System.out.println("path: "+logoPath);
+
         organizationInfo.setLogo(logoPath);
-        System.out.println(456);
+
         int count = organizationMapper.updateById(organizationInfo);
 
         if(count != 0){
@@ -388,7 +388,7 @@ public class OrganizationController {
         Boolean success = emailService.send(emailaddr, message, subject);
 
         if (success) {
-            return ResponseEntity.status(HttpStatus.OK).body("");
+            return ResponseEntity.status(HttpStatus.OK).body("success");
         }else{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
         }

@@ -323,10 +323,7 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body(apiRegisterInfo);
     }
 
-    static class apiInvokeAndInfo{
-        public APIInvoke apiInvoke;
-        public API api;
-    }
+
     // return api info and  api invoke
     @PostMapping("/api/invoke/information")
     public ResponseEntity<Object> getApiInvokeInformation(@RequestBody JSONObject request, HttpSession session) {
@@ -336,7 +333,7 @@ public class APIController {
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
         }
-        apiInvokeAndInfo  invokeInfo = new apiInvokeAndInfo();
+        ApiInvokeAndInfo  invokeInfo = new ApiInvokeAndInfo();
 
         LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
         invokeWrapper.eq(APIInvoke::getSerialNumber, request.getString("serialNumber"));

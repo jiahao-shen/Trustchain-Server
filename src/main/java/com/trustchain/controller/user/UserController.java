@@ -2,8 +2,10 @@ package com.trustchain.controller.user;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.google.api.Http;
 import com.trustchain.enums.UserType;
 import com.trustchain.mapper.UserMapper;
+import com.trustchain.model.OrganizationRegister;
 import com.trustchain.model.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -121,4 +123,70 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(false);
         }
     }
+
+    @PostMapping("/user/createchild")
+    public ResponseEntity<Object> createchilduser(@RequestBody JSONObject request, HttpSession session) {
+
+        logger.info(request);
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        User user = new User();
+        user.setUsername(request.getString("username"));
+        user.setPassword(encoder.encode(request.getString("password")));
+        user.setOrganization(Long.parseLong(request.getString("organization")));
+        user.setType(UserType.NORMAL);
+        user.setCreatedTime(new Date());
+
+        int count = userMapper.insert(user);
+        if (count != 0) {
+            return ResponseEntity.status(HttpStatus.OK).body(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.OK).body(false);
+        }
+    }
+
+    @GetMapping ("/user/getallchild")
+    public ResponseEntity<Object> getchilduser(HttpSession session) {
+
+        User login = (User) session.getAttribute("login");
+
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
+        }
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        if (login.getType().equals(UserType.ADMIN)) {
+            queryWrapper.eq(User::getOrganization, login.getOrganization()).ne(User::getType, UserType.ADMIN);
+
+            List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
+
+            return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.OK).body("Normal User");
+        }
+        }
+
+   @PostMapping("/user/modifychildinformation")
+    public ResponseEntity<Object> modifychildinfo(@RequestBody JSONObject request, HttpSession session) {
+
+        System.out.println(request);
+       BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+       LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+       queryWrapper.eq(User::getId, Long.parseLong(request.getString("id")));
+       User user = userMapper.selectOne(queryWrapper);
+       user.setUsername(request.getString("username"));
+       user.setPassword(encoder.encode(request.getString("password")));
+
+       int count = userMapper.updateById(user);
+
+       if(count != 0){
+           return ResponseEntity.status(HttpStatus.OK).body("OK");
+       }else{
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+       }
+
+   }
+
 }
