@@ -165,7 +165,23 @@ public class UserController {
         else{
             return ResponseEntity.status(HttpStatus.OK).body("Normal User");
         }
-        }
+    }
+
+    @GetMapping ("/user/getallchildtest")
+    public ResponseEntity<Object> getchildusertest() {
+
+
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        long id = 1676784493157113858L;
+        queryWrapper.eq(User::getOrganization, id).ne(User::getType, UserType.ADMIN);
+
+        List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
+
+        return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
+    }
+
+
 
    @PostMapping("/user/modifychildinformation")
     public ResponseEntity<Object> modifychildinfo(@RequestBody JSONObject request, HttpSession session) {

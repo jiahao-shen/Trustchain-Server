@@ -5,6 +5,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.trustchain.mapper.APIInvokeMapper;
+import com.trustchain.service.HttpService;
 import com.trustchain.service.MinioService;
 import com.trustchain.model.*;
 import com.trustchain.enums.HttpMethod;
@@ -14,6 +15,7 @@ import com.trustchain.fabric.FabricGateway;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.mapper.UserMapper;
+import com.trustchain.util.Notice;
 import io.minio.MinioClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -286,5 +288,13 @@ class SpringbootApplicationTests {
             e.printStackTrace();
         }
     }
+
+    @Test
+    void testhttp(){
+        HttpService httpService = new HttpService();
+        String res = httpService.restTemplateGet("http://localhost:8080/user/getallchildtest");
+        System.out.println(res);
+    }
+
 }
 
