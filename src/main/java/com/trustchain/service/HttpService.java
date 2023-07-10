@@ -20,7 +20,6 @@ public class HttpService {
 //        Notice notice = restTemplate.getForObject(url, Notice.class);
 //        return notice;
 //    }
-
     public String restTemplateGet(String url){
         RestTemplate restTemplate = new RestTemplate();
         //Notice notice = restTemplate.getForObject(url, Notice.class);
