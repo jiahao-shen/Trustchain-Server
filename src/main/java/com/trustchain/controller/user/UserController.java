@@ -181,6 +181,20 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
     }
 
+    @PostMapping ("/user/getallchildtestpost")
+    public ResponseEntity<Object> getchildusertestpost() {
+
+
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        long id = 1676784493157113858L;
+        queryWrapper.eq(User::getOrganization, id).ne(User::getType, UserType.ADMIN);
+
+        List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
+
+        return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
+    }
+
 
 
    @PostMapping("/user/modifychildinformation")

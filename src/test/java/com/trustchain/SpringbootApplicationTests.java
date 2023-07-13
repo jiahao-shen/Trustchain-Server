@@ -24,15 +24,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 import io.minio.MinioClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest
 class SpringbootApplicationTests {
@@ -291,10 +296,27 @@ class SpringbootApplicationTests {
 
     @Test
     void testhttp(){
-        HttpService httpService = new HttpService();
-        String res = httpService.restTemplateGet("http://localhost:8080/user/getallchildtest");
-        System.out.println(res);
+//        HttpService httpService = new HttpService();
+//        String res = httpService.restTemplateGet("http://localhost:8080/user/getallchildtest");
+//        System.out.println(res);
     }
+
+//    @Test
+//    void testpost(){
+//        //String url = "http://localhost:8080/api/invoketest";
+//        //String url = "http://jsonplaceholder.typicode.com/posts";
+//        String url = "http://localhost:8080/user/exist";
+//        HttpService service = new HttpService();
+//
+//        //MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+//        //map.add("username","buaa");
+//
+//        Map<String, String> map = new HashMap<>();
+//        map.put("username","buaa");
+//        String res = service.sendPost(url, map);
+//
+//        System.out.println(res);
+//    }
 
 }
 
