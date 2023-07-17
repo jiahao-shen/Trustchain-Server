@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.google.protobuf.Api;
 import com.trustchain.fabric.FabricGateway;
 import com.trustchain.mapper.APIMapper;
 import com.trustchain.mapper.APIRegisterMapper;
@@ -60,7 +61,7 @@ public class APIController {
     public ResponseEntity<Object> apiRegisterApply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
         User login = (User) session.getAttribute("login");
-
+        System.out.println("test"+request);
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
         }
@@ -339,9 +340,9 @@ public class APIController {
         System.out.println(request);
         User login = (User) session.getAttribute("login");
         //TODO: authority organize
-//        if (login == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
-//        }
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
+        }
         ApiInvokeAndInfo  invokeInfo = new ApiInvokeAndInfo();
 
         LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
@@ -378,9 +379,49 @@ public class APIController {
         API api = apiMapper.selectOne(infoWrapper);
         String url = api.getUrl();
         String params = request.getString("params");
+        System.out.println("param:"+ params);
         JSONObject jsonObject = JSON.parseObject(params);
         Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
         HttpMethod httpMethod = api.getMethod();
+        String result = null;
+        Date invoeTime = new Date();
+        if (invoeTime.after(apiInvokeInfo.getStartTime()) && invoeTime.before(apiInvokeInfo.getEndTime())){
+            if (httpMethod.equals(HttpMethod.GET)) {
+                if (params != ""){
+                    result = httpService.sendGetParams(url, map);
+                }else {
+                    result = httpService.sendGet(url);
+                }
+            } else if (httpMethod.equals(HttpMethod.POST)) {
+                if (params != ""){
+                    result = httpService.sendPostParams(url, map);
+                }else{
+                    result = httpService.sendPost(url);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        }else{
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("api invoke time out");
+        }
+    }
+
+    @PostMapping("/api/invoke/test")
+    public ResponseEntity<Object> testApiConnect(@RequestBody JSONObject request, HttpSession session) {
+        System.out.println(request);
+        User login = (User) session.getAttribute("login");
+        //TODO: authority organize
+//        if (login == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
+//        }
+
+        LambdaQueryWrapper<APIRegister> registerWrapper = new LambdaQueryWrapper<>();
+        registerWrapper.eq(APIRegister::getSerialNumber, request.getString("serialNumber"));
+        APIRegister apiRegister = apiRegisterMapper.selectOne(registerWrapper);
+        String url = apiRegister.getUrl();
+        String params = request.getString("params");
+        JSONObject jsonObject = JSON.parseObject(params);
+        Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
+        HttpMethod httpMethod = apiRegister.getMethod();
         String result = null;
         if (httpMethod.equals(HttpMethod.GET)) {
             if (params != ""){
@@ -400,28 +441,22 @@ public class APIController {
 
 
 
-    @PostMapping("/api/invoke/api_test")
-    public ResponseEntity<Object> TestApi(@RequestBody JSONObject request) {
-
-        //String jsonstr = JSON.toJSONString(request);
-        System.out.println(1);
-        String data = request.getString("data");
-        System.out.println(2);
-        JSONObject jsonObject = JSON.parseObject(data);
-        System.out.println(3);
-        Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
-        System.out.println(4);
-        String res = httpService.sendPostParams(request.getString("url"), map);
-        System.out.println(5);
-        System.out.println(res);
-        return ResponseEntity.status(HttpStatus.OK).body("api_test:1234567890");
-    }
-
-    @PostMapping("/apiinvoketest")
-    public ResponseEntity<Object> testinvoke(@RequestBody JSONObject request){
-        System.out.println(request);
-        return ResponseEntity.status(HttpStatus.OK).body("success");
-    }
+//    @PostMapping("/api/invoke/api_test")
+//    public ResponseEntity<Object> TestApi(@RequestBody JSONObject request) {
+//
+//        //String jsonstr = JSON.toJSONString(request);
+//        System.out.println(1);
+//        String data = request.getString("data");
+//        System.out.println(2);
+//        JSONObject jsonObject = JSON.parseObject(data);
+//        System.out.println(3);
+//        Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
+//        System.out.println(4);
+//        String res = httpService.sendPostParams(request.getString("url"), map);
+//        System.out.println(5);
+//        System.out.println(res);
+//        return ResponseEntity.status(HttpStatus.OK).body("api_test:1234567890");
+//    }
 
 
 }
