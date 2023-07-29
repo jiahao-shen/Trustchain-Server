@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.google.protobuf.Api;
 import com.trustchain.fabric.FabricGateway;
 import com.trustchain.mapper.APIMapper;
@@ -58,7 +59,7 @@ public class APIController {
      * 发起API注册申请
      */
     @PostMapping("/api/register/apply")
-    public ResponseEntity<Object> apiRegisterApply(@RequestBody JSONObject request, HttpSession session) {
+    public ResponseEntity<Object> apiRegister(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
         User login = (User) session.getAttribute("login");
         System.out.println("test"+request);
@@ -89,39 +90,40 @@ public class APIController {
         if (count == 0) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
         }
-
-
         return ResponseEntity.status(HttpStatus.OK).body(true);
 
     }
 
     /**
-     * 获取别人发起的注册申请
+     * 获取别人发起的注册申请, and the organization is the login user's organization
      */
     @GetMapping("/api/register/apply/list")
     public ResponseEntity<Object> apiRegisterApplyList(HttpSession sesssion) {
-        User login = (User) sesssion.getAttribute("login");
 
+        User login = (User) sesssion.getAttribute("login");
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
         }
 
         LambdaQueryWrapper<APIRegister> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(APIRegister::getOrganization, login.getOrganization()).orderByDesc(APIRegister::getApplyTime);
-
         List<APIRegister> apiRegisterList = apiRegisterMapper.selectList(queryWrapper);
 
         return ResponseEntity.status(HttpStatus.OK).body(apiRegisterList);
     }
 
+    /**
+     * reply the register apply and after pass insert it into the api table
+     * @param request
+     * @param session
+     * @return
+     */
     @PostMapping("/api/register/reply")
     public ResponseEntity<Object> apiRegisterReply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
 
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
-
         APIRegister apiRegister = apiRegisterMapper.selectById(Long.parseLong(request.getString("serialNumber")));
-
         API api = new API();
         api.setAuthor(apiRegister.getAuthor());
         api.setOrganization(apiRegister.getOrganization());
@@ -141,7 +143,6 @@ public class APIController {
         api.setCreatedTime(new Date());
 
         int count = apiMapper.insert(api);
-
         if (count == 0) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("机构API失败");
         }
@@ -162,44 +163,43 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
 
-
-
-
-
+    /**
+     * show all api which the author is login user
+     * @param session
+     * @return
+     */
     @GetMapping("/api/list/my")
     public ResponseEntity<Object> myAPIList(HttpSession session) {
-        User login = (User) session.getAttribute("login");
 
+        User login = (User) session.getAttribute("login");
         if (login == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("机构API失败");
         }
 
         LambdaQueryWrapper<API> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(API::getAuthor, login.getId());
-
         List<API> myAPIList = apiMapper.selectList(queryWrapper);
         //TODO: add api that we can invoke
-
-
         return ResponseEntity.status(HttpStatus.OK).body(myAPIList);
     }
 
 
-
+    /**
+     * show all api
+     * @param session
+     * @return
+     */
     @GetMapping("/api/list/all")
     public ResponseEntity<Object> allAPIList(HttpSession session) {
 
         LambdaQueryWrapper<API> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByAsc(API::getId).orderByAsc(API::getCreatedTime);
-
         List<APIInfo> allAPIList = apiMapper.getAllAPIList(queryWrapper);
 
         return ResponseEntity.status(HttpStatus.OK).body(allAPIList);
     }
 
-
-
-//    request to invoke a api
+//    start the apply for api invoke
     @PostMapping("/api/invoke/apply")
     public ResponseEntity<Object> apiInvokeApply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
@@ -268,20 +268,18 @@ public class APIController {
 
         LambdaQueryWrapper<APIInvoke> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(APIInvoke::getApplyTime);
-
         List<APIInvokeApprovalInfo> apiInvokeApprovalList = apiInvokeMapper.getAPIInvokeApprovalList(login.getId(), queryWrapper);
 
         return ResponseEntity.status(HttpStatus.OK).body(apiInvokeApprovalList);
     }
 
+    //response for the api invoke
     @PostMapping("/api/invoke/reply")
     public ResponseEntity<Object> apiInvokeReply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
 
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
-
         APIInvoke apiInvoke = apiInvokeMapper.selectById(Long.parseLong(request.getString("serialNumber")));
-
         apiInvoke.setStatus(reply);
         if (reply == RegisterStatus.REJECT) {
             String reason = request.getString("reason");
@@ -312,13 +310,17 @@ public class APIController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    /**
+     * the detailed information for the api during the register period
+     * @param request
+     * @param session
+     * @return
+     */
 
-//  error ??
     @PostMapping("/api/register/information")
     public ResponseEntity<Object> getApiRegisterInformation(@RequestBody JSONObject request, HttpSession session) {
-        System.out.println(request);
-        User login = (User) session.getAttribute("login");
 
+        User login = (User) session.getAttribute("login");
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
         }
@@ -327,49 +329,63 @@ public class APIController {
         queryWrapper.eq(APIRegister::getSerialNumber, request.getString("serialNumber"));
         APIRegister apiRegisterInfo = apiRegisterMapper.selectOne(queryWrapper);
 
-        System.out.println(apiRegisterInfo);
-
-
         return ResponseEntity.status(HttpStatus.OK).body(apiRegisterInfo);
     }
 
-
-    // return api info and  api invoke
+    /**
+     * show the detailed information (both invoke and register) during checking invoke period
+     * @param request
+     * @param session
+     * @return
+     */
     @PostMapping("/api/invoke/information")
     public ResponseEntity<Object> getApiInvokeInformation(@RequestBody JSONObject request, HttpSession session) {
-        System.out.println(request);
+
         User login = (User) session.getAttribute("login");
         //TODO: authority organize
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
         }
-        ApiInvokeAndInfo  invokeInfo = new ApiInvokeAndInfo();
 
-        LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
-        invokeWrapper.eq(APIInvoke::getSerialNumber, request.getString("serialNumber"));
-        APIInvoke apiInvokeInfo = apiInvokeMapper.selectOne(invokeWrapper);
-        invokeInfo.apiInvoke = apiInvokeInfo;
-
-        LambdaQueryWrapper<API> infoWrapper = new LambdaQueryWrapper<>();
-        infoWrapper.eq(API::getId, apiInvokeInfo.getId());
-        API apiInfo = apiMapper.selectOne(infoWrapper);
-        invokeInfo.api = apiInfo;
-
-        System.out.println(invokeInfo);
+        ApiInvokeAndInfo invokeInfo = new ApiInvokeAndInfo();
+        if (request.getString("serialNumber")!=null) {
+            System.out.println(request.getString("serialNumber"));
+            LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
+            invokeWrapper.eq(APIInvoke::getSerialNumber, request.getString("serialNumber"));
+            APIInvoke apiInvokeInfo = apiInvokeMapper.selectOne(invokeWrapper);
+            invokeInfo.apiInvoke = apiInvokeInfo;
+            LambdaQueryWrapper<API> infoWrapper = new LambdaQueryWrapper<>();
+            infoWrapper.eq(API::getId, apiInvokeInfo.getId());
+            API apiInfo = apiMapper.selectOne(infoWrapper);
+            invokeInfo.api = apiInfo;
+        }
+        else{
+            System.out.println("id query");
+            LambdaQueryWrapper<API> infoWrapper = new LambdaQueryWrapper<>();
+            infoWrapper.eq(API::getId, request.getString("id"));
+            API apiInfo = apiMapper.selectOne(infoWrapper);
+            invokeInfo.api = apiInfo;
+        }
+        //System.out.println(invokeInfo);
         return ResponseEntity.status(HttpStatus.OK).body(invokeInfo);
     }
 
 
-
+    /**
+     * invoke an api
+     * @param request
+     * @param session
+     * @return
+     */
     // invoke a api
     @PostMapping("/api/invoke/invokeapi")
     public ResponseEntity<Object> InvokeApi(@RequestBody JSONObject request, HttpSession session) {
-        System.out.println(request);
+
         User login = (User) session.getAttribute("login");
         //TODO: authority organize
-//        if (login == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
-//        }
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
+        }
 
         LambdaQueryWrapper<APIInvoke> invokeWrapper = new LambdaQueryWrapper<>();
         invokeWrapper.eq(APIInvoke::getSerialNumber, request.getString("serialNumber"));
@@ -406,22 +422,12 @@ public class APIController {
     }
 
     @PostMapping("/api/invoke/test")
-    public ResponseEntity<Object> testApiConnect(@RequestBody JSONObject request, HttpSession session) {
-        System.out.println(request);
-        User login = (User) session.getAttribute("login");
-        //TODO: authority organize
-//        if (login == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
-//        }
-
-        LambdaQueryWrapper<APIRegister> registerWrapper = new LambdaQueryWrapper<>();
-        registerWrapper.eq(APIRegister::getSerialNumber, request.getString("serialNumber"));
-        APIRegister apiRegister = apiRegisterMapper.selectOne(registerWrapper);
-        String url = apiRegister.getUrl();
+    public ResponseEntity<Object> TestApi(@RequestBody JSONObject request) {
         String params = request.getString("params");
+        String httpMethod = request.getString("httpMethod");
+        String url = request.getString("url");
         JSONObject jsonObject = JSON.parseObject(params);
         Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
-        HttpMethod httpMethod = apiRegister.getMethod();
         String result = null;
         if (httpMethod.equals(HttpMethod.GET)) {
             if (params != ""){
@@ -438,25 +444,6 @@ public class APIController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
-
-
-
-//    @PostMapping("/api/invoke/api_test")
-//    public ResponseEntity<Object> TestApi(@RequestBody JSONObject request) {
-//
-//        //String jsonstr = JSON.toJSONString(request);
-//        System.out.println(1);
-//        String data = request.getString("data");
-//        System.out.println(2);
-//        JSONObject jsonObject = JSON.parseObject(data);
-//        System.out.println(3);
-//        Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
-//        System.out.println(4);
-//        String res = httpService.sendPostParams(request.getString("url"), map);
-//        System.out.println(5);
-//        System.out.println(res);
-//        return ResponseEntity.status(HttpStatus.OK).body("api_test:1234567890");
-//    }
 
 
 }

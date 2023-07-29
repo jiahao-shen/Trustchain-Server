@@ -58,8 +58,6 @@ public class OrganizationController {
     @Autowired
     private RedisConfig redisConfig = new RedisConfig();
 
-
-
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
     RedisConnectionFactory redisConnectionFactory = redisConfig.initConnectionFactory();
@@ -96,7 +94,6 @@ public class OrganizationController {
         if (StringUtils.isNotEmpty(verifyCode) && verifyCodeRedis.equals(verifyCode)) {
             redisTemplate.delete(email);
             int count = organizationRegisterMapper.insert(organizationRegister);
-
             if (count != 0) {
                 String serialNumber = organizationRegister.getSerialNumber().toString();
                 String logoPath = String.format("organization_register/%s/logo.jpg", serialNumber);
@@ -108,8 +105,6 @@ public class OrganizationController {
                 organizationRegister.setLogo(logoPath);
                 organizationRegister.setFile(filePath);
                 organizationRegisterMapper.updateById(organizationRegister);
-
-
                 return ResponseEntity.status(HttpStatus.OK).body(serialNumber);
             }else{
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
@@ -121,19 +116,18 @@ public class OrganizationController {
     }
 
     /**
-     * 机构注册申请列表
+     * get 机构注册申请列表 which the superior is the login user
      */
     @GetMapping("/organization/register/approval/list")
     public ResponseEntity<Object> organizationRegisterApplyList(HttpSession session) {
-        User login = (User) session.getAttribute("login");
 
+        User login = (User) session.getAttribute("login");
         if (login == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
         }
 
         LambdaQueryWrapper<OrganizationRegister> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OrganizationRegister::getSuperior, login.getOrganization()).orderByDesc(OrganizationRegister::getApplyTime);
-
         List<OrganizationRegister> organizationRegisterList = organizationRegisterMapper.selectList(queryWrapper);
 
         return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
@@ -147,7 +141,6 @@ public class OrganizationController {
         logger.info(request);
 
         ArrayList<Long> serialNumbers = request.getObject("serialNumbers", ArrayList.class);
-
         List<OrganizationRegister> organizationRegisterList = organizationRegisterMapper.selectBatchIds(serialNumbers);
 
         return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
@@ -160,6 +153,7 @@ public class OrganizationController {
     @PostMapping("/organization/register/reply")
     public ResponseEntity<Object> organizationRegisterReply(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
+
 
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
 
@@ -197,12 +191,7 @@ public class OrganizationController {
         user.setUsername(organization.getName());
         user.setPassword(encoder.encode(organizationRegister.getPassword()));
         user.setOrganization(Long.parseLong(String.valueOf(organization.getId())));
-        Long admin = (long)1668531762319499265l;
-        if (organization.getSuperior().equals(admin)){
-            user.setType(UserType.ADMIN);
-        }else{
-            user.setType(UserType.NORMAL);
-        }
+        user.setType(UserType.ADMIN);
         user.setCreatedTime(new Date());
         count = userMapper.insert(user);
         if (count == 0) {
@@ -282,14 +271,16 @@ public class OrganizationController {
     @PostMapping("/organization/information")
     public ResponseEntity<Object> organizationInformation(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
-
         OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
-
-        System.out.println(organizationInfo);
 
         return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
     }
 
+    /**
+     * get the list which the superior is the login organization
+     * @param session
+     * @return
+     */
     @GetMapping("/organization/subordinate/list")
     public ResponseEntity<Object> organizationSubordinateList(HttpSession session) {
         User login = (User) session.getAttribute("login");
@@ -300,90 +291,175 @@ public class OrganizationController {
 
         LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Organization::getSuperior, login.getOrganization());
-
         List<Organization> subordinateList = organizationMapper.selectList(queryWrapper);
 
         return ResponseEntity.status(HttpStatus.OK).body(subordinateList);
     }
 
-    /*
-     * modify organization information
-     */
 
-
-
+//    @PostMapping("/organization/modifyinformation")
+//    public ResponseEntity<Object> organizationModifyInformation(@RequestPart("logo") MultipartFile logo,
+//                                                                @RequestPart("info") JSONObject request,
+//                                                                HttpSession session) {
+//        System.out.println(0);
+//        System.out.println(request.getString("id")+","+request.getString("name"));
+////        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
+////        String newName = request.getString("name");
+////        System.out.println(1);
+////        if(!organizationInfo.getName().equals(newName)){
+////            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+////            queryWrapper.eq(User::getUsername, newName);
+////            User user = userMapper.selectOne(queryWrapper);
+////            if(user != null){
+////                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("duplicate username");
+////            }
+////        }
+////        System.out.println(2);
+////        organizationInfo.setName(request.getString("name"));
+////        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
+////        organizationInfo.setTelephone(request.getString("telephone"));
+////        organizationInfo.setEmail(request.getString("email"));
+////        organizationInfo.setCity(request.getString("city"));
+////        organizationInfo.setAddress(request.getString("address"));
+////        organizationInfo.setIntroduction(request.getString("introduction"));
+////        //    update logo
+////        Long orgID = organizationInfo.getId();
+////
+////        String logoPath = String.format("organization/%s/logo.jpg", orgID);
+////        // 上传至云盘
+////        minioService.upload(logo, logoPath);
+////        // 云端复制文件 to origin path
+////        //String newLogoPath = String.format("organization/%s/logo.jpg", orgID);
+////        //minioService.copy(logoPath,organizationInfo.getLogo());
+////        //minioService.copy(logoPath,newLogoPath);
+////
+////        organizationInfo.setLogo(logoPath);
+////
+////        int count = organizationMapper.updateById(organizationInfo);
+////        if(count != 0){
+////            //7.28 modify the user name while modify the organization name
+////            System.out.println(3);
+////            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+////            queryWrapper.eq(User::getOrganization, organizationInfo.getId());
+////            User user = userMapper.selectOne(queryWrapper);
+////            user.setUsername(newName);
+////            int countuser = userMapper.updateById(user);
+////            if(countuser != 0){
+////                System.out.println(4);
+////                return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
+////            }else{
+////                System.out.println(5);
+////                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+////            }
+////        }else{
+////            System.out.println(6);
+////            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+////        }
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+//    }
 
     @PostMapping("/organization/modifyinformation")
-    public ResponseEntity<Object> organizationModifyInformation(@RequestPart("logo") MultipartFile logo,
-                                                                @RequestPart("info") JSONObject request,
+    public ResponseEntity<Object> organizationModifyInformation(
                                                                 HttpSession session) {
-//        logger.info(request);
-//        System.out.println("in");
-
-        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
-        organizationInfo.setName(request.getString("name"));
-        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
-        organizationInfo.setTelephone(request.getString("telephone"));
-        organizationInfo.setEmail(request.getString("email"));
-        organizationInfo.setCity(request.getString("city"));
-        organizationInfo.setAddress(request.getString("address"));
-        organizationInfo.setIntroduction(request.getString("introduction"));
-        //    update logo
-
-        Long orgID = organizationInfo.getId();
-
-        String logoPath = String.format("organization/%s/logo.jpg", orgID);
-        // 上传至云盘
-        minioService.upload(logo, logoPath);
-        // 云端复制文件 to origin path
-        //String newLogoPath = String.format("organization/%s/logo.jpg", orgID);
-        //minioService.copy(logoPath,organizationInfo.getLogo());
-        //minioService.copy(logoPath,newLogoPath);
-
-        organizationInfo.setLogo(logoPath);
-
-        int count = organizationMapper.updateById(organizationInfo);
-
-        if(count != 0){
-            return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
-        }else{
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-        }
+        System.out.println(0);
+        //System.out.println(request.getString("id")+","+request.getString("name"));
+//        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
+//        String newName = request.getString("name");
+//        System.out.println(1);
+//        if(!organizationInfo.getName().equals(newName)){
+//            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+//            queryWrapper.eq(User::getUsername, newName);
+//            User user = userMapper.selectOne(queryWrapper);
+//            if(user != null){
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("duplicate username");
+//            }
+//        }
+//        System.out.println(2);
+//        organizationInfo.setName(request.getString("name"));
+//        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
+//        organizationInfo.setTelephone(request.getString("telephone"));
+//        organizationInfo.setEmail(request.getString("email"));
+//        organizationInfo.setCity(request.getString("city"));
+//        organizationInfo.setAddress(request.getString("address"));
+//        organizationInfo.setIntroduction(request.getString("introduction"));
+//        //    update logo
+//        Long orgID = organizationInfo.getId();
+//
+//        String logoPath = String.format("organization/%s/logo.jpg", orgID);
+//        // 上传至云盘
+//        minioService.upload(logo, logoPath);
+//        // 云端复制文件 to origin path
+//        //String newLogoPath = String.format("organization/%s/logo.jpg", orgID);
+//        //minioService.copy(logoPath,organizationInfo.getLogo());
+//        //minioService.copy(logoPath,newLogoPath);
+//
+//        organizationInfo.setLogo(logoPath);
+//
+//        int count = organizationMapper.updateById(organizationInfo);
+//        if(count != 0){
+//            //7.28 modify the user name while modify the organization name
+//            System.out.println(3);
+//            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+//            queryWrapper.eq(User::getOrganization, organizationInfo.getId());
+//            User user = userMapper.selectOne(queryWrapper);
+//            user.setUsername(newName);
+//            int countuser = userMapper.updateById(user);
+//            if(countuser != 0){
+//                System.out.println(4);
+//                return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
+//            }else{
+//                System.out.println(5);
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+//            }
+//        }else{
+//            System.out.println(6);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+//        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
     }
 
 
     /**
-     *
+     *get the detailded information
      */
     @PostMapping("/organization/register/information")
     public ResponseEntity<Object> getorganizationRegisterInformation(@RequestBody JSONObject request, HttpSession session) {
+
         logger.info(request);
-        System.out.println("test");
-        System.out.println(request.getString("serialNumber"));
-//        OrganizationRegister organizationRegisterInfo = organizationRegisterMapper.getOrganizationRegisterInformation(Long.parseLong(request.getString("serialNumber")));
+
         LambdaQueryWrapper<OrganizationRegister> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OrganizationRegister::getSerialNumber, request.getString("serialNumber"));
-
         OrganizationRegister organizationRegisterInfo = organizationRegisterMapper.selectOne(queryWrapper);
-
-
-        System.out.println(organizationRegisterInfo);
 
         return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterInfo);
     }
 
+    /**
+     * send the verify email
+     * @param request
+     * @return
+     */
     @PostMapping("/organization/register/sendverifycode")
     public ResponseEntity<Object> sendVerifyCode(@RequestBody JSONObject request){
 
+
         String verifyCode = emailService.verifycode();
         String emailaddr = request.getString("email");
+
+        // 7.28 email address check
+        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Organization::getEmail,emailaddr);
+        Organization organization = organizationMapper.selectOne(queryWrapper);
+        if(organization != null){
+            return ResponseEntity.status(HttpStatus.OK).body("This email address has been registered");
+        }
         String message = "Welcome to data platform. Your verify code value is: " + verifyCode + ". Valid for 5 minutes.";
         String subject = "Your data platform verify code";
 
         //save to the redis
 
         RedisTemplate redisTemplate = redisConfig.redisTemplate(redisConnectionFactory);
-        redisTemplate.opsForValue().set(emailaddr, verifyCode, 1, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(emailaddr, verifyCode, 5, TimeUnit.MINUTES);
 
         Boolean success = emailService.send(emailaddr, message, subject);
 
@@ -394,28 +470,34 @@ public class OrganizationController {
         }
     }
 
-
-
+    /**
+     * while forgetting the password, send the verify code to refind the password
+     * @param request
+     * @return
+     */
     // forgotpasswd, get verifycode
     @PostMapping("/organization/forgotpasswd/sendverifycode")
     public ResponseEntity<Object> sendForgotPasswdVerifyCode(@RequestBody JSONObject request){
         String verifyCode = emailService.verifycode();
-        System.out.println(verifyCode);
         String emailaddr = request.getString("email");
         String message = "Reset Passwd. Your verify code value is: " + verifyCode + ". Valid for 5 minutes.";
         String subject = "Forgot Passwd";
         //save to the redis`
         RedisTemplate redisTemplate = redisConfig.redisTemplate(redisConnectionFactory);
-        redisTemplate.opsForValue().set(emailaddr, verifyCode, 1, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(emailaddr, verifyCode, 5, TimeUnit.MINUTES);
         Boolean success = emailService.send(emailaddr, message, subject);
         if (success) {
-
             return ResponseEntity.status(HttpStatus.OK).body("success"); // body yao me chuan shi ti, yao me chuan duixiang
         }else{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
         }
     }
 
+    /**
+     * check the verify code
+     * @param request
+     * @return
+     */
     // forgotpasswd, confirm verifycode
     @PostMapping("/organization/forgotpasswd/confirmverifycode")
     public ResponseEntity<Object> VerifyForgotPasswdCode(@RequestBody JSONObject request){
@@ -430,13 +512,11 @@ public class OrganizationController {
             LambdaQueryWrapper<Organization> orgWrapper = new LambdaQueryWrapper<>();
             orgWrapper.eq(Organization::getEmail, request.getString("email"));
             Organization org = organizationMapper.selectOne(orgWrapper);
-            System.out.println(org);
             // from org to userdmin
             LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
             userWrapper.eq(User::getOrganization, org.getId());
             userWrapper.eq(User::getType, UserType.ADMIN);
             User user = userMapper.selectOne(userWrapper);
-            System.out.println(user);
             return ResponseEntity.status(HttpStatus.OK).body(user); // body yao me chuan shi ti, yao me chuan duixiang
         }else{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
@@ -444,51 +524,6 @@ public class OrganizationController {
     }
 
 
-    // forgotpasswd, reset passwd
-    @PostMapping("/organization/resetpasswd")
-    public ResponseEntity<Object> ResetPasswdCode(@RequestBody JSONObject request,HttpSession session){
-        System.out.println(request);
-        //TODO: some question, how to limit user registering here directly?
-        User login = (User) session.getAttribute("login");
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        // user has logined
-        if (login != null) { // user has logined
-            String username = login.getUsername();
-            LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
-            userWrapper.eq(User::getUsername, username);
-            User user = userMapper.selectOne(userWrapper);
-            user.setPassword(encoder.encode(request.getString("newpassword")));
-            int count = userMapper.updateById(user);
-            if(count != 0) {
-                return ResponseEntity.status(HttpStatus.OK).body("success"); // body yao me chuan shi ti, yao me chuan duixiang
-            }
-            else{
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-            }
-        }
-
-        // if no user
-        String username= request.getString("username");
-        String password = request.getString("password"); // take passwd as token
-        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
-        userWrapper.eq(User::getUsername, username);
-        User user = userMapper.selectOne(userWrapper);
-        if (user.getPassword().equals(password)){
-            user.setPassword(encoder.encode(request.getString("newpassword")));
-            int count = userMapper.updateById(user);
-            if(count != 0) {
-                return ResponseEntity.status(HttpStatus.OK).body("success"); // body yao me chuan shi ti, yao me chuan duixiang
-            }
-            else{
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-            }
-
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-        }
-
-
-    }
 
 
 }

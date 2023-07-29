@@ -76,7 +76,6 @@ public class UserController {
         user.setType(UserType.valueOf(request.getString("type")));
         user.setCreatedTime(new Date());
 
-
         int count = userMapper.insert(user);
         if (count != 0) {
             return ResponseEntity.status(HttpStatus.OK).body(true);
@@ -124,19 +123,27 @@ public class UserController {
         }
     }
 
+    /**
+     * create child user for the organization
+     */
     @PostMapping("/user/createchild")
     public ResponseEntity<Object> createchilduser(@RequestBody JSONObject request, HttpSession session) {
 
         logger.info(request);
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        User login = (User) session.getAttribute("login");
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
+        }
+        logger.info(request);
 
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         User user = new User();
-        user.setUsername(request.getString("username"));
+        user.setUsername(login.getUsername()+"."+request.getString("username"));
         user.setPassword(encoder.encode(request.getString("password")));
-        user.setOrganization(Long.parseLong(request.getString("organization")));
+        //user.setOrganization(Long.parseLong(request.getString("organization")));
+        user.setOrganization(login.getOrganization());  //7.26 update
         user.setType(UserType.NORMAL);
         user.setCreatedTime(new Date());
-
         int count = userMapper.insert(user);
         if (count != 0) {
             return ResponseEntity.status(HttpStatus.OK).body(true);
@@ -145,6 +152,9 @@ public class UserController {
         }
     }
 
+    /**
+     * get the child user list for one organization
+     */
     @GetMapping ("/user/getallchild")
     public ResponseEntity<Object> getchilduser(HttpSession session) {
 
@@ -157,9 +167,8 @@ public class UserController {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         if (login.getType().equals(UserType.ADMIN)) {
             queryWrapper.eq(User::getOrganization, login.getOrganization()).ne(User::getType, UserType.ADMIN);
-
+            //queryWrapper.eq(User::getOrganization, login.getOrganization())   7.26 if want to show the admin user at the same time, use this line
             List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
-
             return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
         }
         else{
@@ -167,56 +176,83 @@ public class UserController {
         }
     }
 
-    @GetMapping ("/user/getallchildtest")
-    public ResponseEntity<Object> getchildusertest() {
-
-
-
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        long id = 1676784493157113858L;
-        queryWrapper.eq(User::getOrganization, id).ne(User::getType, UserType.ADMIN);
-
-        List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
-
-        return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
-    }
-
-    @PostMapping ("/user/getallchildtestpost")
-    public ResponseEntity<Object> getchildusertestpost() {
-
-
-
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        long id = 1676784493157113858L;
-        queryWrapper.eq(User::getOrganization, id).ne(User::getType, UserType.ADMIN);
-
-        List<User> organizationRegisterList = userMapper.selectList(queryWrapper);
-
-        return ResponseEntity.status(HttpStatus.OK).body(organizationRegisterList);
-    }
-
-
-
+    /**
+     * modify the child user information
+     * @param request
+     * @param session
+     * @return
+     */
    @PostMapping("/user/modifychildinformation")
     public ResponseEntity<Object> modifychildinfo(@RequestBody JSONObject request, HttpSession session) {
 
-        System.out.println(request);
-       BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+       logger.info(request);
+       User login = (User) session.getAttribute("login");
+       if (login == null) {
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
+       }
 
+       BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
        queryWrapper.eq(User::getId, Long.parseLong(request.getString("id")));
        User user = userMapper.selectOne(queryWrapper);
-       user.setUsername(request.getString("username"));
+       user.setUsername(login.getUsername()+"."+request.getString("username"));  //7.26 child username set as xxx.xxx
        user.setPassword(encoder.encode(request.getString("password")));
 
        int count = userMapper.updateById(user);
-
        if(count != 0){
            return ResponseEntity.status(HttpStatus.OK).body("OK");
        }else{
            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
        }
-
    }
+
+    /**
+     * reset the user password
+     * @param request
+     * @param session
+     * @return
+     */
+    // forgotpasswd, reset passwd
+    @PostMapping("/user/resetpasswd")
+    public ResponseEntity<Object> ResetPasswdCode(@RequestBody JSONObject request,HttpSession session){
+
+        //TODO: some question, how to limit user registering here directly?
+        User login = (User) session.getAttribute("login");
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        // user has logined
+        if (login != null) { // user has logined
+            String username = login.getUsername();
+            LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+            userWrapper.eq(User::getUsername, username);
+            User user = userMapper.selectOne(userWrapper);
+            user.setPassword(encoder.encode(request.getString("newpassword")));
+            int count = userMapper.updateById(user);
+            if(count != 0) {
+                return ResponseEntity.status(HttpStatus.OK).body("success"); // body yao me chuan shi ti, yao me chuan duixiang
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+            }
+        }
+
+        // if no user
+        String username= request.getString("username");
+        String password = request.getString("password"); // take passwd as token
+        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+        userWrapper.eq(User::getUsername, username);
+        User user = userMapper.selectOne(userWrapper);
+        if (user.getPassword().equals(password)){
+            user.setPassword(encoder.encode(request.getString("newpassword")));
+            int count = userMapper.updateById(user);
+            if(count != 0) {
+                return ResponseEntity.status(HttpStatus.OK).body("success"); // body yao me chuan shi ti, yao me chuan duixiang
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+        }
+    }
 
 }
