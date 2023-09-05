@@ -5,10 +5,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.google.api.Http;
 import com.google.protobuf.Api;
 import com.trustchain.fabric.FabricGateway;
 import com.trustchain.mapper.APIMapper;
 import com.trustchain.mapper.APIRegisterMapper;
+import com.trustchain.minio.MinioConfig;
 import com.trustchain.model.*;
 import com.trustchain.enums.APIInvokeMethod;
 import com.trustchain.enums.BodyType;
@@ -17,6 +19,7 @@ import com.trustchain.enums.RegisterStatus;
 import com.trustchain.mapper.APIInvokeMapper;
 import com.trustchain.service.FabricService;
 import com.trustchain.service.HttpService;
+import com.trustchain.service.MinioService;
 import io.opentelemetry.sdk.logs.data.Body;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -28,6 +31,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
@@ -54,6 +58,9 @@ public class APIController {
 
     @Autowired
     private HttpService httpService;
+
+    @Autowired
+    private MinioService minioService;
 
     /**
      * 发起API注册申请
@@ -417,34 +424,98 @@ public class APIController {
             }
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }else{
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("api invoke time out");
+            return ResponseEntity.status(HttpStatus.OK).body("api invoke time out");
         }
     }
 
+    /**
+     * check the connection of the api while verify one api register apply
+     * @param request
+     * @return
+     */
     @PostMapping("/api/invoke/test")
     public ResponseEntity<Object> TestApi(@RequestBody JSONObject request) {
         String params = request.getString("params");
         String httpMethod = request.getString("httpMethod");
         String url = request.getString("url");
+        System.out.println(params+" "+httpMethod+" "+url);
         JSONObject jsonObject = JSON.parseObject(params);
         Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
         String result = null;
-        if (httpMethod.equals(HttpMethod.GET)) {
+        System.out.println(1);
+        if (httpMethod.equals("1")) {
             if (params != ""){
+                System.out.println(2);
                 result = httpService.sendGetParams(url, map);
             }else {
+                System.out.println(3);
                 result = httpService.sendGet(url);
             }
-        } else if (httpMethod.equals(HttpMethod.POST)) {
+        } else if (httpMethod.equals("2")) {
             if (params != ""){
+                System.out.println(4);
                 result = httpService.sendPostParams(url, map);
             }else{
+                System.out.println(5);
                 result = httpService.sendPost(url);
             }
         }
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    /**
+     * register api for no ip user (only support image now)
+     */
+    @PostMapping("/api/noip/register")
+    public ResponseEntity<Object> noIpApiRegister(@RequestPart("image") MultipartFile image,
+                                                  @RequestPart("info") JSONObject request,
+                                                  HttpSession session) {
+        logger.info(request);
+        User login = (User) session.getAttribute("login");
+        if (login == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
+        }
+        //String imagePath = String.format("organization_register/%s/logo.jpg", serialNumber);
+
+        APIRegister apiRegister = new APIRegister();
+        apiRegister.setName(request.getString("name"));
+        apiRegister.setAuthor(login.getId());
+        apiRegister.setOrganization(login.getOrganization());
+        apiRegister.setUrl("");
+        apiRegister.setMethod(HttpMethod.valueOf(request.getString("method")));
+        apiRegister.setIntroduction(request.getString("introduction"));
+        apiRegister.setCategory(request.getString("category"));
+        apiRegister.setAuthorize(request.getString("authorize"));
+        apiRegister.setVersion(request.getString("version"));
+        apiRegister.setHeaderType(BodyType.valueOf(request.getString("headerType")));
+        apiRegister.setHeader(request.getString("header"));
+        apiRegister.setRequestType(BodyType.valueOf(request.getString("requestType")));
+        apiRegister.setRequest("-1");
+        apiRegister.setResponseType(BodyType.valueOf(request.getString("responseType")));
+        apiRegister.setResponse(request.getString("response"));
+        apiRegister.setStatus(RegisterStatus.PROCESSED);
+        apiRegister.setApplyTime(new Date());
+
+        int count = apiRegisterMapper.insert(apiRegister);
+
+        if (count == 0) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
+        }else{
+            String imagePath = String.format("api_register/%s/file.zip", apiRegister.getSerialNumber().toString());
+
+            minioService.upload(image, imagePath);
+
+            String url = minioService.getConfig().getEndpoint()+"/"+minioService.getConfig().getBucket()+"/"+imagePath;
+            apiRegister.setUrl(url);
+            int num = apiRegisterMapper.updateById(apiRegister);
+
+            if(num == 0){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
+            }else{
+                return ResponseEntity.status(HttpStatus.OK).body(true);
+            }
+        }
+    }
 
 }
 

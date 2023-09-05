@@ -2,6 +2,7 @@ package com.trustchain.service;
 
 import com.trustchain.minio.MinioConfig;
 import io.minio.*;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Data
 public class MinioService {
     private MinioConfig config;
 

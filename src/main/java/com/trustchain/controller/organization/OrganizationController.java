@@ -172,8 +172,6 @@ public class OrganizationController {
         organization.setProvideNode(organizationRegister.isProvideNode());
         organization.setNumNodes(organizationRegister.getNumNodes());
         organization.setCreatedTime(new Date());
-
-
         // create organzation user
         int count = organizationMapper.insert(organization);
 
@@ -185,12 +183,16 @@ public class OrganizationController {
 //        queryWrapper.eq(Organization::getName, organizationRegister.getName());
 //        Organization org = organizationMapper.selectOne(queryWrapper);
 
-
+        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Organization::getName, organizationRegister.getName());
+        Organization org = organizationMapper.selectOne(queryWrapper);
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         User user = new User();
         user.setUsername(organization.getName());
         user.setPassword(encoder.encode(organizationRegister.getPassword()));
-        user.setOrganization(Long.parseLong(String.valueOf(organization.getId())));
+        // TODO: organization bang ding wrong
+        System.out.println("----"+org.getId());
+        user.setOrganization(Long.parseLong(String.valueOf(org.getId()))); //zhe li
         user.setType(UserType.ADMIN);
         user.setCreatedTime(new Date());
         count = userMapper.insert(user);
@@ -199,7 +201,7 @@ public class OrganizationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("user创建失败");
         }
 
-        Long orgID = organization.getId();
+        Long orgID = org.getId();
         organizationRegister.setId(orgID);   // 机构注册绑定机构ID
         organizationRegister.setStatus(reply);  // 更新注册状态
         if (reply == RegisterStatus.REJECT) {
@@ -215,16 +217,16 @@ public class OrganizationController {
         minioService.copy(organizationRegister.getLogo(), newLogoPath);
         minioService.copy(organizationRegister.getFile(), newFilePath);
         // 存入数据库
-        organization.setLogo(newLogoPath);
-        organization.setFile(newFilePath);
-        organizationMapper.updateById(organization);
+        org.setLogo(newLogoPath);
+        org.setFile(newFilePath);
+        organizationMapper.updateById(org);
 
 //        // 存储上链
 //        fabricService.saveOrganization(organization);
 
         // send email
 
-        Boolean IsOk = emailService.send(organization.getEmail(), "Your Name is:"+organization.getName() + "\n"+ "Your Password is:"+organizationRegister.getPassword(),
+        Boolean IsOk = emailService.send(org.getEmail(), "Your Name is:"+org.getName() + "\n"+ "Your Password is:"+organizationRegister.getPassword(),
                 "Welcome to Data Share Platform");
         if (IsOk) {
             return ResponseEntity.status(HttpStatus.OK).body("success");
@@ -240,7 +242,7 @@ public class OrganizationController {
     @PostMapping("/organization/exist")
     public ResponseEntity<Object> organizationExist(@RequestBody JSONObject request, HttpSession session) {
         logger.info(request);
-
+        System.out.println("inin: "+request);
         LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Organization::getName, request.getString("name"));
 
@@ -274,6 +276,19 @@ public class OrganizationController {
         OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
 
         return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
+    }
+
+    @PostMapping("/organization/info")
+    public ResponseEntity<Object> organizationInformationTest(@RequestBody JSONObject request) {
+        logger.info(request);
+        String orgName = request.getString("name");
+        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Organization::getName, orgName);
+        Organization organization = organizationMapper.selectOne(queryWrapper);
+
+        //OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
+
+        return ResponseEntity.status(HttpStatus.OK).body(organization);
     }
 
     /**
@@ -358,65 +373,146 @@ public class OrganizationController {
 //        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
 //    }
 
+
+
     @PostMapping("/organization/modifyinformation")
-    public ResponseEntity<Object> organizationModifyInformation(
+    public ResponseEntity<Object> organizationModifyInformation(@RequestPart("logo") MultipartFile logo,
+                                                               @RequestPart("info") JSONObject request,
                                                                 HttpSession session) {
         System.out.println(0);
-        //System.out.println(request.getString("id")+","+request.getString("name"));
-//        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
-//        String newName = request.getString("name");
-//        System.out.println(1);
-//        if(!organizationInfo.getName().equals(newName)){
-//            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-//            queryWrapper.eq(User::getUsername, newName);
-//            User user = userMapper.selectOne(queryWrapper);
-//            if(user != null){
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("duplicate username");
-//            }
-//        }
-//        System.out.println(2);
-//        organizationInfo.setName(request.getString("name"));
-//        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
-//        organizationInfo.setTelephone(request.getString("telephone"));
-//        organizationInfo.setEmail(request.getString("email"));
-//        organizationInfo.setCity(request.getString("city"));
-//        organizationInfo.setAddress(request.getString("address"));
-//        organizationInfo.setIntroduction(request.getString("introduction"));
-//        //    update logo
-//        Long orgID = organizationInfo.getId();
-//
-//        String logoPath = String.format("organization/%s/logo.jpg", orgID);
-//        // 上传至云盘
-//        minioService.upload(logo, logoPath);
-//        // 云端复制文件 to origin path
-//        //String newLogoPath = String.format("organization/%s/logo.jpg", orgID);
-//        //minioService.copy(logoPath,organizationInfo.getLogo());
-//        //minioService.copy(logoPath,newLogoPath);
-//
-//        organizationInfo.setLogo(logoPath);
-//
-//        int count = organizationMapper.updateById(organizationInfo);
-//        if(count != 0){
-//            //7.28 modify the user name while modify the organization name
-//            System.out.println(3);
-//            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-//            queryWrapper.eq(User::getOrganization, organizationInfo.getId());
-//            User user = userMapper.selectOne(queryWrapper);
-//            user.setUsername(newName);
-//            int countuser = userMapper.updateById(user);
-//            if(countuser != 0){
-//                System.out.println(4);
-//                return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
-//            }else{
-//                System.out.println(5);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-//            }
-//        }else{
-//            System.out.println(6);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
-//        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+        System.out.println(request.getString("id")+","+request.getString("name"));
+        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
+        String newName = request.getString("name");
+        String oldName = organizationInfo.getName();
+        System.out.println(1);
+        if(!organizationInfo.getName().equals(newName)){
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            // pan duan shi fou you yi yang de, user chong tu
+            queryWrapper.eq(User::getUsername, newName);
+            User user = userMapper.selectOne(queryWrapper);
+            if(user != null){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("duplicate username");
+            }
+        }
+        organizationInfo.setName(request.getString("name"));
+        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
+        organizationInfo.setTelephone(request.getString("telephone"));
+        organizationInfo.setEmail(request.getString("email"));
+        organizationInfo.setCity(request.getString("city"));
+        organizationInfo.setAddress(request.getString("address"));
+        organizationInfo.setIntroduction(request.getString("introduction"));
+        Long orgID = organizationInfo.getId();
+
+
+        String logoPath = String.format("organization/%s/logo.jpg", orgID);
+        minioService.upload(logo, logoPath);
+        organizationInfo.setLogo(logoPath);
+        int count = organizationMapper.updateById(organizationInfo);
+        if(count != 0){
+            //7.28 modify the user name while modify the organization name, only admin
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(User::getUsername, oldName);
+            User user = userMapper.selectOne(queryWrapper);
+            user.setUsername(newName);
+            //
+            int countuser = userMapper.updateById(user);
+            // TODO: for all users
+            if(countuser != 0){
+                LambdaQueryWrapper<User> queryWrapper_child = new LambdaQueryWrapper<>();
+                queryWrapper_child.eq(User::getOrganization, organizationInfo.getId()).eq(User::getType, UserType.NORMAL);
+                List<User> childuserlist = userMapper.selectList(queryWrapper_child);
+                Iterator<User> iterator = childuserlist.iterator();
+                while(iterator.hasNext()){
+                    User childuser = iterator.next();
+                    String nameFormer = childuser.getUsername();
+
+                    String[] the_split = nameFormer.split("\\.");
+                    String realUsername = the_split[1];
+                    childuser.setUsername(organizationInfo.getName()+"."+realUsername);
+                    int countchilduser = userMapper.updateById(childuser);
+                    if(countchilduser == 0){
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+                    }
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
+            }else{
+                return ResponseEntity.status(HttpStatus.OK).body("fault");
+            }
+        }else{
+            System.out.println(6);
+            return ResponseEntity.status(HttpStatus.OK).body("fault");
+        }
+        //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
     }
+
+    @PostMapping("/organization/modifyinformationwithoutlogo")
+    public ResponseEntity<Object> organizationModifyInformation(@RequestPart("info") JSONObject request,
+                                                                HttpSession session) {
+        System.out.println(0);
+        System.out.println(request.getString("id")+","+request.getString("name"));
+        OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
+        String newName = request.getString("name");
+        String oldName = organizationInfo.getName();
+        System.out.println(1);
+        if(!organizationInfo.getName().equals(newName)){
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            // pan duan shi fou you yi yang de, user chong tu
+            queryWrapper.eq(User::getUsername, newName);
+            User user = userMapper.selectOne(queryWrapper);
+            if(user != null){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("duplicate username");
+            }
+        }
+        organizationInfo.setName(request.getString("name"));
+        organizationInfo.setType(OrganizationType.valueOf(request.getString("type")));
+        organizationInfo.setTelephone(request.getString("telephone"));
+        organizationInfo.setEmail(request.getString("email"));
+        organizationInfo.setCity(request.getString("city"));
+        organizationInfo.setAddress(request.getString("address"));
+        organizationInfo.setIntroduction(request.getString("introduction"));
+        Long orgID = organizationInfo.getId();
+        int count = organizationMapper.updateById(organizationInfo);
+        if(count != 0){
+            //7.28 modify the user name while modify the organization name, only admin
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(User::getUsername, oldName);
+            User user = userMapper.selectOne(queryWrapper);
+            user.setUsername(newName);
+            //
+            int countuser = userMapper.updateById(user);
+            // TODO: for all users
+            if(countuser != 0){
+                LambdaQueryWrapper<User> queryWrapper_child = new LambdaQueryWrapper<>();
+                queryWrapper_child.eq(User::getOrganization, organizationInfo.getId()).eq(User::getType, UserType.NORMAL);
+                List<User> childuserlist = userMapper.selectList(queryWrapper_child);
+                Iterator<User> iterator = childuserlist.iterator();
+                while(iterator.hasNext()){
+                    User childuser = iterator.next();
+                    String nameFormer = childuser.getUsername();
+                    System.out.println("----"+nameFormer);
+                    String[] the_split = nameFormer.split("\\.");
+                    System.out.println(the_split.length);
+                    for (int i=0;i<the_split.length;i++){
+                        System.out.println(the_split[i]);
+                    }
+                    String realUsername = the_split[1];
+                    childuser.setUsername(organizationInfo.getName()+"."+realUsername);
+                    int countchilduser = userMapper.updateById(childuser);
+                    if(countchilduser == 0){
+                        return ResponseEntity.status(HttpStatus.OK).body("fault");
+                    }
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(organizationInfo);
+            }else{
+                return ResponseEntity.status(HttpStatus.OK).body("fault");
+            }
+        }else{
+            System.out.println(6);
+            return ResponseEntity.status(HttpStatus.OK).body("fault");
+        }
+        //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fault");
+    }
+
 
 
     /**
@@ -447,10 +543,10 @@ public class OrganizationController {
         String emailaddr = request.getString("email");
 
         // 7.28 email address check
-        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Organization::getEmail,emailaddr);
-        Organization organization = organizationMapper.selectOne(queryWrapper);
-        if(organization != null){
+        LambdaQueryWrapper<OrganizationRegister> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OrganizationRegister::getEmail,emailaddr);
+        OrganizationRegister organizationRegister = organizationRegisterMapper.selectOne(queryWrapper);
+        if(organizationRegister != null){
             return ResponseEntity.status(HttpStatus.OK).body("This email address has been registered");
         }
         String message = "Welcome to data platform. Your verify code value is: " + verifyCode + ". Valid for 5 minutes.";

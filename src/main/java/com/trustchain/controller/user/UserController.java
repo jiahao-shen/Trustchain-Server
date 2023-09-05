@@ -68,7 +68,7 @@ public class UserController {
     @PostMapping("/user/register")
     public ResponseEntity<Object> userRegister(@RequestBody JSONObject request, HttpSession session) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
+        System.out.println("in");
         User user = new User();
         user.setUsername(request.getString("username"));
         user.setPassword(encoder.encode(request.getString("password")));
