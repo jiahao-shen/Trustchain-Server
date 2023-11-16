@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.google.api.Http;
 import com.google.protobuf.Api;
 import com.trustchain.fabric.FabricGateway;
+import com.trustchain.mapper.APIInvokeLogMapper;
 import com.trustchain.mapper.APIMapper;
 import com.trustchain.mapper.APIRegisterMapper;
 import com.trustchain.minio.MinioConfig;
@@ -23,6 +24,7 @@ import com.trustchain.service.MinioService;
 import io.opentelemetry.sdk.logs.data.Body;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,9 +51,11 @@ public class APIController {
     @Autowired
     private APIMapper apiMapper;
 
-
     @Autowired
     private APIInvokeMapper apiInvokeMapper;
+
+    @Autowired
+    private APIInvokeLogMapper apiInvokeLogMapper;
 
     @Autowired
     private FabricService fabricService;
@@ -402,12 +406,22 @@ public class APIController {
         API api = apiMapper.selectOne(infoWrapper);
         String url = api.getUrl();
         String params = request.getString("params");
-        System.out.println("param:"+ params);
         JSONObject jsonObject = JSON.parseObject(params);
         Map<String, String> map = JSONObject.toJavaObject(jsonObject, Map.class);
         HttpMethod httpMethod = api.getMethod();
         String result = null;
         Date invoeTime = new Date();
+
+        APIInvokeLog apiInvokeLog = new APIInvokeLog();
+        apiInvokeLog.setId(api.getId());
+        apiInvokeLog.setApplicant(apiInvokeInfo.getApplicant());
+        apiInvokeLog.setRequestType(api.getRequestType());
+        apiInvokeLog.setRequest(params);
+        apiInvokeLog.setResponseType(api.getResponseType());
+        apiInvokeLog.setHeaderType(api.getHeaderType());
+        apiInvokeLog.setHeader(api.getHeader());
+        apiInvokeLog.setInvokeTime(invoeTime);
+
         if (invoeTime.after(apiInvokeInfo.getStartTime()) && invoeTime.before(apiInvokeInfo.getEndTime())){
             if (httpMethod.equals(HttpMethod.GET)) {
                 if (params != ""){
@@ -421,6 +435,11 @@ public class APIController {
                 }else{
                     result = httpService.sendPost(url);
                 }
+            }
+            apiInvokeLog.setResponse(result);
+            int count = apiInvokeLogMapper.insert(apiInvokeLog);
+            if (count == 0) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
             }
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }else{
@@ -455,11 +474,13 @@ public class APIController {
             if (params != ""){
                 System.out.println(4);
                 result = httpService.sendPostParams(url, map);
+                System.out.println(result);
             }else{
                 System.out.println(5);
                 result = httpService.sendPost(url);
             }
         }
+
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
@@ -515,6 +536,94 @@ public class APIController {
                 return ResponseEntity.status(HttpStatus.OK).body(true);
             }
         }
+    }
+
+    /**
+     * get the log list for who invoke which api at when
+     */
+    @PostMapping("/api/apiapplicant/log")
+    public ResponseEntity<Object> apiApplicantLog(@RequestBody JSONObject request) {
+
+        Long api = request.getLong("api");
+        Long applicant = request.getLong("applicant");
+        LambdaQueryWrapper<APIInvoke> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(APIInvoke::getId, api).eq(APIInvoke::getApplicant, applicant);
+        List<APIInvoke> apiInvokeList = apiInvokeMapper.selectList(queryWrapper);
+        List<ApiInvokeAndInfo> loglist = new ArrayList<>();
+        Iterator<APIInvoke> iterator = apiInvokeList.iterator();
+        while (iterator.hasNext()){
+            APIInvoke apiInvoke = iterator.next();
+            ApiInvokeAndInfo apiInvokeAndInfo = new ApiInvokeAndInfo();
+            apiInvokeAndInfo.setApiInvoke(apiInvoke);
+            LambdaQueryWrapper<API> apiqueryWrapper = new LambdaQueryWrapper<>();
+            apiqueryWrapper.eq(API::getId, apiInvoke.getId());
+            API thisApi = apiMapper.selectOne(apiqueryWrapper);
+            apiInvokeAndInfo.setApi(thisApi);
+            loglist.add(apiInvokeAndInfo);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(loglist);
+    }
+
+    /**
+     * static api invoke for which api invoked by whom about how many times
+     */
+    @PostMapping("/api/apiapplicant/statics")
+    public ResponseEntity<Object> apiApplicantStatics(@RequestBody JSONObject request) {
+
+        Long api = request.getLong("api");
+        Long applicant = request.getLong("applicant");
+        LambdaQueryWrapper<APIInvoke> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(APIInvoke::getId, api).eq(APIInvoke::getApplicant, applicant);
+        int times = apiInvokeMapper.staticApplicant(api, applicant, queryWrapper);
+
+        return ResponseEntity.status(HttpStatus.OK).body(times);
+    }
+
+    /**
+     * static api invoke times for which api
+     */
+    @PostMapping("/api/invoke/statics")
+    public ResponseEntity<Object> apiInvokeStatics(@RequestBody JSONObject request) {
+
+        Long api = request.getLong("api");
+        LambdaQueryWrapper<APIInvoke> queryWrapper = new LambdaQueryWrapper<>();
+        int times = apiInvokeMapper.staticApi(api, queryWrapper);
+
+        return ResponseEntity.status(HttpStatus.OK).body(times);
+    }
+
+    @PostMapping("/api/invokelog/test")
+    public ResponseEntity<Object> apiInvokeLogTest(@RequestBody JSONObject request) {
+
+        System.out.println("in");
+        Long api = request.getLong("id");
+        Long applicant = request.getLong("applicant");
+        BodyType requestType = BodyType.valueOf(request.getString("request_type"));
+        String params = request.getString("request");
+        BodyType responseType = BodyType.valueOf(request.getString("response_type"));
+        String response = request.getString("response");
+        BodyType headerType = BodyType.valueOf(request.getString("header_type"));
+        String header = request.getString("header");
+        Date time = new Date();
+
+        APIInvokeLog apiInvokeLog = new APIInvokeLog();
+        apiInvokeLog.setId(api);
+        apiInvokeLog.setApplicant(applicant);
+        apiInvokeLog.setRequestType(requestType);
+        apiInvokeLog.setRequest(params);
+        apiInvokeLog.setResponseType(responseType);
+        apiInvokeLog.setResponse(response);
+        apiInvokeLog.setHeaderType(headerType);
+        apiInvokeLog.setHeader(header);
+        apiInvokeLog.setInvokeTime(time);
+
+        int count = apiInvokeLogMapper.insert(apiInvokeLog);
+        if (count == 0) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(true);
+
     }
 
 }

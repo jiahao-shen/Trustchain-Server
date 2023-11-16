@@ -27,4 +27,14 @@ public interface APIInvokeMapper extends BaseMapper<APIInvoke> {
             "left join user as t3 on t1.applicant=t3.id ${ew.customSqlSegment}")
     List<APIInvokeApprovalInfo> getAPIInvokeApprovalList(@Param("author") Long author,
                                                          @Param(Constants.WRAPPER) Wrapper wrapper);
+
+    @Select("select count(*) from api_invoke as applicanttimes where id=#{api} and applicant" +
+            "=#{applicant}")
+    Integer staticApplicant(@Param("api") Long api,
+                            @Param("applicant") Long applicant,
+                            @Param(Constants.WRAPPER) Wrapper wrapper);
+
+    @Select("select count(*) from api_invoke as apiinvoketimes where id=#{api}")
+    Integer staticApi(@Param("api") Long api,
+                      @Param(Constants.WRAPPER) Wrapper wrapper);
 }

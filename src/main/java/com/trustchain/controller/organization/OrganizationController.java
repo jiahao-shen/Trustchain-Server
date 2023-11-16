@@ -268,7 +268,7 @@ public class OrganizationController {
     }
 
     /**
-     * 获取指定机构的n信息
+     * 获取指定机构的信息
      */
     @PostMapping("/organization/information")
     public ResponseEntity<Object> organizationInformation(@RequestBody JSONObject request, HttpSession session) {
@@ -281,14 +281,21 @@ public class OrganizationController {
     @PostMapping("/organization/info")
     public ResponseEntity<Object> organizationInformationTest(@RequestBody JSONObject request) {
         logger.info(request);
+
         String orgName = request.getString("name");
+
         LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Organization::getName, orgName);
         Organization organization = organizationMapper.selectOne(queryWrapper);
+        if(organization != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(organization);
+        }else{
+            return ResponseEntity.status(HttpStatus.OK).body("This organization is not exists");
+        }
 
         //OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
 
-        return ResponseEntity.status(HttpStatus.OK).body(organization);
+
     }
 
     /**
@@ -379,8 +386,7 @@ public class OrganizationController {
     public ResponseEntity<Object> organizationModifyInformation(@RequestPart("logo") MultipartFile logo,
                                                                @RequestPart("info") JSONObject request,
                                                                 HttpSession session) {
-        System.out.println(0);
-        System.out.println(request.getString("id")+","+request.getString("name"));
+
         OrganizationInfo organizationInfo = organizationMapper.getOrganizationInformation(Long.parseLong(request.getString("id")));
         String newName = request.getString("name");
         String oldName = organizationInfo.getName();

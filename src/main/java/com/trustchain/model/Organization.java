@@ -1,10 +1,13 @@
 package com.trustchain.model;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.trustchain.enums.OrganizationType;
+import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.minio.MinioURLSerializer;
 import lombok.Data;
 
-import java.util.Date;
+import java.util.*;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -66,4 +69,7 @@ public class Organization {
     @TableField("created_time")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date createdTime;   // 创建时间
+
+
+
 }
