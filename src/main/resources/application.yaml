@@ -40,7 +40,7 @@ server:
       timeout: 3600s
 
 minio:
-  endpoint: http://192.168.0.129:9000
+  endpoint: http://192.168.3.19:9000
   #endpoint: http://localhost:9000
   accessKey: Beihang
   secretKey: Beihang2022
