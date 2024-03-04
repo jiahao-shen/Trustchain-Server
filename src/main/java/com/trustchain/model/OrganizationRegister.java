@@ -11,60 +11,14 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.baomidou.mybatisplus.annotation.*;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
-
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("organization_register")
 public class OrganizationRegister {
-    @TableId(value = "serial_number", type = IdType.ASSIGN_ID)
-    @JSONField(serializeUsing = ToStringSerializer.class)
-    private Long serialNumber;  // 注册流水号
-
-    @TableField("id")
-    @JSONField(serializeUsing = ToStringSerializer.class)
-    private Long id; // 申请成功的机构ID
-
-    @TableField("name")
-    private String name;    // 机构名称
-
-    @TableField("logo")
-    @JSONField(serializeUsing = MinioURLSerializer.class)
-    private String logo; // 机构Logo
-
-    @TableField("type")
-    private OrganizationType type;    // 机构类型
-
-    @TableField("telephone")
-    private String telephone;   // 机构电话
-
-    @TableField("email")
-    private String email;   // 机构邮箱
-
-    @TableField("city")
-    private String city;    // 机构城市
-
-    @TableField("address")
-    private String address; // 机构地址
-
-    @TableField("introduction")
-    private String introduction;    // 机构介绍
-
-    @TableField("superior")
-    @JSONField(serializeUsing = ToStringSerializer.class)
-    private Long superior; // 上级机构
-
-    @TableField("provide_node")
-    private boolean provideNode;    // 是否提供节点
-
-    @TableField("num_nodes")
-    private int numNodes;   // 节点数量
-
-    @TableField("file")
-    @JSONField(serializeUsing = MinioURLSerializer.class)
-    private String file;    // 机构文件
+    @TableId(value = "serial_number", type = IdType.ASSIGN_UUID)
+    private String serialNumber;  // 注册流水号
 
     @TableField("status")
     private RegisterStatus status;  // 申请状态
@@ -79,4 +33,43 @@ public class OrganizationRegister {
 
     @TableField(value = "reply_message")
     private String replyMessage;    // 批复内容
+
+    @TableField("org_id")
+    private String orgID; // 机构ID
+
+    @TableField("org_name")
+    private String orgName;    // 机构名称
+
+    @TableField("org_type")
+    private OrganizationType orgType;    // 机构类型
+
+    @TableField("org_telephone")
+    private String orgTelephone;   // 机构电话
+
+    @TableField("org_email")
+    private String orgEmail;   // 机构邮箱
+
+    @TableField("org_city")
+    private String orgCity;    // 机构城市
+
+    @TableField("org_address")
+    private String orgAddress; // 机构地址
+
+    @TableField("org_introduction")
+    private String orgIntroduction;    // 机构介绍
+
+    @TableField("org_superior_id")
+    private String orgSuperiorID; // 上级机构ID
+
+    @TableField("org_creation_time")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private Date orgCreationTime;   // 创建时间
+
+    @TableField("org_logo")
+    @JSONField(serializeUsing = MinioURLSerializer.class)
+    private String orgLogo; // 机构Logo
+
+    @TableField("org_file")
+    @JSONField(serializeUsing = MinioURLSerializer.class)
+    private String orgFile;    // 机构文件
 }

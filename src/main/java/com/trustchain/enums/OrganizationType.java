@@ -8,12 +8,13 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 @Getter
 @AllArgsConstructor
 public enum OrganizationType {
-    MEDICAL(1, "医疗"),
-    EDUCATION(2, "教育"),
-    FINANCIAL(3, "金融"),
-    GOVERNMENT(4, "政府");
+    PUBLIC(1),
+    MEDICAL(2),
+    EDUCATION(3),
+    FINANCIAL(4),
+    GOVERNMENT(5),
+    TECHNOLOGY(6);
 
     @EnumValue
     private final int code;
-    private final String desp;
 }

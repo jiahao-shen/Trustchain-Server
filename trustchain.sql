@@ -18,47 +18,47 @@
 DROP TABLE IF EXISTS `organization_register`;
 CREATE TABLE `organization_register`
 (
-    `serial_number` bigint             not null,
-    `id`            bigint,
-    `name`          varchar(32) unique not null,
-    `logo`          varchar(1024),
-    `type`          int                not null,
-    `telephone`     varchar(32)        not null,
-    `email`         varchar(32)        not null,
-    `city`          varchar(128)       not null,
-    `address`       varchar(128)       not null,
-    `introduction`  varchar(1024),
-    `superior`      bigint,
-    `provide_node`  bool               not null,
-    `num_nodes`     int                not null,
-    `file`          varchar(1024),
-    `status`        int                not null,
-    `apply_time`    datetime           not null,
-    `reply_time`    datetime,
-    `reply_message` varchar(1024),
+    `serial_number`    varchar(32)        not null,
+    `status`           int                not null,
+    `apply_time`       datetime           not null,
+    `reply_time`       datetime,
+    `reply_message`    varchar(1024),
+    `org_id`           varchar(32),
+    `org_name`         varchar(32) unique not null,
+    `org_type`         int                not null,
+    `org_telephone`    varchar(32)        not null,
+    `org_email`        varchar(32)        not null,
+    `org_city`         varchar(32)        not null,
+    `org_address`      varchar(128)       not null,
+    `org_introduction` varchar(1024),
+    `org_superior_id`  varchar(32),
+    `org_creation_time`     datetime           not null,
+    `org_logo`         varchar(1024),
+    `org_file`         varchar(1024),
     PRIMARY KEY (`serial_number`),
-    FOREIGN KEY (`id`) REFERENCES `organization` (`id`)
+    FOREIGN KEY (`org_id`) REFERENCES `organization` (`org_id`)
 ) DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `organization`;
 CREATE TABLE `organization`
 (
-    `id`           bigint             not null,
-    `name`         varchar(32) unique not null,
-    `logo`         varchar(1024),
-    `type`         int                not null,
-    `telephone`    varchar(32)        not null,
-    `email`        varchar(32)        not null,
-    `city`         varchar(128)       not null,
-    `address`      varchar(128)       not null,
-    `introduction` varchar(1024),
-    `superior`     bigint,
-    `provide_node` bool               not null,
-    `num_nodes`    int                not null,
-    `file`         varchar(1024),
-    `created_time` datetime           not null,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`superior`) REFERENCES `organization` (`id`)
+    `org_id`                varchar(32)        not null,
+    `org_name`              varchar(32) unique not null,
+    `org_type`              int                not null,
+    `org_telephone`         varchar(32)        not null,
+    `org_email`             varchar(32)        not null,
+    `org_city`              varchar(32)        not null,
+    `org_address`           varchar(128)       not null,
+    `org_introduction`      varchar(1024),
+    `org_superior_id`       varchar(32),
+    `org_creation_time`     datetime           not null,
+    `org_registration_time` datetime           not null,
+    `org_last_modified`     datetime           not null,
+    `org_version`           varchar(32),
+    `org_logo`              varchar(1024),
+    `org_file`              varchar(1024),
+    PRIMARY KEY (`org_id`),
+    FOREIGN KEY (`org_superior_id`) REFERENCES `organization` (`org_id`)
 ) DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `user`;
