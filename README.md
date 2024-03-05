@@ -3,7 +3,7 @@
 ## 依赖库
 - [Lombok](https://projectlombok.org/): 通过注解的方式，在编译时自动为属性生成构造器
 - [Fabric-SDK-Java](https://github.com/hyperledger/fabric-gateway-java): Fabric的Java SDK工具
-- [MyBatis Plus](https://baomidou.com/): 数据库工具
+- [MyBatis Flex](https://mybatis-flex.com/): 数据库工具
 - [Log4j2](https://logging.apache.org/log4j/2.x/): 日志工具
 - [FastJSON](https://github.com/alibaba/fastjson): JSON工具
 - [Passay](https://www.passay.org/): 密码工具

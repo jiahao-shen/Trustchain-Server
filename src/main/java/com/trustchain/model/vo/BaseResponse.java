@@ -1,4 +1,4 @@
-package com.trustchain.VO;
+package com.trustchain.model.vo;
 
 import lombok.Data;
 import lombok.AllArgsConstructor;

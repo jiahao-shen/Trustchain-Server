@@ -1,11 +1,12 @@
-package com.trustchain.model;
+package com.trustchain.model.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Column;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.enums.BodyType;
 import com.trustchain.enums.HttpMethod;
 import lombok.AllArgsConstructor;
@@ -17,60 +18,61 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("api")
+@Table("api")
 public class API {
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
+    @Column("id")
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long id;
 
-    @TableField("name")
+    @Column("name")
     private String name;
 
-    @TableField("author")
+    @Column("author")
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long author;
 
-    @TableField("organization")
+    @Column("organization")
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long organization;
 
-    @TableField("url")
+    @Column("url")
     private String url;
 
-    @TableField("method")
+    @Column("method")
     private HttpMethod method;
 
-    @TableField("introduction")
+    @Column("introduction")
     private String introducation;
 
-    @TableField("category")
+    @Column("category")
     private String category;
 
-    @TableField("authorize")
+    @Column("authorize")
     private String authorize;
 
-    @TableField("version")
+    @Column("version")
     private String version;
 
-    @TableField("header_type")
+    @Column("header_type")
     private BodyType headerType;
 
-    @TableField("header")
+    @Column("header")
     private String header;
 
-    @TableField("request_type")
+    @Column("request_type")
     private BodyType requestType;
 
-    @TableField("request")
+    @Column("request")
     private String request;
 
-    @TableField("response_type")
+    @Column("response_type")
     private BodyType responseType;
 
-    @TableField("response")
+    @Column("response")
     private String response;
 
-    @TableField("created_time")
+    @Column("created_time")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date createdTime;   // 创建时间
 }

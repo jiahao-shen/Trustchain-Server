@@ -1,22 +1,21 @@
 package com.trustchain.enums;
 
-import com.baomidou.mybatisplus.annotation.EnumValue;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.AllArgsConstructor;
+import com.mybatisflex.annotation.EnumValue;
 
 @Getter
 @AllArgsConstructor
 public enum HttpMethod {
-    GET(1, "GET"),
-    POST(2, "POST"),
-    PUT(3, "PUT"),
-    DELETE(4, "DELETE"),
-    TRACE(5, "TRACE"),
-    CONNECT(6, "CONNECT"),
-    HEAD(7, "HEAD"),
-    OPTIONS(8, "OPTIONS");
+    GET(1),
+    POST(2),
+    PUT(3),
+    DELETE(4),
+    TRACE(5),
+    CONNECT(6),
+    HEAD(7),
+    OPTIONS(8);
 
     @EnumValue
     private final int code;
-    private final String desp;
 }

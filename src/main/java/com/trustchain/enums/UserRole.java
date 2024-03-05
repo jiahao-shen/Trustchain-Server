@@ -6,10 +6,9 @@ import com.mybatisflex.annotation.EnumValue;
 
 @Getter
 @AllArgsConstructor
-public enum StatusCode {
-    SUCCESS(1000),
-    LOGIN_FAILED(1001),
-    RESET_PASSWORD_FAILED(1002);
+public enum UserRole {
+    ADMIN(1),
+    NORMAL(2);
 
     @EnumValue
     private final int code;

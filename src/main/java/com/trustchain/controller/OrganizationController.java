@@ -1,19 +1,9 @@
-package com.trustchain.controller.organization;
+package com.trustchain.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.trustchain.VO.BaseResponse;
 import com.trustchain.enums.StatusCode;
-import com.trustchain.mapper.OrganizationMapper;
-import com.trustchain.mapper.OrganizationRegisterMapper;
-import com.trustchain.service.MinioService;
-import com.trustchain.model.User;
-import com.trustchain.model.Organization;
-import com.trustchain.enums.OrganizationType;
-import com.trustchain.model.OrganizationInfo;
-import com.trustchain.model.OrganizationRegister;
-import com.trustchain.enums.RegisterStatus;
-import com.trustchain.service.FabricService;
+import com.trustchain.model.vo.BaseResponse;
+import com.trustchain.model.vo.OrganizationSelectItemVO;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,48 +11,56 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @RestController
+@RequestMapping("/organization")
 public class OrganizationController {
     @Autowired
     private OrganizationService orgService;
 
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
+    @GetMapping("/selectList")
+    public ResponseEntity<Object> selectList() {
+        List<OrganizationSelectItemVO> results = orgService.selectList();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse(StatusCode.SUCCESS.getCode(), "", results));
+    }
+
     /**
      * 机构注册申请
      */
-    @PostMapping("/organization/register/apply")
-    public ResponseEntity<Object> organizationRegisterApply(@RequestBody JSONObject request, HttpSession session) {
-        OrganizationRegister orgReg = new OrganizationRegister();
-        orgReg.setOrgName(request.getString("name"));
-        orgReg.setOrgType(OrganizationType.valueOf(request.getString("type")));
-        orgReg.setOrgTelephone(request.getString("telephone"));
-        orgReg.setOrgEmail(request.getString("email"));
-        orgReg.setOrgCity(request.getString("city"));
-        orgReg.setOrgAddress(request.getString("Address"));
-        orgReg.setOrgIntroduction(request.getString("introduction"));
-        orgReg.setOrgSuperiorID(request.getString("superior"));
-        orgReg.setStatus(RegisterStatus.PENDING);
-        orgReg.setApplyTime(new Date());
-
-        String serialNumber = orgService.organizationRegisterApply(orgReg);
-
-        if (serialNumber != null) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请成功", serialNumber));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请失败", ""));
-        }
+    @PostMapping("/register/apply")
+    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request, HttpSession session) {
+//        OrganizationRegister orgReg = new OrganizationRegister();
+//        orgReg.setName(request.getString("name"));
+//        orgReg.setType(OrganizationType.valueOf(request.getString("type")));
+//        orgReg.setTelephone(request.getString("telephone"));
+//        orgReg.setEmail(request.getString("email"));
+//        orgReg.setCity(request.getString("city"));
+//        orgReg.setAddress(request.getString("Address"));
+//        orgReg.setIntroduction(request.getString("introduction"));
+//        orgReg.setSuperiorID(request.getString("superior"));
+//        orgReg.setRegStatus(RegisterStatus.PENDING);
+//        orgReg.setApplyTime(new Date());
+//
+//        String regID = orgService.registerApply(orgReg);
+//
+//        if (regID != null) {
+//            return ResponseEntity
+//                    .status(HttpStatus.OK)
+//                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请成功", regID));
+//        } else {
+//            return ResponseEntity
+//                    .status(HttpStatus.OK)
+//                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请失败", ""));
+//        }
+        return null;
     }
 //    @PostMapping("/organization/register/apply")
 //    public ResponseEntity<Object> organizationRegisterApply(@RequestPart("logo") MultipartFile logo,

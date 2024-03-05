@@ -2,7 +2,7 @@ package com.trustchain.enums;
 
 import lombok.Getter;
 import lombok.AllArgsConstructor;
-import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.mybatisflex.annotation.EnumValue;
 
 @Getter
 @AllArgsConstructor

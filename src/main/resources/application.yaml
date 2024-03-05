@@ -2,9 +2,12 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    #    url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    #    username: root
+    #    password: Beihang2022!
+    url: jdbc:mysql://localhost:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
     username: root
-    password: Beihang2022!
+    password: 258667
   servlet:
     multipart:
       max-file-size: 100MB

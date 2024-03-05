@@ -18,59 +18,66 @@
 DROP TABLE IF EXISTS `organization_register`;
 CREATE TABLE `organization_register`
 (
-    `serial_number`    varchar(32)        not null,
-    `status`           int                not null,
-    `apply_time`       datetime           not null,
-    `reply_time`       datetime,
-    `reply_message`    varchar(1024),
-    `org_id`           varchar(32),
-    `org_name`         varchar(32) unique not null,
-    `org_type`         int                not null,
-    `org_telephone`    varchar(32)        not null,
-    `org_email`        varchar(32)        not null,
-    `org_city`         varchar(32)        not null,
-    `org_address`      varchar(128)       not null,
-    `org_introduction` varchar(1024),
-    `org_superior_id`  varchar(32),
-    `org_creation_time`     datetime           not null,
-    `org_logo`         varchar(1024),
-    `org_file`         varchar(1024),
-    PRIMARY KEY (`serial_number`),
-    FOREIGN KEY (`org_id`) REFERENCES `organization` (`org_id`)
+    `reg_id`        varchar(32)        not null,
+    `reg_status`    int                not null,
+    `apply_time`    datetime           not null,
+    `reply_time`    datetime,
+    `reply_message` varchar(1024),
+    `id`            varchar(32),
+    `name`          varchar(32) unique not null,
+    `type`          int                not null,
+    `telephone`     varchar(32)        not null,
+    `email`         varchar(32)        not null,
+    `city`          varchar(32)        not null,
+    `address`       varchar(128)       not null,
+    `introduction`  varchar(1024),
+    `superior_id`   varchar(32),
+    `creation_time` datetime           not null,
+    `logo`          varchar(1024),
+    `file`          varchar(1024),
+    PRIMARY KEY (`reg_id`),
+    FOREIGN KEY (`id`) REFERENCES `organization` (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `organization`;
 CREATE TABLE `organization`
 (
-    `org_id`                varchar(32)        not null,
-    `org_name`              varchar(32) unique not null,
-    `org_type`              int                not null,
-    `org_telephone`         varchar(32)        not null,
-    `org_email`             varchar(32)        not null,
-    `org_city`              varchar(32)        not null,
-    `org_address`           varchar(128)       not null,
-    `org_introduction`      varchar(1024),
-    `org_superior_id`       varchar(32),
-    `org_creation_time`     datetime           not null,
-    `org_registration_time` datetime           not null,
-    `org_last_modified`     datetime           not null,
-    `org_version`           varchar(32),
-    `org_logo`              varchar(1024),
-    `org_file`              varchar(1024),
-    PRIMARY KEY (`org_id`),
-    FOREIGN KEY (`org_superior_id`) REFERENCES `organization` (`org_id`)
+    `id`                varchar(32)        not null,
+    `name`              varchar(32) unique not null,
+    `type`              int                not null,
+    `telephone`         varchar(32)        not null,
+    `email`             varchar(32)        not null,
+    `city`              varchar(32)        not null,
+    `address`           varchar(128)       not null,
+    `introduction`      varchar(1024),
+    `superior_id`       varchar(32),
+    `creation_time`     datetime           not null,
+    `registration_time` datetime           not null,
+    `last_modified`     datetime           not null,
+    `version`           varchar(32),
+    `logo`              varchar(1024),
+    `file`              varchar(1024),
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`superior_id`) REFERENCES `organization` (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`
 (
-    `id`           bigint             not null,
-    `username`     varchar(32) unique not null,
-    `password`     varchar(128)       not null,
-    `organization` bigint             not null,
-    `created_time` datetime           not null,
+    `id`                varchar(32)  not null,
+    `username`          varchar(32)  not null,
+    `password`          varchar(128) not null,
+    `telephone`         varchar(32)  not null,
+    `email`             varchar(32)  not null,
+    `role`              int          not null,
+    `organization_id`   varchar(32)  not null,
+    `registration_time` datetime     not null,
+    `last_modified`     datetime     not null,
+    `version`           varchar(32),
+    `logo`              varchar(1024),
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`organization`) REFERENCES `organization` (`id`)
+    FOREIGN KEY (`organization_id`) REFERENCES `organization` (`id`),
+    UNIQUE KEY (`organization_id`, `username`)
 ) DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `api_register`;
