@@ -28,7 +28,7 @@ public class OrganizationRegister {
     @Column("reg_status")
     private RegisterStatus regStatus;  // 申请状态
 
-    @Column(value = "apply_time", onUpdateValue = "now()")
+    @Column(value = "apply_time", onInsertValue = "now()")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date applyTime;    // 申请时间
 
@@ -69,17 +69,6 @@ public class OrganizationRegister {
     @Column("creation_time")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date creationTime;   // 创建时间
-
-    @Column("registration_time")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
-    private Date registrationTime;   // 注册时间
-
-    @Column("last_modified")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
-    private Date lastModified;   // 最后更新时间
-
-    @Column("version")
-    private String version;  // 版本号
 
     @Column("logo")
     @JSONField(serializeUsing = MinioURLSerializer.class)

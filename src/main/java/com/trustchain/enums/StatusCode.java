@@ -9,7 +9,8 @@ import com.mybatisflex.annotation.EnumValue;
 public enum StatusCode {
     SUCCESS(1000),
     LOGIN_FAILED(1001),
-    RESET_PASSWORD_FAILED(1002);
+    RESET_PASSWORD_FAILED(1002),
+    UPLOAD_FILE_FAILED(1003);
 
     @EnumValue
     private final int code;

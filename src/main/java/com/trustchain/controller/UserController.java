@@ -47,12 +47,12 @@ public class UserController {
         if (user != null) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse(StatusCode.SUCCESS.getCode(),
+                    .body(new BaseResponse<>(StatusCode.SUCCESS,
                             "登录成功", user));
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse(StatusCode.LOGIN_FAILED.getCode(), "用户名或密码错误", null));
+                    .body(new BaseResponse<>(StatusCode.LOGIN_FAILED, "用户名或密码错误", null));
         }
     }
 
@@ -68,7 +68,7 @@ public class UserController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new BaseResponse(StatusCode.SUCCESS.getCode(), "退出登录成功", null));
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "退出登录成功", null));
     }
 //
 //    /**

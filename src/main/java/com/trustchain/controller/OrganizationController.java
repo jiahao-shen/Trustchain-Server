@@ -1,7 +1,10 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.trustchain.enums.OrganizationType;
+import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.StatusCode;
+import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.OrganizationSelectItemVO;
 import com.trustchain.service.OrganizationService;
@@ -29,7 +32,20 @@ public class OrganizationController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new BaseResponse(StatusCode.SUCCESS.getCode(), "", results));
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", results));
+    }
+
+    @PostMapping("/exist")
+    public ResponseEntity<Object> exist(@RequestBody JSONObject request, HttpSession session) {
+        String orgName = request.getString("name");
+        String orgID = request.getString("id");
+
+        Boolean result = orgService.exist(orgName, orgID);
+
+        System.out.println(result);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
 
     /**
@@ -37,31 +53,34 @@ public class OrganizationController {
      */
     @PostMapping("/register/apply")
     public ResponseEntity<Object> registerApply(@RequestBody JSONObject request, HttpSession session) {
-//        OrganizationRegister orgReg = new OrganizationRegister();
-//        orgReg.setName(request.getString("name"));
-//        orgReg.setType(OrganizationType.valueOf(request.getString("type")));
-//        orgReg.setTelephone(request.getString("telephone"));
-//        orgReg.setEmail(request.getString("email"));
-//        orgReg.setCity(request.getString("city"));
-//        orgReg.setAddress(request.getString("Address"));
-//        orgReg.setIntroduction(request.getString("introduction"));
-//        orgReg.setSuperiorID(request.getString("superior"));
-//        orgReg.setRegStatus(RegisterStatus.PENDING);
-//        orgReg.setApplyTime(new Date());
-//
-//        String regID = orgService.registerApply(orgReg);
-//
-//        if (regID != null) {
-//            return ResponseEntity
-//                    .status(HttpStatus.OK)
-//                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请成功", regID));
-//        } else {
-//            return ResponseEntity
-//                    .status(HttpStatus.OK)
-//                    .body(new BaseResponse<String>(StatusCode.SUCCESS.getCode(), "注册申请失败", ""));
-//        }
-        return null;
+        OrganizationRegister orgReg = new OrganizationRegister();
+        orgReg.setLogo(request.getString("logo"));
+        orgReg.setName(request.getString("name"));
+        orgReg.setType(OrganizationType.valueOf(request.getString("type")));
+        orgReg.setTelephone(request.getString("telephone"));
+        orgReg.setEmail(request.getString("email"));
+        orgReg.setCity(request.getString("city"));
+        orgReg.setAddress(request.getString("address"));
+        orgReg.setIntroduction(request.getString("introduction"));
+        orgReg.setSuperiorID(request.getString("superior"));
+        orgReg.setCreationTime(request.getDate("creationTime"));
+        orgReg.setRegStatus(RegisterStatus.PENDING);
+
+        String regID = orgService.registerApply(orgReg);
+
+        // TODO: 验证邮箱
+
+        if (regID != null) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", regID));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请失败", ""));
+        }
     }
+
 //    @PostMapping("/organization/register/apply")
 //    public ResponseEntity<Object> organizationRegisterApply(@RequestPart("logo") MultipartFile logo,
 //                                                            @RequestPart("info") JSONObject request,

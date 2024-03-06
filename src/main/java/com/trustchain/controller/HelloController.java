@@ -1,9 +1,15 @@
 package com.trustchain.controller;
 
+import com.trustchain.enums.StatusCode;
+import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.HelloService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.Future;
 
 @RestController
 public class HelloController {
@@ -16,13 +22,11 @@ public class HelloController {
     @Autowired
     private HelloService service;
 
-//    @GetMapping("/hello")
-//    public String hello() throws Exception{
-////        service.testAsync();
-//        Future<Boolean> result = service.testAsyncResult();
-//
-//        return "Hello World";
-//    }
+    @GetMapping("/hello")
+    public ResponseEntity<Object> hello() throws Exception {
+//        service.testAsync();
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "good", null));
+    }
 //
 //    @PostMapping("/test")
 //    public String test(@RequestBody JSONObject request) {

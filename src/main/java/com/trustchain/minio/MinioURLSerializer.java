@@ -27,13 +27,13 @@ public class MinioURLSerializer implements ObjectSerializer {
     }
 
     @Override
-    public void write(JSONSerializer serializer, Object object, Object fileName, Type type, int features) throws IOException {
+    public void write(JSONSerializer serializer, Object object, Object fieldName, Type type, int features) throws IOException {
         if (object == null) {
             serializer.writeNull();
             return;
         }
 
-        String path = config.getEndpoint() + "/" + config.getBucket() + "/" + object;
+        String path = config.getEndpoint() + "/" + object;
 
         serializer.write(path);
     }

@@ -5,15 +5,22 @@ import com.trustchain.enums.OrganizationType;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.vo.UserInformationVO;
+import com.trustchain.service.FileService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
 import com.trustchain.util.PasswordUtil;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.errors.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -24,6 +31,9 @@ class SpringbootApplicationTests {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileService fileService;
 
     private static final Logger logger = LogManager.getLogger(SpringbootApplicationTests.class);
 
@@ -46,12 +56,10 @@ class SpringbootApplicationTests {
         org.setSuperiorID(null);
 
         org.setCreationTime(new SimpleDateFormat("yyyy-MM-dd").parse("2024-03-05"));
-//        org.setRegistrationTime(new Date());
-//        org.setLastModified(new Date());
         org.setVersion(null);
 
         orgService.register(org);
-//        logger.info(org);
+        logger.info(org);
     }
 
     @Test
@@ -60,12 +68,13 @@ class SpringbootApplicationTests {
 
         user.setUsername("admin");
         user.setPassword(PasswordUtil.encrypt("258667"));
-        user.setOrganizationID("feb15885025d4b8590928d55d9083140");
+        user.setOrganizationID("6c5f30bed485476c906358c6d50f4bef");
         user.setTelephone("13915558435");
         user.setEmail("1843781563@qq.com");
         user.setRole(UserRole.ADMIN);
 
         userService.register(user);
+        logger.info(user);
     }
 
     @Test
@@ -276,18 +285,15 @@ class SpringbootApplicationTests {
 //    @Autowired
 //    private MinioService minioService;
 //
-//    @Test
-//    void testMinio() {
-//        try {
-////            minioSerive.listBuckets();
-////            minioService.copy("organization_register/1593230328973996033/logo.jpg",
-////                    "organization/1593230328973996033/logo.jpg");
+    @Test
+    void testMinio() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+
+
+//        fileService.upload(null, "file");
+//            minioService.copy("organization_register/1593230328973996033/logo.jpg",
+//                    "organization/1593230328973996033/logo.jpg");
 //            minioService.createBucket("fuck");
-//            System.out.println("success");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    }
 //
 //
 //    @Test
