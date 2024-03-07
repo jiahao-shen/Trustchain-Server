@@ -1,12 +1,19 @@
 package com.trustchain.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.trustchain.convert.OrganizationConvert;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.StatusCode;
+import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.model.vo.OrganizationSelectItemVO;
+import com.trustchain.model.vo.OrganizationInformation;
+import com.trustchain.model.vo.OrganizationRegisterInformation;
+import com.trustchain.model.vo.OrganizationSelectItem;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,23 +33,33 @@ public class OrganizationController {
 
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
+    /**
+     * 机构选择列表
+     *
+     * @return
+     */
     @GetMapping("/selectList")
     public ResponseEntity<Object> selectList() {
-        List<OrganizationSelectItemVO> results = orgService.selectList();
+        List<Organization> orgs = orgService.selectList();
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", results));
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        OrganizationConvert.INSTANCE.toOrganizationSelectItemList(orgs)));
     }
 
+    /**
+     * 判断机构是否存在
+     *
+     * @param request
+     * @return
+     */
     @PostMapping("/exist")
-    public ResponseEntity<Object> exist(@RequestBody JSONObject request, HttpSession session) {
+    public ResponseEntity<Object> exist(@RequestBody JSONObject request) {
         String orgName = request.getString("name");
         String orgID = request.getString("id");
 
         Boolean result = orgService.exist(orgName, orgID);
-
-        System.out.println(result);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
@@ -50,9 +67,12 @@ public class OrganizationController {
 
     /**
      * 机构注册申请
+     *
+     * @param request
+     * @return
      */
     @PostMapping("/register/apply")
-    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request, HttpSession session) {
+    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
         OrganizationRegister orgReg = new OrganizationRegister();
         orgReg.setLogo(request.getString("logo"));
         orgReg.setName(request.getString("name"));
@@ -64,6 +84,7 @@ public class OrganizationController {
         orgReg.setIntroduction(request.getString("introduction"));
         orgReg.setSuperiorID(request.getString("superior"));
         orgReg.setCreationTime(request.getDate("creationTime"));
+        orgReg.setFile(request.getString("file"));
         orgReg.setRegStatus(RegisterStatus.PENDING);
 
         String regID = orgService.registerApply(orgReg);
@@ -77,8 +98,88 @@ public class OrganizationController {
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请失败", ""));
+                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "注册申请失败", null));
         }
+    }
+
+    /**
+     * 机构注册查询
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("/register/apply/search")
+    public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
+        List<String> regIDs = request.getJSONArray("regIDs");
+
+        List<OrganizationRegister> orgRegs = orgService.registerApplySearch(regIDs);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformationList(orgRegs)));
+    }
+
+    /**
+     * 机构注册列表
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("/register/list")
+    public ResponseEntity<Object> registerList(@RequestBody JSONObject request) {
+        String id = request.getString("id");
+
+        List<OrganizationRegister> orgRegs = orgService.registerList(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformationList(orgRegs)));
+    }
+
+    @PostMapping("/register/detail")
+    public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
+        String regID = request.getString("regID");
+
+        OrganizationRegister orgReg = orgService.registerDetail(regID);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformation(orgReg)));
+    }
+
+    @PostMapping("/register/reply")
+    public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+        logger.info(request);
+        String regID = request.getString("regID");
+        RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
+        String reason = request.getString("reason");
+
+        orgService.registerReply(regID, reply, reason);
+
+        return null;
+    }
+
+    /**
+     * 机构信息详情
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("/information/detail")
+    public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
+        String id = request.getString("id");
+        String version = request.getString("version");
+
+        Organization org = orgService.informationDetail(id, version);
+        OrganizationInformation orgInfo = OrganizationConvert.INSTANCE.toOrganizationInformation(org);
+        orgInfo.setLatest(true);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgInfo));
     }
 
 //    @PostMapping("/organization/register/apply")
@@ -212,36 +313,6 @@ public class OrganizationController {
 //        return ResponseEntity.status(HttpStatus.OK).body(true);
 //    }
 //
-//    /**
-//     * 判断机构是否存在
-//     */
-//    @PostMapping("/organization/exist")
-//    public ResponseEntity<Object> organizationExist(@RequestBody JSONObject request, HttpSession session) {
-//        logger.info(request);
-//
-//        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(Organization::getName, request.getString("name"));
-//
-//        Organization organization = organizationMapper.selectOne(queryWrapper);
-//        if (organization != null) {
-//            return ResponseEntity.status(HttpStatus.OK).body(true);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.OK).body(false);
-//        }
-//    }
-//
-//    /**
-//     * 获得全部机构用于选择
-//     */
-//    @GetMapping("/organization/selectList")
-//    public ResponseEntity<Object> organizationSelectList() {
-//        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.select(Organization::getId, Organization::getName);
-//
-//        List<Organization> organizationList = organizationMapper.selectList(queryWrapper);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(organizationList);
-//    }
 //
 //    /**
 //     * 获取指定机构的信息

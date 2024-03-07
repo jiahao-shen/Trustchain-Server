@@ -2,9 +2,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #    url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
-    #    username: root
-    #    password: Beihang2022!
+    #  url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    #  username: root
+    #  password: Beihang2022!
     url: jdbc:mysql://localhost:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
     username: root
     password: 258667
@@ -24,5 +24,9 @@ server:
 minio:
   endpoint: http://127.0.0.1:9000
   bucket: trustchain
-  accessKey: 3wIc88pusSVNraoT1qrV
-  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
+  # MacPro
+  accessKey: cW3wffjaswmJBZEnBU2j
+  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
+  #  MacbookPro
+#  accessKey: 3wIc88pusSVNraoT1qrV
+#  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV

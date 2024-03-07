@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class UserLoginVO {
-    private UserInformationVO user;
+public class UserLogin {
+    private UserInformation user;
     private SaTokenInfo token;
 }

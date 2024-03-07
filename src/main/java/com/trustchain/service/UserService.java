@@ -4,20 +4,24 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.trustchain.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
+import com.trustchain.mapper.UserRegisterMapper;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
-import com.trustchain.model.vo.UserInformationVO;
-import com.trustchain.model.vo.UserLoginVO;
+import com.trustchain.model.vo.UserLogin;
 import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UserRegisterMapper userRegMapper;
     @Autowired
     private MinioService minioService;
     @Autowired
@@ -25,7 +29,7 @@ public class UserService {
 
     private static final Logger logger = LogManager.getLogger(UserService.class);
 
-    public UserLoginVO login(String organization, String username, String password) {
+    public UserLogin login(String organization, String username, String password) {
         QueryWrapper query = QueryWrapper.create()
                 .from(User.class)
                 .where(User::getOrganizationID).eq(organization)
@@ -35,7 +39,7 @@ public class UserService {
 
         if (user != null && PasswordUtil.match(password, user.getPassword())) {
             StpUtil.login(user.getId());
-            return new UserLoginVO(UserConvert.INSTANCE.toUserInfoVO(user), StpUtil.getTokenInfo());
+            return new UserLogin(UserConvert.INSTANCE.toUserInformation(user), StpUtil.getTokenInfo());
         }
         return null;
     }
@@ -45,7 +49,17 @@ public class UserService {
     }
 
     public String registerApply(UserRegister userReg) {
-        return null;
+        int count = userRegMapper.insert(userReg);
+
+        if (count != 0) {
+            return userReg.getRegID();
+        } else {
+            return null;
+        }
+    }
+
+    public List<UserRegister> registerApplySearch(List<String> regIDs) {
+        return userRegMapper.selectListByIds(regIDs);
     }
 
     public String registerReply() {
@@ -56,5 +70,17 @@ public class UserService {
         int count = userMapper.insert(user);
 
         return count != 0;
+    }
+
+    public Boolean exist(String organization, String username, String id) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(User.class)
+                .where(User::getOrganizationID).eq(organization)
+                .and(User::getUsername).eq(username)
+                .and(User::getId).ne(id);
+
+        User user = userMapper.selectOneByQuery(query);
+
+        return user != null;
     }
 }

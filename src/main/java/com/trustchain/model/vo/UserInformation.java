@@ -13,7 +13,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInformationVO {
+public class UserInformation {
     private String id;  // 用户ID
 
     private String username;    // 用户名

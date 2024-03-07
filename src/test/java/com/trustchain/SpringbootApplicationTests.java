@@ -4,13 +4,10 @@ import com.trustchain.enums.UserRole;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
-import com.trustchain.model.vo.UserInformationVO;
-import com.trustchain.service.FileService;
+import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
 import com.trustchain.util.PasswordUtil;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
 import io.minio.errors.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +30,7 @@ class SpringbootApplicationTests {
     private UserService userService;
 
     @Autowired
-    private FileService fileService;
+    private MinioService minioService;
 
     private static final Logger logger = LogManager.getLogger(SpringbootApplicationTests.class);
 
@@ -54,9 +51,6 @@ class SpringbootApplicationTests {
                 "帮助用户探索和利用数据的潜力。无论您是企业、研究机构还是政府部门，我们的数据资源可信共享平台将为您提供一个可靠的合作平台，" +
                 "帮助您实现数据驱动的决策和创新。加入我们的平台，共享可信数据，推动您的业务和项目取得更大的成功！");
         org.setSuperiorID(null);
-
-        org.setCreationTime(new SimpleDateFormat("yyyy-MM-dd").parse("2024-03-05"));
-        org.setVersion(null);
 
         orgService.register(org);
         logger.info(org);

@@ -2,7 +2,7 @@ package com.trustchain.controller;
 
 import com.trustchain.enums.StatusCode;
 import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.service.FileService;
+import com.trustchain.service.MinioService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileController {
 
     @Autowired
-    private FileService fileService;
+    private MinioService minioService;
 
     private static final Logger logger = LogManager.getLogger(FileController.class);
 
     @PostMapping("/upload")
     public ResponseEntity<Object> upload(@RequestParam("file") MultipartFile file) {
-        String url = fileService.upload(file);
+        String url = minioService.upload(file);
         if (url != null) {
             return ResponseEntity
                     .status(HttpStatus.OK)

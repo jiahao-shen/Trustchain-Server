@@ -8,7 +8,7 @@ import com.mybatisflex.annotation.EnumValue;
 @AllArgsConstructor
 public enum UserRole {
     ADMIN(1),
-    NORMAL(2);
+    COMMON(2);
 
     @EnumValue
     private final int code;

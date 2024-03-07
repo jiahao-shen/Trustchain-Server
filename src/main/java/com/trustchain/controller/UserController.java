@@ -1,15 +1,15 @@
 package com.trustchain.controller;
 
-import cn.dev33.satoken.stp.SaTokenInfo;
-import cn.dev33.satoken.stp.StpUtil;
-import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson.JSONObject;
+import com.trustchain.convert.OrganizationConvert;
 import com.trustchain.convert.UserConvert;
+import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.StatusCode;
+import com.trustchain.enums.UserRole;
 import com.trustchain.model.entity.User;
+import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.model.vo.UserInformationVO;
-import com.trustchain.model.vo.UserLoginVO;
+import com.trustchain.model.vo.UserLogin;
 import com.trustchain.service.UserService;
 import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -35,14 +36,14 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody JSONObject request, HttpSession session) {
+    public ResponseEntity<Object> login(@RequestBody JSONObject request) {
         logger.info(request);
 
         String organization = request.getString("organization");
         String username = request.getString("username");
         String password = request.getString("password");
 
-        UserLoginVO user = userService.login(organization, username, password);
+        UserLogin user = userService.login(organization, username, password);
 
         if (user != null) {
             return ResponseEntity
@@ -60,9 +61,7 @@ public class UserController {
      * 用户退出登录
      */
     @PostMapping("/logout")
-    public ResponseEntity<Object> logout(@RequestBody JSONObject request, HttpSession session) {
-        logger.info(request);
-
+    public ResponseEntity<Object> logout(@RequestBody JSONObject request) {
         String id = request.getString("id");
         userService.logout(id);
 
@@ -70,29 +69,78 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "退出登录成功", null));
     }
-//
-//    /**
-//     * 用户注册
-//     */
-//    @PostMapping("/user/register")
-//    public ResponseEntity<Object> userRegister(@RequestBody JSONObject request, HttpSession session) {
-//        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-//
-//        User user = new User();
-//        user.setUsername(request.getString("username"));
-//        user.setPassword(encoder.encode(request.getString("password")));
-//        user.setOrganization(Long.parseLong(request.getString("organization")));
-//        user.setType(UserType.valueOf(request.getString("type")));
-//        user.setCreatedTime(new Date());
-//
-//        int count = userMapper.insert(user);
-//        if (count != 0) {
-//            return ResponseEntity.status(HttpStatus.OK).body(true);
-//        } else {
-//            return ResponseEntity.status(HttpStatus.OK).body(false);
-//        }
-//    }
-//
+
+    @PostMapping("/register")
+    public ResponseEntity<Object> register(@RequestBody JSONObject request) {
+        logger.info(request);
+
+        User user = new User();
+        user.setUsername(request.getString("username"));
+        user.setPassword(PasswordUtil.encrypt(request.getString("password")));
+        user.setOrganizationID(request.getString("organization"));
+        user.setTelephone(request.getString("telephone"));
+        user.setEmail(request.getString("email"));
+        user.setRole(UserRole.valueOf(request.getString("role")));
+
+        // TODO: 验证码
+//        String verificationCode = request.getString("verificationCode");
+
+        Boolean flag = userService.register(user);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "注册成功", flag));
+    }
+
+    @PostMapping("/register/apply")
+    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
+        UserRegister userReg = new UserRegister();
+        userReg.setLogo(request.getString("logo"));
+        userReg.setOrganizationID(request.getString("organization"));
+        userReg.setUsername(request.getString("username"));
+        userReg.setPassword(PasswordUtil.encrypt(request.getString("password")));
+        userReg.setTelephone(request.getString("telephone"));
+        userReg.setEmail(request.getString("email"));
+        userReg.setRole(UserRole.valueOf(request.getString("role")));
+        userReg.setRegStatus(RegisterStatus.PENDING);
+
+        // TODO: 验证邮箱
+        String verificationCode = request.getString("verificationCode");
+
+        String regID = userService.registerApply(userReg);
+
+        if (regID != null) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", regID));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "注册申请失败", null));
+        }
+    }
+
+    @PostMapping("/exist")
+    public ResponseEntity<Object> exist(@RequestBody JSONObject request) {
+        String organization = request.getString("organization");
+        String username = request.getString("username");
+        String id = request.getString("id");
+
+        Boolean result = userService.exist(organization, username, id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
+    }
+
+    @PostMapping("/register/apply/search")
+    public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
+        List<String> regIDs = request.getJSONArray("regIDs");
+
+        List<UserRegister> userRegs = userService.registerApplySearch(regIDs);
+
+//        return ResponseEntity
+//                .status(HttpStatus.OK)
+//                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.to))
+        return null;
+    }
 //    /**
 //     * 获取指定机构下的用户列表
 //     */

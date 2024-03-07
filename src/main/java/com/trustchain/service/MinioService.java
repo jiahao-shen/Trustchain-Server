@@ -1,83 +1,89 @@
 package com.trustchain.service;
 
-import com.trustchain.minio.MinioConfig;
 import io.minio.*;
+import com.trustchain.minio.MinioConfig;
+import io.minio.errors.*;
+import io.minio.http.Method;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
+import java.util.UUID;
+
 @Service
 public class MinioService {
-//    private MinioConfig config;
-//
-//    private MinioClient client;
-//
-//    @Autowired
-//    MinioService(MinioConfig config) {
-//        this.config = config;
-//
-//        client = MinioClient.builder()
-//                .endpoint(config.getEndpoint())
-//                .credentials(config.getAccessKey(), config.getSecretKey())
-//                .build();
-//
-//    }
-//
-//    // 上传文件
-//    @Async
-//    public void upload(MultipartFile file, String path) {
-//        try {
-//            client.putObject(PutObjectArgs.builder()
-////                    .bucket(config.getBucket())
-//                    .object(path)
-//                    .stream(file.getInputStream(), file.getSize(), -1)
-//                    .contentType(file.getContentType())
-//                    .build());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    // TODO: 下载文件
-//    public void download() throws Exception {
-//    }
-//
-//    // 复制文件
-//    @Async
-//    public void copy(String oldPath, String newPath) {
-//        try {
-//            client.copyObject(CopyObjectArgs.builder()
-//                    .bucket(config.getBucket())
-//                    .object(newPath)
-//                    .source(CopySource.builder()
-//                            .bucket(config.getBucket())
-//                            .object(oldPath).build())
-//                    .build());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    public void createBucket(String name) throws Exception {
-//        client.makeBucket(MakeBucketArgs.builder().bucket(name).build());
-//    }
-//
-//    public void listBuckets() throws Exception {
-//        client.listBuckets().forEach(b -> {
-//            System.out.println(b.name());
-//        });
-//    }
-//
-//    public void listFiles() throws Exception {
-//        client.listObjects(ListObjectsArgs.builder().bucket(config.getBucket()).recursive(false).build()).forEach(r -> {
-//            try {
-//                System.out.println(r.get().objectName());
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        });
-//    }
+    private MinioConfig config;
+
+    private MinioClient client;
+    private static final Logger logger = LogManager.getLogger(MinioService.class);
+
+    @Autowired
+    MinioService(MinioConfig config) {
+        this.config = config;
+        this.client = MinioClient.builder()
+                .endpoint(config.getEndpoint())
+                .credentials(config.getAccessKey(), config.getSecretKey())
+                .build();
+    }
+
+    //    @Async
+    public String upload(MultipartFile file) {
+        try {
+            int suffixIndex = Objects.requireNonNull(file.getOriginalFilename()).lastIndexOf(".");
+            String suffix = file.getOriginalFilename().substring(suffixIndex);
+            String fileName = "tmp/" + UUID.randomUUID().toString().replace("-", "") + suffix;
+            client.putObject(PutObjectArgs.builder()
+                    .bucket(config.getBucket())
+                    .object(fileName)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .contentType(file.getContentType())
+                    .build());
+
+            if (this.presignedUrl(fileName) != null) {
+                return fileName;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    public Boolean copy(String oldPath, String newPath) {
+        try {
+            client.copyObject(CopyObjectArgs.builder()
+                    .bucket(config.getBucket())
+                    .object(newPath)
+                    .source(CopySource.builder().bucket(config.getBucket()).object(oldPath).build())
+                    .build());
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Boolean move(String oldPath, String newPath) {
+        return false;
+    }
+
+    public String presignedUrl(String file) {
+        try {
+            return client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .method(Method.GET)
+                    .bucket(config.getBucket())
+                    .object(file).
+                    build());
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 }

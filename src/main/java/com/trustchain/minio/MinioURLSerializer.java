@@ -2,39 +2,30 @@ package com.trustchain.minio;
 
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
+import com.trustchain.service.MinioService;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 
 @Component
 @NoArgsConstructor
 public class MinioURLSerializer implements ObjectSerializer {
-
-    private static MinioConfig config;
+    private static MinioService minioService;
 
     @Autowired
-    public MinioURLSerializer(MinioConfig config) {
-        MinioURLSerializer.config = config;
+    public MinioURLSerializer(MinioService service) {
+        MinioURLSerializer.minioService = service;
     }
 
     @Override
-    public void write(JSONSerializer serializer, Object object, Object fieldName, Type type, int features) throws IOException {
+    public void write(JSONSerializer serializer, Object object, Object fieldName, Type type, int features) {
         if (object == null) {
             serializer.writeNull();
             return;
         }
 
-        String path = config.getEndpoint() + "/" + object;
-
-        serializer.write(path);
+        serializer.write(minioService.presignedUrl(object.toString()));
     }
 }
