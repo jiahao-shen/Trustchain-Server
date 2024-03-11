@@ -4,8 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.enums.RegisterStatus;
-import com.trustchain.minio.MinioURLSerializer;
-import com.trustchain.model.entity.Organization;
+import com.trustchain.util.MinioURLSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,7 +44,6 @@ public class OrganizationRegisterInformation {
 
     private String introduction;    // 机构介绍
 
-//    @JSONField(serialzeFeatures = SerializerFeature.WriteNullStringAsEmpty)
     private OrganizationInformation superior; // 上级机构
 
     @JSONField(format = "yyyy-MM-dd")

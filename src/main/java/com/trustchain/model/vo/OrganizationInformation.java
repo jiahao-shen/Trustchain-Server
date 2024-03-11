@@ -1,13 +1,8 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.mybatisflex.annotation.Column;
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.enums.OrganizationType;
-import com.trustchain.minio.MinioURLSerializer;
-import com.trustchain.model.entity.Organization;
+import com.trustchain.util.MinioURLSerializer;
 import lombok.*;
 
 import java.util.Date;

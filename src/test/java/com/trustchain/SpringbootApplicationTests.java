@@ -4,16 +4,22 @@ import com.trustchain.enums.UserRole;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
+import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
+import com.trustchain.util.CaptchaUtil;
 import com.trustchain.util.PasswordUtil;
 import io.minio.errors.*;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -76,7 +82,16 @@ class SpringbootApplicationTests {
         orgService.selectList();
     }
 
-//    @Autowired
+    @Autowired
+    private CaptchaUtil captchaUtil;
+
+    @Test
+    void testCaptcha() {
+//        captchaUtil.send("1843781563@qq.com");
+        System.out.println(captchaUtil.verify("1843781563@qq.com", "BDHH1J5P"));
+    }
+
+    //    @Autowired
 //    private UserMapper userMapper;
 //
 //    @Autowired

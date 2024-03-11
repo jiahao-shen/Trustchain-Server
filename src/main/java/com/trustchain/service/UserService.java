@@ -38,7 +38,9 @@ public class UserService {
         User user = userMapper.selectOneWithRelationsByQuery(query);
 
         if (user != null && PasswordUtil.match(password, user.getPassword())) {
+            // SA-Token登录并缓存数据
             StpUtil.login(user.getId());
+            StpUtil.getSession().set("user", user);
             return new UserLogin(UserConvert.INSTANCE.toUserInformation(user), StpUtil.getTokenInfo());
         }
         return null;

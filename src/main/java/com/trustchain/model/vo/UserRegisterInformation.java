@@ -2,14 +2,9 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.mybatisflex.annotation.Column;
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.RelationOneToOne;
-import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.UserRole;
-import com.trustchain.minio.MinioURLSerializer;
+import com.trustchain.util.MinioURLSerializer;
 import com.trustchain.model.entity.Organization;
 
 import java.util.Date;

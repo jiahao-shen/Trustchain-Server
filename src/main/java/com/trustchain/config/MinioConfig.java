@@ -1,4 +1,4 @@
-package com.trustchain.minio;
+package com.trustchain.config;
 
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;

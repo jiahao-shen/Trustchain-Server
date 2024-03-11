@@ -1,4 +1,4 @@
-package com.trustchain.minio;
+package com.trustchain.util;
 
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;

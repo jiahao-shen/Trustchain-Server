@@ -4,14 +4,12 @@ import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.enums.RegisterStatus;
-import com.trustchain.minio.MinioURLSerializer;
 import lombok.Data;
 
 import java.util.Date;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.alibaba.fastjson.annotation.JSONField;
 
 @Data
 @NoArgsConstructor

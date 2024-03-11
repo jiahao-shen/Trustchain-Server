@@ -30,6 +30,8 @@ public class OrganizationService {
     private FabricService fabricService;
     @Autowired
     private MinioService minioService;
+    @Autowired
+    private EmailSerivce emailSerivce;
 
     private static final Logger logger = LogManager.getLogger(OrganizationService.class);
 
@@ -74,6 +76,9 @@ public class OrganizationService {
         int count = orgRegMapper.insert(orgReg);
 
         if (count != 0) {
+            emailSerivce.send(orgReg.getEmail(), "注册申请已提交",
+                    "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" +
+                            "<h3>" + orgReg.getRegID() + "</h3>");
             return orgReg.getRegID();
         } else {
             return null;

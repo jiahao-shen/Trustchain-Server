@@ -2,9 +2,6 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #  url: jdbc:mysql://192.168.100.78:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
-    #  username: root
-    #  password: Beihang2022!
     url: jdbc:mysql://localhost:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
     username: root
     password: 258667
@@ -12,6 +9,37 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: hawkeye_trustchain@163.com
+    password: BLRKZJSOSSLPNYPX
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+            socketFactory:
+              port: 465
+              class: java.net.ssl.SSLSocketFactory
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password: Hawkeye2024!@#
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+    connect-timeout: 30000ms
+
 
 logging:
   config: classpath:log4j2.xml
@@ -25,8 +53,8 @@ minio:
   endpoint: http://127.0.0.1:9000
   bucket: trustchain
   # MacPro
-  accessKey: cW3wffjaswmJBZEnBU2j
-  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
+#  accessKey: cW3wffjaswmJBZEnBU2j
+#  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
   #  MacbookPro
-#  accessKey: 3wIc88pusSVNraoT1qrV
-#  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
+  accessKey: 3wIc88pusSVNraoT1qrV
+  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV

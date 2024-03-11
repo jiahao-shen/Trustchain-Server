@@ -2,7 +2,6 @@ package com.trustchain.model.entity;
 
 import com.mybatisflex.annotation.*;
 import com.trustchain.enums.OrganizationType;
-import com.trustchain.minio.MinioURLSerializer;
 import com.mybatisflex.core.keygen.KeyGenerators;
 
 import lombok.Data;
@@ -11,7 +10,6 @@ import java.util.Date;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.alibaba.fastjson.annotation.JSONField;
 
 @Data
 @NoArgsConstructor

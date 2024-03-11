@@ -15,6 +15,7 @@ import com.trustchain.model.vo.OrganizationInformation;
 import com.trustchain.model.vo.OrganizationRegisterInformation;
 import com.trustchain.model.vo.OrganizationSelectItem;
 import com.trustchain.service.OrganizationService;
+import com.trustchain.util.CaptchaUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -30,6 +30,10 @@ import java.util.List;
 public class OrganizationController {
     @Autowired
     private OrganizationService orgService;
+
+    @Autowired
+    private CaptchaUtil captchaUtil;
+
 
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
@@ -88,8 +92,6 @@ public class OrganizationController {
         orgReg.setRegStatus(RegisterStatus.PENDING);
 
         String regID = orgService.registerApply(orgReg);
-
-        // TODO: 验证邮箱
 
         if (regID != null) {
             return ResponseEntity
@@ -180,6 +182,25 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgInfo));
+    }
+
+    @PostMapping("/captcha/send")
+    public ResponseEntity<Object> sendCaptcha(@RequestBody JSONObject request) {
+        String email = request.getString("email");
+
+        Boolean result = captchaUtil.send(email);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
+    }
+
+    @PostMapping("/captcha/verify")
+    public ResponseEntity<Object> verifyCaptcha(@RequestBody JSONObject request) {
+        String email = request.getString("email");
+        String code = request.getString("code");
+
+        Boolean result = captchaUtil.verify(email, code);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
 
 //    @PostMapping("/organization/register/apply")
