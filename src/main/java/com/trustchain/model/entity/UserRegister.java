@@ -18,7 +18,7 @@ import java.util.Date;
 public class UserRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("reg_id")
-    private String regID;  // 注册号
+    private String regId;  // 注册号
 
     @Column("reg_status")
     private RegisterStatus regStatus;  // 申请状态
@@ -51,9 +51,9 @@ public class UserRegister {
     private UserRole role; // 角色
 
     @Column("organization_id")
-    private String organizationID;  // 所属机构ID
+    private String organizationId;  // 所属机构ID
 
-    @RelationOneToOne(selfField = "organizationID", targetField = "id")
+    @RelationOneToOne(selfField = "organizationId", targetField = "id")
     private Organization organization;  // 所属机构
 
     @Column("logo")

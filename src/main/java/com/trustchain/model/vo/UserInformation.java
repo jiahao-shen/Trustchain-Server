@@ -2,7 +2,6 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.trustchain.enums.UserRole;
-import com.trustchain.util.MinioURLSerializer;
 import com.trustchain.model.entity.Organization;
 import lombok.AllArgsConstructor;
 import lombok.Data;

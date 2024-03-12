@@ -35,9 +35,9 @@ public class User {
     private UserRole role; // 角色
 
     @Column("organization_id")
-    private String organizationID;  // 机构ID
+    private String organizationId;  // 机构ID
 
-    @RelationOneToOne(selfField = "organizationID", targetField = "id")
+    @RelationOneToOne(selfField = "organizationId", targetField = "id")
     private Organization organization;
 
     @Column(value = "registration_time", onInsertValue = "now()")

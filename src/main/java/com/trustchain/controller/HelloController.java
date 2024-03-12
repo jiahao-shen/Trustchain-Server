@@ -13,8 +13,6 @@ import java.util.concurrent.Future;
 
 @RestController
 public class HelloController {
-//    @Autowired
-//    private OrganizationRegisterMapper organizationRegisterMapper;
 
     @Autowired
     private MinioService minioService;

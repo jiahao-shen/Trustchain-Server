@@ -2,7 +2,6 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.trustchain.enums.OrganizationType;
-import com.trustchain.util.MinioURLSerializer;
 import lombok.*;
 
 import java.util.Date;
@@ -41,7 +40,7 @@ public class OrganizationInformation {
 
     private String version;  // 版本号
 
-    private Boolean latest; // 是否为最新
+    private boolean latest; // 是否为最新
 
     @JSONField(serializeUsing = MinioURLSerializer.class)
     private String logo; // 机构Logo

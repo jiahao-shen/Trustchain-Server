@@ -1,4 +1,4 @@
-package com.trustchain.convert;
+package com.trustchain.model.convert;
 
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
@@ -17,6 +17,8 @@ public interface OrganizationConvert {
     Organization toOrganization(OrganizationRegister organizationRegister);
 
     OrganizationInformation toOrganizationInformation(Organization organization);
+
+    List<OrganizationInformation> toOrganizationInformationList(List<Organization> organizationList);
 
     OrganizationSelectItem toOrganizationSelectItem(Organization organization);
 

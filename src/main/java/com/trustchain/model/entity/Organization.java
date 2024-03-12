@@ -42,9 +42,9 @@ public class Organization {
     private String introduction;    // 机构介绍
 
     @Column("superior_id")
-    private String superiorID; // 上级机构ID
+    private String superiorId; // 上级机构ID
 
-    @RelationOneToOne(selfField = "superiorID", targetField = "id")
+    @RelationOneToOne(selfField = "superiorId", targetField = "id")
     private Organization superior;  // 上级机构
 
     @Column("creation_time")

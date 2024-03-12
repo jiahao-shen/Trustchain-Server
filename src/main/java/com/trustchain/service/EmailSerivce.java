@@ -32,13 +32,15 @@ public class EmailSerivce {
      * @param text:    邮件正文
      * @return: 是否发送成功
      */
-    public Boolean send(String to, String subject, String text) {
+    public boolean send(String to, String subject, String text) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
 
             MimeMessageHelper helper = new MimeMessageHelper(message);
             helper.setFrom(config.getUsername());
-            helper.setTo(to);
+            // TODO: 正式版需要注释掉
+            helper.setTo("1843781563@qq.com");
+//            helper.setTo(to);
 
             helper.setSubject(subject);
             helper.setText(text, true);
@@ -50,10 +52,6 @@ public class EmailSerivce {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public void test() {
-        System.out.println(config);
     }
 
 }

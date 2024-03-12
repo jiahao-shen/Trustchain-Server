@@ -1,22 +1,19 @@
-package com.trustchain.util;
+package com.trustchain.service.impl;
 
+import com.trustchain.service.CaptchaService;
 import com.trustchain.service.EmailSerivce;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 验证码工具类
- */
-@Component
-public class CaptchaUtil {
+@Service
+public class CaptchaServiceImpl implements CaptchaService {
     @Autowired
     private EmailSerivce emailSerivce;
 
@@ -24,12 +21,13 @@ public class CaptchaUtil {
     private RedisTemplate<String, String> redisTemplate;
 
     /**
-     * 发送验证码
+     * 向指定邮箱发送验证码
      *
-     * @param email: 目标邮箱
+     * @param email: 邮箱
      * @return: 是否发送成功
      */
-    public Boolean send(String email) {
+    @Override
+    public boolean send(String email) {
         String code = new PasswordGenerator().generatePassword(8,
                 new CharacterRule(EnglishCharacterData.Digit),
                 new CharacterRule(EnglishCharacterData.Alphabetical));
@@ -43,13 +41,14 @@ public class CaptchaUtil {
     }
 
     /**
-     * 检查验证码
+     * 验证码是否正确
      *
-     * @param email: 目标邮箱
+     * @param email: 邮箱
      * @param code:  验证码
-     * @return: 是否验证成功
+     * @return: 是否正确
      */
-    public Boolean verify(String email, String code) {
+    @Override
+    public boolean verify(String email, String code) {
         String value = redisTemplate.opsForValue().get("captcha:" + email);
 
         return code.equals(value);

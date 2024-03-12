@@ -4,13 +4,18 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.UserRole;
-import com.trustchain.util.MinioURLSerializer;
 import com.trustchain.model.entity.Organization;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserRegisterInformation {
-    private String regID;  // 注册号
+    private String regId;  // 注册号
 
     private RegisterStatus regStatus;  // 申请状态
 

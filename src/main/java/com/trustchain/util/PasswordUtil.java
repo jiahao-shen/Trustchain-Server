@@ -9,7 +9,7 @@ public class PasswordUtil {
         return encoder.encode(plain);
     }
 
-    public static Boolean match(String plain, String cipher) {
+    public static boolean match(String plain, String cipher) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         return encoder.matches(plain, cipher);

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.enums.RegisterStatus;
-import com.trustchain.util.MinioURLSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrganizationRegisterInformation {
-    private String regID;  // 注册ID
+    private String regId;  // 注册ID
 
     private RegisterStatus regStatus;  // 申请状态
 

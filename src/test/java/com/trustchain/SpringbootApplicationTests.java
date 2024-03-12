@@ -4,28 +4,21 @@ import com.trustchain.enums.UserRole;
 import com.trustchain.enums.OrganizationType;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
-import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
-import com.trustchain.util.CaptchaUtil;
 import com.trustchain.util.PasswordUtil;
 import io.minio.errors.*;
-import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 @SpringBootTest
 class SpringbootApplicationTests {
@@ -56,7 +49,7 @@ class SpringbootApplicationTests {
                 "并确保数据在传输和存储过程中得到适当的加密和权限控制。我们的平台还提供灵活的数据管理工具和分析功能，" +
                 "帮助用户探索和利用数据的潜力。无论您是企业、研究机构还是政府部门，我们的数据资源可信共享平台将为您提供一个可靠的合作平台，" +
                 "帮助您实现数据驱动的决策和创新。加入我们的平台，共享可信数据，推动您的业务和项目取得更大的成功！");
-        org.setSuperiorID(null);
+        org.setSuperiorId(null);
 
         orgService.register(org);
         logger.info(org);
@@ -68,7 +61,7 @@ class SpringbootApplicationTests {
 
         user.setUsername("admin");
         user.setPassword(PasswordUtil.encrypt("258667"));
-        user.setOrganizationID("6c5f30bed485476c906358c6d50f4bef");
+        user.setOrganizationId("6c5f30bed485476c906358c6d50f4bef");
         user.setTelephone("13915558435");
         user.setEmail("1843781563@qq.com");
         user.setRole(UserRole.ADMIN);
@@ -82,13 +75,11 @@ class SpringbootApplicationTests {
         orgService.selectList();
     }
 
-    @Autowired
-    private CaptchaUtil captchaUtil;
-
     @Test
-    void testCaptcha() {
-//        captchaUtil.send("1843781563@qq.com");
-        System.out.println(captchaUtil.verify("1843781563@qq.com", "BDHH1J5P"));
+    void testPresignedUrl() {
+//        System.out.println(minioService.presignedUrl("tmp/c1e21f5f3b414737bf0d088f676af8cf.jpg"));
+        System.out.println(minioService.presignedUrl("organization/5e87c537c4b2403bb2247d8cac035bc9.jpg"));
+
     }
 
     //    @Autowired

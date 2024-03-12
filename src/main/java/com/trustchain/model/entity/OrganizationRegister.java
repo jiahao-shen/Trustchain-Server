@@ -18,7 +18,7 @@ import lombok.AllArgsConstructor;
 public class OrganizationRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("reg_id")
-    private String regID;  // 注册ID
+    private String regId;  // 注册ID
 
     @Column("reg_status")
     private RegisterStatus regStatus;  // 申请状态
@@ -57,9 +57,9 @@ public class OrganizationRegister {
     private String introduction;    // 机构介绍
 
     @Column("superior_id")
-    private String superiorID; // 上级机构ID
+    private String superiorId; // 上级机构ID
 
-    @RelationOneToOne(selfField = "superiorID", targetField = "id")
+    @RelationOneToOne(selfField = "superiorId", targetField = "id")
     private Organization superior;  // 上级机构
 
     @Column("creation_time")
