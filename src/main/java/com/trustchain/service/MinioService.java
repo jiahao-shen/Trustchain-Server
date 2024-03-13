@@ -31,4 +31,10 @@ public interface MinioService {
      */
     String presignedUrl(String file);
 
+    /**
+     * @param path: 路径
+     * @return
+     */
+    boolean isUrl(String path);
+
 }

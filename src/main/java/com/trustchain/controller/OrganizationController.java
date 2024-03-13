@@ -8,7 +8,7 @@ import com.trustchain.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.model.vo.OrganizationInformation;
+import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -28,11 +29,6 @@ public class OrganizationController {
 
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
-    /**
-     * 机构选择列表
-     *
-     * @return
-     */
     @GetMapping("/selectList")
     public ResponseEntity<Object> selectList() {
         List<Organization> orgs = orgService.selectList();
@@ -40,15 +36,9 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationSelectItemList(orgs)));
+                        OrganizationConvert.INSTANCE.toOrganizationSelectVOList(orgs)));
     }
 
-    /**
-     * 判断机构是否存在
-     *
-     * @param request
-     * @return
-     */
     @PostMapping("/exist")
     public ResponseEntity<Object> exist(@RequestBody JSONObject request) {
         String orgName = request.getString("orgName");
@@ -60,12 +50,6 @@ public class OrganizationController {
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
 
-    /**
-     * 机构注册申请
-     *
-     * @param request
-     * @return
-     */
     @PostMapping("/register/apply")
     public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
         OrganizationRegister orgReg = new OrganizationRegister();
@@ -95,12 +79,6 @@ public class OrganizationController {
         }
     }
 
-    /**
-     * 机构注册查询
-     *
-     * @param request
-     * @return
-     */
     @PostMapping("/register/apply/search")
     public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
         List<String> regIds = request.getJSONArray("regIds");
@@ -110,15 +88,9 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformationList(orgRegs)));
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
     }
 
-    /**
-     * 机构注册列表
-     *
-     * @param request
-     * @return
-     */
     @PostMapping("/register/list")
     public ResponseEntity<Object> registerList(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
@@ -128,7 +100,7 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformationList(orgRegs)));
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
     }
 
     @PostMapping("/register/detail")
@@ -137,10 +109,12 @@ public class OrganizationController {
 
         OrganizationRegister orgReg = orgService.registerDetail(regId);
 
+        logger.info(OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterInformation(orgReg)));
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg)));
     }
 
     @PostMapping("/register/reply")
@@ -154,24 +128,40 @@ public class OrganizationController {
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
     }
 
-    /**
-     * 机构信息详情
-     *
-     * @param request
-     * @return
-     */
     @PostMapping("/information/detail")
     public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String version = request.getString("version");
 
         Organization org = orgService.informationDetail(orgId, version);
-        OrganizationInformation orgInfo = OrganizationConvert.INSTANCE.toOrganizationInformation(org);
+        OrganizationVO orgInfo = OrganizationConvert.INSTANCE.toOrganizationVO(org);
         orgInfo.setLatest(true);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgInfo));
+    }
+
+    @PutMapping("/information/update")
+    public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
+        String id = request.getString("id");
+        String logo = request.getString("logo");
+        String name = request.getString("name");
+        OrganizationType type = OrganizationType.valueOf(request.getString("type"));
+        Date creationTime = request.getDate("creationTime");
+        String telephone = request.getString("telephone");
+        String email = request.getString("email");
+        String city = request.getString("city");
+        String address = request.getString("address");
+        String introduction = request.getString("introduction");
+        String file = request.getString("file");
+
+        boolean flag = orgService.informationUpdate(id, logo, name, type, creationTime, telephone, email,
+                city, address, introduction, file);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
     }
 
     @PostMapping("/subordinate/list")
@@ -185,7 +175,7 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationInformationList(subOrgs)));
+                        OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs)));
     }
 
     @PostMapping("/subordinate/detail")
@@ -197,7 +187,7 @@ public class OrganizationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationInformation(org)));
+                        OrganizationConvert.INSTANCE.toOrganizationVO(org)));
     }
 
 }

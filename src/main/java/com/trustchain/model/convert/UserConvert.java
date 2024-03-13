@@ -1,11 +1,11 @@
 package com.trustchain.model.convert;
 
 import com.trustchain.model.entity.UserRegister;
-import com.trustchain.model.vo.UserRegisterInformation;
+import com.trustchain.model.vo.UserRegisterVO;
+import com.trustchain.model.vo.UserVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import com.trustchain.model.entity.User;
-import com.trustchain.model.vo.UserInformation;
 
 import java.util.List;
 
@@ -13,9 +13,13 @@ import java.util.List;
 public interface UserConvert {
     UserConvert INSTANCE = Mappers.getMapper(UserConvert.class);
 
-    UserInformation toUserInformation(User user);
+    User toUser(UserRegister userRegister);
 
-    UserRegisterInformation toUserRegisterInformation(UserRegister userRegister);
+    UserVO toUserVO(User user);
 
-    List<UserRegisterInformation> toUserRegisterInformationList(List<UserRegister> userRegisterList);
+    List<UserVO> toUserVOList(List<User> userList);
+
+    UserRegisterVO toUserRegisterVO(UserRegister userRegister);
+
+    List<UserRegisterVO> toUserRegisterVOList(List<UserRegister> userRegisterList);
 }

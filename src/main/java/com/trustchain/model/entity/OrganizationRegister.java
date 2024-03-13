@@ -29,8 +29,8 @@ public class OrganizationRegister {
     @Column("reply_time")
     private Date replyTime;   // 批复时间
 
-    @Column("reply_message")
-    private String replyMessage;    // 批复内容
+    @Column("reply_reason")
+    private String replyReason;    // 批复内容
 
     @Column("id")
     private String id;  // 机构ID

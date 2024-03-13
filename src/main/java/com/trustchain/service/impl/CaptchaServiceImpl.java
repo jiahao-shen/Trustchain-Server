@@ -28,6 +28,7 @@ public class CaptchaServiceImpl implements CaptchaService {
      */
     @Override
     public boolean send(String email) {
+        email = "1843781563@qq.com"; // TODO: 开发调试用
         String code = new PasswordGenerator().generatePassword(8,
                 new CharacterRule(EnglishCharacterData.Digit),
                 new CharacterRule(EnglishCharacterData.Alphabetical));
@@ -49,6 +50,7 @@ public class CaptchaServiceImpl implements CaptchaService {
      */
     @Override
     public boolean verify(String email, String code) {
+        email = "1843781563@qq.com";    // TODO: 开发调试用
         String value = redisTemplate.opsForValue().get("captcha:" + email);
 
         return code.equals(value);

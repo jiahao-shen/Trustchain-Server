@@ -1,19 +1,19 @@
 package com.trustchain.model.entity;
 
+import lombok.Data;
+
+import java.util.Date;
+
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.enums.UserRole;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("user")
+@Table(value = "user")
 public class User {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("id")
@@ -52,4 +52,5 @@ public class User {
     @Column("version")
     private String version; // 版本号
 }
+
 

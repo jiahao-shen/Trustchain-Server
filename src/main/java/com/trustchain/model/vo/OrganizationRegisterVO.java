@@ -13,7 +13,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationRegisterInformation {
+public class OrganizationRegisterVO {
     private String regId;  // 注册ID
 
     private RegisterStatus regStatus;  // 申请状态
@@ -25,7 +25,7 @@ public class OrganizationRegisterInformation {
     private Date replyTime;   // 批复时间
 
     @JSONField(serialzeFeatures = SerializerFeature.WriteNullStringAsEmpty)
-    private String replyMessage;    // 批复内容
+    private String replyReason;    // 批复内容
 
     private String id;  // 机构ID
 
@@ -43,7 +43,7 @@ public class OrganizationRegisterInformation {
 
     private String introduction;    // 机构介绍
 
-    private OrganizationInformation superior; // 上级机构
+    private OrganizationVO superior; // 上级机构
 
     @JSONField(format = "yyyy-MM-dd")
     private Date creationTime;   // 创建时间

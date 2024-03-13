@@ -53,8 +53,8 @@ minio:
   endpoint: http://127.0.0.1:9000
   bucket: trustchain
   # MacPro
-#  accessKey: cW3wffjaswmJBZEnBU2j
-#  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
+  accessKey: cW3wffjaswmJBZEnBU2j
+  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
   #  MacbookPro
-  accessKey: 3wIc88pusSVNraoT1qrV
-  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
+#  accessKey: 3wIc88pusSVNraoT1qrV
+#  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV

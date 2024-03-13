@@ -2,9 +2,9 @@ package com.trustchain.model.convert;
 
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
-import com.trustchain.model.vo.OrganizationInformation;
-import com.trustchain.model.vo.OrganizationRegisterInformation;
-import com.trustchain.model.vo.OrganizationSelectItem;
+import com.trustchain.model.vo.OrganizationRegisterVO;
+import com.trustchain.model.vo.OrganizationSelectVO;
+import com.trustchain.model.vo.OrganizationVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -16,15 +16,15 @@ public interface OrganizationConvert {
 
     Organization toOrganization(OrganizationRegister organizationRegister);
 
-    OrganizationInformation toOrganizationInformation(Organization organization);
+    OrganizationVO toOrganizationVO(Organization organization);
 
-    List<OrganizationInformation> toOrganizationInformationList(List<Organization> organizationList);
+    List<OrganizationVO> toOrganizationVOList(List<Organization> organizationList);
 
-    OrganizationSelectItem toOrganizationSelectItem(Organization organization);
+    OrganizationSelectVO toOrganizationSelectVO(Organization organization);
 
-    List<OrganizationSelectItem> toOrganizationSelectItemList(List<Organization> organizationList);
+    List<OrganizationSelectVO> toOrganizationSelectVOList(List<Organization> organizationList);
 
-    OrganizationRegisterInformation toOrganizationRegisterInformation(OrganizationRegister organizationRegister);
+    OrganizationRegisterVO toOrganizationRegisterVO(OrganizationRegister organizationRegister);
 
-    List<OrganizationRegisterInformation> toOrganizationRegisterInformationList(List<OrganizationRegister> organizationRegisterList);
+    List<OrganizationRegisterVO> toOrganizationRegisterVOList(List<OrganizationRegister> organizationRegisterList);
 }

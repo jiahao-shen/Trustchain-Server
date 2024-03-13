@@ -2,6 +2,7 @@ package com.trustchain;
 
 import com.trustchain.enums.UserRole;
 import com.trustchain.enums.OrganizationType;
+import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
 import com.trustchain.service.MinioService;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -55,18 +57,22 @@ class SpringbootApplicationTests {
         logger.info(org);
     }
 
+    @Autowired
+    private UserMapper userMapper;
+
     @Test
     void testUserRegister() {
-        User user = new User();
+//        User user = new User();
+//
+//        user.setUsername("plus");
+//        user.setPassword("258667");
+//        user.setOrganizationId("e675a62fa8f24e9ebc0cff4e1a1634c5");
+//        user.setTelephone("13915558435");
+//        user.setEmail("1843781563@qq.com");
+//        user.setRole(UserRole.ADMIN);
 
-        user.setUsername("admin");
-        user.setPassword(PasswordUtil.encrypt("258667"));
-        user.setOrganizationId("6c5f30bed485476c906358c6d50f4bef");
-        user.setTelephone("13915558435");
-        user.setEmail("1843781563@qq.com");
-        user.setRole(UserRole.ADMIN);
-
-        userService.register(user);
+//        userService.register(user);
+        User user = userMapper.selectOneById("226d01dc5758493da6c38d55c86c4e82");
         logger.info(user);
     }
 
@@ -78,8 +84,12 @@ class SpringbootApplicationTests {
     @Test
     void testPresignedUrl() {
 //        System.out.println(minioService.presignedUrl("tmp/c1e21f5f3b414737bf0d088f676af8cf.jpg"));
-        System.out.println(minioService.presignedUrl("organization/5e87c537c4b2403bb2247d8cac035bc9.jpg"));
+//        System.out.println(minioService.presignedUrl("organization/5e87c537c4b2403bb2247d8cac035bc9.jpg"));
+        String fuck = minioService.presignedUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854");
+        logger.info(fuck);
 
+        boolean flag = minioService.isUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854");
+        logger.info(flag);
     }
 
     //    @Autowired

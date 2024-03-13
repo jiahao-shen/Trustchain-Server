@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationSelectItem {
+public class OrganizationSelectVO {
     private String id;
     private String name;
 }

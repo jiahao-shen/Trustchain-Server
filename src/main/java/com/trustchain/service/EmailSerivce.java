@@ -38,8 +38,7 @@ public class EmailSerivce {
 
             MimeMessageHelper helper = new MimeMessageHelper(message);
             helper.setFrom(config.getUsername());
-            // TODO: 正式版需要注释掉
-            helper.setTo("1843781563@qq.com");
+            helper.setTo("1843781563@qq.com");   // TODO: 开发调试用
 //            helper.setTo(to);
 
             helper.setSubject(subject);

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -80,6 +81,15 @@ public class MinioServiceImpl implements MinioService {
                     .build());
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public boolean isUrl(String path) {
+        try {
+            new URL(path);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

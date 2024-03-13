@@ -1,16 +1,18 @@
 package com.trustchain.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.trustchain.model.convert.OrganizationConvert;
+import com.trustchain.enums.OrganizationType;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.enums.RegisterStatus;
 import com.trustchain.enums.StatusCode;
 import com.trustchain.enums.UserRole;
-import com.trustchain.model.entity.OrganizationRegister;
+import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.UserLogin;
+import com.trustchain.model.vo.UserVO;
 import com.trustchain.service.UserService;
 import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
@@ -133,7 +135,7 @@ public class UserController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserRegisterInformationList(userRegs)));
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
     }
 
     @PostMapping("/exist")
@@ -156,7 +158,7 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterInformationList(userRegs)));
+                        UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
     }
 
     @PostMapping("/register/detail")
@@ -168,7 +170,54 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterInformation(userReg)));
+                        UserConvert.INSTANCE.toUserRegisterVO(userReg)));
+    }
+
+    @PostMapping("/register/reply")
+    public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+        String regId = request.getString("regId");
+        RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
+        String reason = request.getString("reason");
+
+        boolean flag = userService.registerReply(regId, reply, reason);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
+    }
+
+    @PostMapping("/subordinate/list")
+    public ResponseEntity<Object> subordindateList(@RequestBody JSONObject request) {
+        String orgId = request.getString("orgId");
+
+        List<User> users = userService.subordinateList(orgId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users)));
+    }
+
+    @PostMapping("/subordinate/detail")
+    public ResponseEntity<Object> subordinateDetail(@RequestBody JSONObject request) {
+        String userId = request.getString("userId");
+
+        User user = userService.subordinateDetail(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(user)));
+    }
+
+    @PostMapping("/information/detail")
+    public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
+        String userId = request.getString("userId");
+        String version = request.getString("version");
+
+        User user = userService.informationDetail(userId, version);
+        UserVO userInfo = UserConvert.INSTANCE.toUserVO(user);
+        userInfo.setLatest(true);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", userInfo));
     }
 
 //    /**

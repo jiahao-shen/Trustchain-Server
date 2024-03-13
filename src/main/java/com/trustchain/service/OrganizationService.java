@@ -1,11 +1,12 @@
 package com.trustchain.service;
 
+import java.util.Date;
 import java.util.List;
 
+import com.trustchain.enums.OrganizationType;
 import com.trustchain.enums.RegisterStatus;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
-import com.trustchain.model.vo.OrganizationInformation;
 
 
 public interface OrganizationService {
@@ -77,16 +78,42 @@ public interface OrganizationService {
     /**
      * 获取机构详情
      *
-     * @param orgId:      机构ID
+     * @param orgId:   机构ID
      * @param version: 版本号
      * @return: 机构信息
      */
     Organization informationDetail(String orgId, String version);
 
     /**
+     * @param orgId:        机构ID
+     * @param logo:         机构Logo
+     * @param name:         机构名称
+     * @param type:         机构类型
+     * @param creationTime: 创建时间
+     * @param telephone:    机构电话
+     * @param email:        机构邮箱
+     * @param city:         机构城市
+     * @param address:      机构地址
+     * @param introduction: 机构介绍
+     * @param file:         机构文件
+     * @return
+     */
+    boolean informationUpdate(String orgId,
+                              String logo,
+                              String name,
+                              OrganizationType type,
+                              Date creationTime,
+                              String telephone,
+                              String email,
+                              String city,
+                              String address,
+                              String introduction,
+                              String file);
+
+    /**
      * 获取机构的下级机构列表
      *
-     * @param id: 机构ID
+     * @param orgId: 机构ID
      * @return
      */
     List<Organization> subordinateList(String orgId);
