@@ -1,4 +1,4 @@
-package com.trustchain.enums;
+package com.trustchain.model.enums;
 
 import lombok.Getter;
 import lombok.AllArgsConstructor;

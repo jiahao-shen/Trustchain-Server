@@ -2,8 +2,8 @@ package com.trustchain.model.entity;
 
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.trustchain.enums.RegisterStatus;
-import com.trustchain.enums.UserRole;
+import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.UserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -58,5 +58,8 @@ public class UserRegister {
 
     @Column("logo")
     private String logo; // 用户Logo
+
+    @Column(value = "is_delete", isLogicDelete = true)
+    private Boolean isDelete;   // 逻辑删除标志位
 }
 

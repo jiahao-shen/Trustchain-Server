@@ -3,8 +3,8 @@ package com.trustchain.service;
 import java.util.Date;
 import java.util.List;
 
-import com.trustchain.enums.OrganizationType;
-import com.trustchain.enums.RegisterStatus;
+import com.trustchain.model.enums.OrganizationType;
+import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 
@@ -85,36 +85,33 @@ public interface OrganizationService {
     Organization informationDetail(String orgId, String version);
 
     /**
-     * @param orgId:        机构ID
-     * @param logo:         机构Logo
-     * @param name:         机构名称
-     * @param type:         机构类型
-     * @param creationTime: 创建时间
-     * @param telephone:    机构电话
-     * @param email:        机构邮箱
-     * @param city:         机构城市
-     * @param address:      机构地址
-     * @param introduction: 机构介绍
-     * @param file:         机构文件
+     * @param organization: 机构
      * @return
      */
-    boolean informationUpdate(String orgId,
-                              String logo,
-                              String name,
-                              OrganizationType type,
-                              Date creationTime,
-                              String telephone,
-                              String email,
-                              String city,
-                              String address,
-                              String introduction,
-                              String file);
+    Organization informationUpdate(Organization organization);
+
+    /**
+     * 获取机构信息的历史记录
+     *
+     * @param orgId: 机构ID
+     * @return: 机构信息历史记录
+     */
+    List<Organization> informationHistory(String orgId);
+
+    /**
+     * 机构信息回滚
+     *
+     * @param orgId:   机构ID
+     * @param version: 版本号
+     * @return: 是否回滚成功
+     */
+    boolean informationRollback(String orgId, String version);
 
     /**
      * 获取机构的下级机构列表
      *
      * @param orgId: 机构ID
-     * @return
+     * @return: 下级机构列表
      */
     List<Organization> subordinateList(String orgId);
 
@@ -122,7 +119,7 @@ public interface OrganizationService {
      * 获取下级机构详情
      *
      * @param orgId: 机构ID
-     * @return
+     * @return: 下级机构详情
      */
     Organization subordinateDetail(String orgId);
 }

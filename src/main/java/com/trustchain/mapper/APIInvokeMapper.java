@@ -1,13 +1,5 @@
 package com.trustchain.mapper;
 
-import com.trustchain.model.APIInvoke;
-import com.trustchain.model.APIInvokeApplyInfo;
-import com.trustchain.model.APIInvokeApprovalInfo;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-
-import java.util.List;
-
 //public interface APIInvokeMapper extends BaseMapper<APIInvoke> {
 //
 //    @Select("select t1.*, t2.name as api_name, t3.name as organization_name " +

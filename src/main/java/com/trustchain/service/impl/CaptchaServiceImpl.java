@@ -1,5 +1,7 @@
 package com.trustchain.service.impl;
 
+import com.trustchain.mapper.OrganizationMapper;
+import com.trustchain.mapper.UserMapper;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.EmailSerivce;
 import org.passay.CharacterRule;
@@ -16,7 +18,10 @@ import java.util.concurrent.TimeUnit;
 public class CaptchaServiceImpl implements CaptchaService {
     @Autowired
     private EmailSerivce emailSerivce;
-
+    @Autowired
+    private OrganizationMapper orgMapper;
+    @Autowired
+    private UserMapper userMapper;
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
@@ -28,7 +33,8 @@ public class CaptchaServiceImpl implements CaptchaService {
      */
     @Override
     public boolean send(String email) {
-        email = "1843781563@qq.com"; // TODO: 开发调试用
+        // TODO: 开发调试用
+        email = "1843781563@qq.com";
         String code = new PasswordGenerator().generatePassword(8,
                 new CharacterRule(EnglishCharacterData.Digit),
                 new CharacterRule(EnglishCharacterData.Alphabetical));
@@ -50,7 +56,8 @@ public class CaptchaServiceImpl implements CaptchaService {
      */
     @Override
     public boolean verify(String email, String code) {
-        email = "1843781563@qq.com";    // TODO: 开发调试用
+        // TODO: 开发调试用
+        email = "1843781563@qq.com";
         String value = redisTemplate.opsForValue().get("captcha:" + email);
 
         return code.equals(value);

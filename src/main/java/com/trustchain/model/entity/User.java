@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.trustchain.enums.UserRole;
+import com.trustchain.model.enums.UserRole;
 
 @Data
 @NoArgsConstructor
@@ -51,6 +51,9 @@ public class User {
 
     @Column("version")
     private String version; // 版本号
+
+    @Column(value = "is_delete", isLogicDelete = true)
+    private Boolean isDelete;   // 逻辑删除标志位
 }
 
 

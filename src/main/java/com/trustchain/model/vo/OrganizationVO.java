@@ -1,7 +1,8 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.trustchain.enums.OrganizationType;
+import com.trustchain.model.enums.OrganizationType;
+import com.trustchain.model.serializer.MinioURLSerializer;
 import lombok.*;
 
 import java.util.Date;

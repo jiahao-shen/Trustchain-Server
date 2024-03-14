@@ -2,9 +2,9 @@ package com.trustchain.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.enums.OrganizationType;
+import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.model.convert.OrganizationConvert;
-import com.trustchain.enums.RegisterStatus;
+import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.model.entity.Organization;
@@ -41,6 +41,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      *
      * @return: 机构选择列表
      */
+    @Override
     public List<Organization> selectList() {
         QueryWrapper query = QueryWrapper.create()
                 .from(Organization.class)
@@ -56,6 +57,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param orgId:   机构ID
      * @return: 是否存在
      */
+    @Override
     public boolean exist(String orgName, String orgId) {
         QueryWrapper query = QueryWrapper.create()
                 .from(Organization.class)
@@ -73,6 +75,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param orgReg: 机构注册对象
      * @return: 注册申请号
      */
+    @Override
     public String registerApply(OrganizationRegister orgReg) {
         int count = orgRegMapper.insert(orgReg);
 
@@ -92,6 +95,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param regIds: 注册申请号
      * @return: 注册申请列表
      */
+    @Override
     public List<OrganizationRegister> registerApplySearch(List<String> regIds) {
         return orgRegMapper.selectListByIds(regIds);
     }
@@ -102,6 +106,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param id: 上级机构ID
      * @return: 注册申请列表
      */
+    @Override
     public List<OrganizationRegister> registerList(String id) {
         QueryWrapper query = QueryWrapper.create()
                 .from(OrganizationRegister.class)
@@ -114,6 +119,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param regId: 注册申请号
      * @return: 注册申请信息
      */
+    @Override
     public OrganizationRegister registerDetail(String regId) {
         return orgRegMapper.selectOneById(regId);
     }
@@ -126,6 +132,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param reason: 回复理由
      * @return: 成功与否
      */
+    @Override
     public boolean registerReply(String regId, RegisterStatus reply, String reason) {
         OrganizationRegister orgReg = orgRegMapper.selectOneById(regId);
         if (orgReg == null) {
@@ -185,6 +192,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param org: 机构
      * @return: 是否插入成功
      */
+    @Override
     public boolean register(Organization org) {
         int count = orgMapper.insert(org);
 
@@ -199,6 +207,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param version: 版本号
      * @return: 机构信息
      */
+    @Override
     public Organization informationDetail(String orgId, String version) {
         // TODO: 使用版本信息
         RelationManager.setMaxDepth(1);
@@ -206,57 +215,52 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     /**
-     * @param orgId:        机构ID
-     * @param logo:         机构Logo
-     * @param name:         机构名称
-     * @param type:         机构类型
-     * @param creationTime: 创建时间
-     * @param telephone:    机构电话
-     * @param email:        机构邮箱
-     * @param city:         机构城市
-     * @param address:      机构地址
-     * @param introduction: 机构介绍
-     * @param file:         机构文件
+     * @param org: 机构
      * @return
      */
     @Override
-    public boolean informationUpdate(String orgId,
-                                     String logo,
-                                     String name,
-                                     OrganizationType type,
-                                     Date creationTime,
-                                     String telephone,
-                                     String email,
-                                     String city,
-                                     String address,
-                                     String introduction,
-                                     String file) {
-        Organization org = orgMapper.selectOneById(orgId);
-        if (org == null) {
-            return false;
+    public Organization informationUpdate(Organization org) {
+        String logo = org.getLogo();
+        if (!minioService.isUrl(logo)) {
+            String newLogoPath = "user/" + logo.substring(logo.lastIndexOf("/") + 1);
+            minioService.copy(logo, newLogoPath);
+            org.setLogo(newLogoPath);
         } else {
-            if (!minioService.isUrl(logo)) {
-                String newLogoPath = "organization/" + logo.substring(logo.lastIndexOf("/") + 1);
-                minioService.copy(logo, newLogoPath);
-                org.setLogo(newLogoPath);
-            }
-            org.setName(name);
-            org.setType(type);
-            org.setCreationTime(creationTime);
-            org.setTelephone(telephone);
-            org.setEmail(email);
-            org.setCity(city);
-            org.setAddress(address);
-            org.setIntroduction(introduction);
-            if (!minioService.isUrl(file)) {
-                String newFilePath = "organization/" + file.substring(file.lastIndexOf("/") + 1);
-                minioService.copy(file, newFilePath);
-                org.setFile(newFilePath);
-            }
-            orgMapper.update(org);
-            // TODO: 写入长安链
-            return true;
+            org.setLogo(null);
         }
+        String file = org.getFile();
+        if (!minioService.isUrl(file)) {
+            String newFilePath = "organization/" + file.substring(file.lastIndexOf("/") + 1);
+            minioService.copy(file, newFilePath);
+            org.setFile(newFilePath);
+        } else {
+            org.setFile(null);
+        }
+        orgMapper.update(org, true);
+
+        RelationManager.setMaxDepth(1);
+        return orgMapper.selectOneWithRelationsById(org.getId());
+    }
+
+    /**
+     * @param orgId: 机构ID
+     * @return
+     */
+    @Override
+    public List<Organization> informationHistory(String orgId) {
+        // TODO: 从长安链获取
+        return null;
+    }
+
+    /**
+     * @param orgId:   机构ID
+     * @param version: 版本号
+     * @return
+     */
+    @Override
+    public boolean informationRollback(String orgId, String version) {
+        // TODO: 使用长安链回滚
+        return false;
     }
 
     /**
@@ -265,6 +269,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param orgId: 机构ID
      * @return
      */
+    @Override
     public List<Organization> subordinateList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
                 .from(Organization.class)
@@ -277,6 +282,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @param orgId: 机构ID
      * @return
      */
+    @Override
     public Organization subordinateDetail(String orgId) {
         return orgMapper.selectOneById(orgId);
     }

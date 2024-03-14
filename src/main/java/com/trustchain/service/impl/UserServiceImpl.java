@@ -3,7 +3,7 @@ package com.trustchain.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.enums.RegisterStatus;
+import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.mapper.UserRegisterMapper;
@@ -41,20 +41,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLogin login(String orgId, String username, String password) {
-        QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(orgId)
-                .and(User::getUsername).eq(username);
-
-        User user = userMapper.selectOneWithRelationsByQuery(query);
+        User user = findByUsername(orgId, username);
 
         if (user != null && PasswordUtil.match(password, user.getPassword())) {
             // SA-Token登录并缓存数据
             StpUtil.login(user.getId());
             StpUtil.getSession().set("user", user);
             return new UserLogin(UserConvert.INSTANCE.toUserVO(user), StpUtil.getTokenInfo());
+        } else {
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -63,13 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean resetPassword(String ordId, String username, String password) {
-        QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(ordId)
-                .and(User::getUsername).eq(username);
-
-        User user = userMapper.selectOneByQuery(query);
+    public boolean resetPassword(User user, String password) {
         user.setPassword(PasswordUtil.encrypt(password));
 
         return userMapper.update(user) != 0;
@@ -80,9 +70,9 @@ public class UserServiceImpl implements UserService {
         int count = userRegMapper.insert(userReg);
 
         if (count != 0) {
-            emailSerivce.send(userReg.getEmail(), "数据资源可信共享平台 注册申请",
-                    "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" +
-                            "<h3>" + userReg.getRegId() + "</h3>");
+            emailSerivce.send(userReg.getEmail(),
+                    "数据资源可信共享平台 注册申请",
+                    "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" + "<h3>" + userReg.getRegId() + "</h3>");
             return userReg.getRegId();
         } else {
             return null;
@@ -122,9 +112,9 @@ public class UserServiceImpl implements UserService {
 
                 userRegMapper.update(userReg);
 
-                emailSerivce.send(user.getEmail(), "数据资源可信共享平台 注册成功",
-                        "您的用户注册申请已通过, 请点击以下链接进行登录。<br>" +
-                                "<a>http://localhost:5173</a>");
+                emailSerivce.send(user.getEmail(),
+                        "数据资源可信共享平台 注册成功",
+                        "您的用户注册申请已通过, 请点击以下链接进行登录。<br>" + "<a>http://localhost:5173</a>");
                 return true;
             }
             return false;
@@ -135,9 +125,9 @@ public class UserServiceImpl implements UserService {
 
             userRegMapper.update(userReg);
 
-            emailSerivce.send(userReg.getEmail(), "数据资源可信共享平台 注册失败",
-                    "您的用户注册申请未通过, 请点击以下链接查看详情。<br>" +
-                            "<a>http://localhost:5173/registerApplySearch</a>");
+            emailSerivce.send(userReg.getEmail(),
+                    "数据资源可信共享平台 注册失败",
+                    "您的用户注册申请未通过, 请点击以下链接查看详情。<br>" + "<a>http://localhost:5173/registerApplySearch</a>");
             return true;
         }
         return false;
@@ -194,6 +184,47 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User informationDetail(String userId, String version) {
+        // TODO: 对接长安链
         return userMapper.selectOneById(userId);
+    }
+
+    @Override
+    public User informationUpdate(User user) {
+        String logo = user.getLogo();
+        if (!minioService.isUrl(logo)) {
+            String newLogoPath = "user/" + logo.substring(logo.lastIndexOf("/") + 1);
+            minioService.copy(logo, newLogoPath);
+            user.setLogo(newLogoPath);
+        } else {
+            user.setLogo(null);
+        }
+        userMapper.update(user, true);
+        //TODO: 写入长安链
+
+        RelationManager.setMaxDepth(1);
+        return userMapper.selectOneWithRelationsById(user.getId());
+    }
+
+    @Override
+    public List<User> informationHistory(String userId) {
+        // TODO: 对接长安链
+        return null;
+    }
+
+    @Override
+    public boolean informationRollback(String userId, String version) {
+        // TODO: 对接长安链
+        return false;
+    }
+
+    @Override
+    public User findByUsername(String orgId, String username) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(User.class)
+                .where(User::getOrganizationId).eq(orgId)
+                .and(User::getUsername).eq(username);
+
+        RelationManager.setMaxDepth(1);
+        return userMapper.selectOneWithRelationsByQuery(query);
     }
 }

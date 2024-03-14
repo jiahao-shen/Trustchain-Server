@@ -1,8 +1,8 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.trustchain.enums.StatusCode;
-import com.trustchain.enums.StatusCodeSerializer;
+import com.trustchain.model.enums.StatusCode;
+import com.trustchain.model.serializer.StatusCodeSerializer;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -18,3 +18,4 @@ public class BaseResponse<T> {
 
     private T data;
 }
+

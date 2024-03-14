@@ -1,7 +1,7 @@
 package com.trustchain.model.entity;
 
 import com.mybatisflex.annotation.*;
-import com.trustchain.enums.OrganizationType;
+import com.trustchain.model.enums.OrganizationType;
 import com.mybatisflex.core.keygen.KeyGenerators;
 
 import lombok.Data;
@@ -64,4 +64,8 @@ public class Organization {
 
     @Column("file")
     private String file;    // 机构文件
+
+    @Column(value = "is_delete", isLogicDelete = true)
+    private Boolean isDelete;   // 逻辑删除标志位
+
 }

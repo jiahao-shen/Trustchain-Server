@@ -2,13 +2,14 @@ package com.trustchain.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.trustchain.model.convert.OrganizationConvert;
-import com.trustchain.enums.OrganizationType;
-import com.trustchain.enums.RegisterStatus;
-import com.trustchain.enums.StatusCode;
+import com.trustchain.model.enums.OrganizationType;
+import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.OrganizationVO;
+import com.trustchain.service.CaptchaService;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +27,8 @@ public class OrganizationController {
     @Autowired
     private OrganizationService orgService;
 
+    @Autowired
+    private CaptchaService captchaService;
 
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
@@ -66,6 +69,14 @@ public class OrganizationController {
         orgReg.setFile(request.getString("file"));
         orgReg.setRegStatus(RegisterStatus.PENDING);
 
+        String code = request.getString("code");
+        // 判断验证码是否正确
+        if (!captchaService.verify(orgReg.getEmail(), code)) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
+        }
+
         String regId = orgService.registerApply(orgReg);
 
         if (regId != null) {
@@ -75,7 +86,7 @@ public class OrganizationController {
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "注册申请失败", null));
+                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "未知错误", null));
         }
     }
 
@@ -123,9 +134,9 @@ public class OrganizationController {
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        boolean flag = orgService.registerReply(regId, reply, reason);
+        boolean success = orgService.registerReply(regId, reply, reason);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
     @PostMapping("/information/detail")
@@ -144,24 +155,55 @@ public class OrganizationController {
 
     @PutMapping("/information/update")
     public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
-        String id = request.getString("id");
-        String logo = request.getString("logo");
-        String name = request.getString("name");
-        OrganizationType type = OrganizationType.valueOf(request.getString("type"));
-        Date creationTime = request.getDate("creationTime");
-        String telephone = request.getString("telephone");
-        String email = request.getString("email");
-        String city = request.getString("city");
-        String address = request.getString("address");
-        String introduction = request.getString("introduction");
-        String file = request.getString("file");
+        Organization org = new Organization();
+        org.setId(request.getString("orgId"));
+        org.setLogo(request.getString("logo"));
+        org.setName(request.getString("name"));
+        org.setType(OrganizationType.valueOf(request.getString("type")));
+        org.setCreationTime(request.getDate("creationTime"));
+        org.setTelephone(request.getString("telephone"));
+        org.setEmail(request.getString("email"));
+        org.setCity(request.getString("city"));
+        org.setAddress(request.getString("address"));
+        org.setIntroduction(request.getString("introduction"));
+        org.setFile(request.getString("file"));
 
-        boolean flag = orgService.informationUpdate(id, logo, name, type, creationTime, telephone, email,
-                city, address, introduction, file);
+        String code = request.getString("code");
+        // 判断验证码是否正确
+        if (!captchaService.verify(org.getEmail(), code)) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
+        }
+
+        Organization updateOrg = orgService.informationUpdate(org);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVO(updateOrg)));
+    }
+
+    @PostMapping("/information/history")
+    public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
+        String orgId = request.getString("orgId");
+
+        List<Organization> orgs = orgService.informationHistory(orgId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgs));
+    }
+
+    @PostMapping("/information/rollback")
+    public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
+        String orgId = request.getString("orgId");
+        String version = request.getString("version");
+
+        boolean success = orgService.informationRollback(orgId, version);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
     @PostMapping("/subordinate/list")

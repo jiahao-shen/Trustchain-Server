@@ -2,9 +2,10 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.trustchain.enums.RegisterStatus;
-import com.trustchain.enums.UserRole;
+import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.entity.Organization;
+import com.trustchain.model.serializer.MinioURLSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

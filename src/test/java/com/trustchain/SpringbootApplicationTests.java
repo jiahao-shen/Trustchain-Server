@@ -1,14 +1,12 @@
 package com.trustchain;
 
-import com.trustchain.enums.UserRole;
-import com.trustchain.enums.OrganizationType;
+import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
-import com.trustchain.util.PasswordUtil;
 import io.minio.errors.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,8 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Date;
+import java.util.List;
 import java.io.IOException;
-import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -39,12 +38,13 @@ class SpringbootApplicationTests {
     void testOrganizationRegister() throws ParseException {
         Organization org = new Organization();
 
-        org.setName("数据资源可信共享平台");
+        org.setName("test");
         org.setType(OrganizationType.PUBLIC);
         org.setTelephone("13915558435");
         org.setEmail("1843781563@qq.com");
         org.setCity("11,1101,110108");
         org.setAddress("学院路37号");
+        org.setCreationTime(new Date());
         org.setIntroduction("我们致力于建立一个安全、高效的平台，帮助用户实现数据的可信共享。我们的平台提供了一个可靠的环境，" +
                 "使用户能够安全地共享和访问敏感数据，同时保护数据的隐私和安全。通过我们的平台，您可以与合作伙伴、" +
                 "研究机构和其他利益相关者共享数据，促进创新和合作。我们采用先进的技术和严格的安全措施来保护数据的完整性和机密性，" +
@@ -90,6 +90,25 @@ class SpringbootApplicationTests {
 
         boolean flag = minioService.isUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854");
         logger.info(flag);
+    }
+
+    @Test
+    void testDelete() {
+//        userMapper.deleteById("3759462c2a7449068052e77c3c014f6a");
+
+        List<User> users = userMapper.selectAll();
+//
+        users.forEach(logger::info);
+    }
+
+    @Test
+    void testIgnoreNulls() {
+        User user = new User();
+        user.setId("73b3f489688c417291213691f96bf149");
+        user.setPassword("1234567");
+        user.setEmail("7654321");
+        logger.info(user);
+        userMapper.update(user, true);
     }
 
     //    @Autowired

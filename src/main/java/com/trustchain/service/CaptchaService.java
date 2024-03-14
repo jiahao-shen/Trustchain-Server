@@ -1,16 +1,13 @@
 package com.trustchain.service;
 
+import com.trustchain.model.vo.BaseResponse;
+
 public interface CaptchaService {
     /**
-     * @param email
-     * @return
+     * @param email: 邮箱
+     * @return:
      */
     boolean send(String email);
 
-    /**
-     * @param email
-     * @param code
-     * @return
-     */
     boolean verify(String email, String code);
 }

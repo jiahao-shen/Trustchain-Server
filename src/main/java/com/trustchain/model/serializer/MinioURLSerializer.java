@@ -1,4 +1,4 @@
-package com.trustchain.model.vo;
+package com.trustchain.model.serializer;
 
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;

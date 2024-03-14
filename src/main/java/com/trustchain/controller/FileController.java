@@ -1,6 +1,6 @@
 package com.trustchain.controller;
 
-import com.trustchain.enums.StatusCode;
+import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.MinioService;
 import org.apache.logging.log4j.LogManager;

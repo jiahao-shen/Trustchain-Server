@@ -111,6 +111,7 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                 }) // 添加拦截器
                 .addPathPatterns("/**") // 添加拦截路径
                 .excludePathPatterns(// 添加排除拦截路径
+                        "/captcha/send",
                         "/file/upload",
                         "/user/login",
                         "/user/exist",

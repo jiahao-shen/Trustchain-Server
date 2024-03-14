@@ -2,7 +2,7 @@ package com.trustchain.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.trustchain.enums.StatusCode;
+import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.CaptchaService;
 import org.apache.log4j.LogManager;
@@ -20,26 +20,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class CaptchaController {
     @Autowired
     private CaptchaService captchaService;
-
     private static final Logger logger = LogManager.getLogger(CaptchaController.class);
 
     @PostMapping("/send")
     public ResponseEntity<Object> send(@RequestBody JSONObject request) {
         String email = request.getString("email");
 
-        boolean flag = captchaService.send(email);
+        boolean success = captchaService.send(email);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
-    }
-
-
-    @PostMapping("/verify")
-    public ResponseEntity<Object> verify(@RequestBody JSONObject request) {
-        String email = request.getString("email");
-        String code = request.getString("code");
-
-        boolean flag = captchaService.verify(email, code);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", flag));
+        if (success) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "", null));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.SEND_CAPTCHA_FAILED, "未知错误", null));
+        }
     }
 }
