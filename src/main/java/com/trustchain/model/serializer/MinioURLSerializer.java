@@ -1,7 +1,7 @@
 package com.trustchain.model.serializer;
 
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.writer.ObjectWriter;
 import com.trustchain.service.MinioService;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import java.lang.reflect.Type;
 
 @Component
 @NoArgsConstructor
-public class MinioURLSerializer implements ObjectSerializer {
+public class MinioURLSerializer implements ObjectWriter {
     private static MinioService minioService;
 
     @Autowired
@@ -20,12 +20,11 @@ public class MinioURLSerializer implements ObjectSerializer {
     }
 
     @Override
-    public void write(JSONSerializer serializer, Object object, Object fieldName, Type type, int features) {
+    public void write(JSONWriter writer, Object object, Object fieldName, Type fieldType, long features) {
         if (object == null) {
-            serializer.writeNull();
-            return;
+            writer.writeNull();
+        } else {
+            writer.writeString(minioService.presignedUrl(object.toString()));
         }
-
-        serializer.write(minioService.presignedUrl(object.toString()));
     }
 }

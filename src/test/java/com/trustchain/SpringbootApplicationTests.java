@@ -1,9 +1,15 @@
 package com.trustchain;
 
+import com.alibaba.fastjson2.JSON;
+import com.trustchain.model.entity.APIBody;
+import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
+import com.trustchain.model.enums.StatusCode;
+import com.trustchain.model.vo.BaseResponse;
+import com.trustchain.model.vo.UserRegisterVO;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
@@ -109,6 +115,15 @@ class SpringbootApplicationTests {
         user.setEmail("7654321");
         logger.info(user);
         userMapper.update(user, true);
+    }
+
+    @Test
+    void testFastJson2() {
+        String requestBody = "{\"type\":\"FORM_DATA\",\"formDataBody\":[{\"key\":\"age\",\"type\":\"Int\",\"required\":true,\"description\":\"年龄\"}],\"xwwwFormUrlEncodedBody\":[],\"rawBody\":{\"type\":\"JSON\",\"body\":\"\"},\"binaryBody\":\"\",\"graphQLBody\":\"\"}";
+        APIBody body = JSON.parseObject(requestBody, APIBody.class);
+        logger.info(body);
+//        UserRegisterVO user = new UserRegisterVO();
+//        logger.info(JSON.toJSONString(user));
     }
 
     //    @Autowired

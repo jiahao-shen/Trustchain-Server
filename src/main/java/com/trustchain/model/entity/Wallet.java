@@ -23,7 +23,7 @@ public class Wallet {
     private User user;  // 钱包
 
     @Column("balance")
-    private double balance; // 钱包余额
+    private Double balance; // 钱包余额
 
     @Column("state")
     private WalletState state;  // 钱包状态

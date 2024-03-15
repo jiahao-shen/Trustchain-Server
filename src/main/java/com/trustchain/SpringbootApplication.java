@@ -1,25 +1,22 @@
 package com.trustchain;
 
 
-import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.fastjson.support.config.FastJsonConfig;
-import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.alibaba.fastjson2.JSONWriter.Feature;
+import com.alibaba.fastjson2.support.config.FastJsonConfig;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import com.alibaba.fastjson2.support.spring6.http.converter.FastJsonHttpMessageConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,7 +39,7 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
 
         FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
 
-        List<MediaType> supportedMediaTypes = new ArrayList<>();
+        List<MediaType> supportedMediaTypes = new ArrayList();
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);
         supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);
         supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
@@ -61,14 +58,13 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         supportedMediaTypes.add(MediaType.TEXT_XML);
         fastConverter.setSupportedMediaTypes(supportedMediaTypes);
 
-//        FastJsonConfig fastJsonConfig = new FastJsonConfig();
-//        fastJsonConfig.setSerializerFeatures(SerializerFeature.PrettyFormat);
-//        fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteMapNullValue);
-//        fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteNullListAsEmpty);
-//        fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteNullNumberAsZero);
-//        fastJsonConfig.setSerializerFeatures(SerializerFeature.WriteNullStringAsEmpty);
-//
-//        fastConverter.setFastJsonConfig(fastJsonConfig);
+        FastJsonConfig fastJsonConfig = new FastJsonConfig();
+        fastJsonConfig.setWriterFeatures(
+                Feature.PrettyFormat,
+                Feature.WriteMapNullValue,
+                Feature.WriteNullStringAsEmpty
+        );
+        fastConverter.setFastJsonConfig(fastJsonConfig);
 
         converters.add(fastConverter);
     }

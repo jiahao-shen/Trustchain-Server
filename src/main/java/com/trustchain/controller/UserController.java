@@ -1,7 +1,7 @@
 package com.trustchain.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.model.enums.StatusCode;
@@ -178,7 +178,7 @@ public class UserController {
     @PostMapping("/register/apply/search")
     public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
         System.out.println(request);
-        List<String> regIds = request.getJSONArray("regIds");
+        List<String> regIds = request.getList("regIds", String.class);
 
         List<UserRegister> userRegs = userService.registerApplySearch(regIds);
 

@@ -1,6 +1,6 @@
 package com.trustchain.model.vo;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.serializer.StatusCodeSerializer;
 import lombok.Data;

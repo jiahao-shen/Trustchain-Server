@@ -1,26 +1,71 @@
 package com.trustchain.controller;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.trustchain.model.convert.APIConvert;
+import com.trustchain.model.entity.*;
+import com.trustchain.model.enums.*;
+import com.trustchain.model.vo.BaseResponse;
+import com.trustchain.service.APIService;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/api")
 public class APIController {
+    @Autowired
+    private APIService apiService;
+
     private static final Logger logger = LogManager.getLogger(APIController.class);
 
-//    @Autowired
-//    private APIRegisterMapper apiRegisterMapper;
-//
-//    @Autowired
-//    private APIMapper apiMapper;
-//
-//
-//    @Autowired
-//    private APIInvokeMapper apiInvokeMapper;
-//
-//    @Autowired
-//    private FabricService fabricService;
-//
+    @PostMapping("/register/apply")
+    private ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
+        APIRegister apiReg = new APIRegister();
+
+        apiReg.setUserId(request.getString("userId"));
+        apiReg.setName(request.getString("name"));
+        apiReg.setPrice(request.getDouble("price"));
+        apiReg.setProtocol(InternetProtocol.valueOf(request.getString("protocol")));
+        apiReg.setUrl(request.getString("url"));
+        apiReg.setMethod(HttpMethod.valueOf(request.getString("method")));
+        apiReg.setIntroduction(request.getString("introduction"));
+        apiReg.setVisible(APIVisible.valueOf(request.getString("visible")));
+        apiReg.setParam(request.getList("param", APIParamItem.class));
+        apiReg.setQuery(request.getList("query", APIQueryItem.class));
+        apiReg.setRequestHeader(request.getList("requestHeader", APIHeaderItem.class));
+        apiReg.setRequestBody(request.getObject("requestBody", APIBody.class));
+        apiReg.setResponseHeader(request.getList("responseHeader", APIHeaderItem.class));
+        apiReg.setResponseBody(request.getObject("responseBody", APIBody.class));
+        apiReg.setRegStatus(RegisterStatus.PENDING);
+
+        boolean success = apiService.registerApply(apiReg);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", success));
+    }
+
+    @PostMapping("/register/apply/list")
+    private ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
+        String userId = request.getString("userId");
+
+        List<APIRegister> apiRegs = apiService.registerApplyList(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        APIConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
+    }
+
 //    /**
 //     * 发起API注册申请
 //     */

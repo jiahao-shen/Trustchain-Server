@@ -1,7 +1,7 @@
 package com.trustchain.controller;
 
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.CaptchaService;

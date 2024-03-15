@@ -1,6 +1,6 @@
 package com.trustchain.controller;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.OrganizationConvert;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.model.enums.RegisterStatus;
@@ -92,7 +92,7 @@ public class OrganizationController {
 
     @PostMapping("/register/apply/search")
     public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
-        List<String> regIds = request.getJSONArray("regIds");
+        List<String> regIds = request.getList("regIds", String.class);
 
         List<OrganizationRegister> orgRegs = orgService.registerApplySearch(regIds);
 

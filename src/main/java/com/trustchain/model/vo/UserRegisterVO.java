@@ -1,7 +1,7 @@
 package com.trustchain.model.vo;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSONWriter.Feature;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.entity.Organization;
@@ -23,10 +23,9 @@ public class UserRegisterVO {
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date applyTime;    // 申请时间
 
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss", serialzeFeatures = SerializerFeature.WriteMapNullValue)
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date replyTime;   // 批复时间
 
-    @JSONField(serialzeFeatures = SerializerFeature.WriteNullStringAsEmpty)
     private String replyReason;    // 批复内容
 
     private String id;  // 用户ID

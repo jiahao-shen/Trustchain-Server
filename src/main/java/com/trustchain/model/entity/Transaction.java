@@ -29,10 +29,10 @@ public class Transaction {
     private String txId;   // 交易ID(对应支付宝, 微信支付, API调用的流水号)
 
     @Column("amount")
-    private double amount;  // 交易金额
+    private Double amount;  // 交易金额
 
     @Column("balance")
-    private double balance; // 交易后的余额
+    private Double balance; // 交易后的余额
 
     @Column("交易备注")
     private String comment; // 交易备注
