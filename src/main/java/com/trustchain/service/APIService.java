@@ -19,4 +19,6 @@ public interface APIService {
     boolean registerApply(APIRegister apiReg);
 
     List<APIRegister> registerApplyList(String userId);
+
+    APIRegister registerApplyDetail(String regId);
 }

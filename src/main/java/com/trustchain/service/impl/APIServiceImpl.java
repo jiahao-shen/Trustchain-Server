@@ -46,4 +46,9 @@ public class APIServiceImpl implements APIService {
         RelationManager.setMaxDepth(1);
         return apiRegMapper.selectListByQuery(query);
     }
+
+    @Override
+    public APIRegister registerApplyDetail(String regId) {
+        return apiRegMapper.selectOneWithRelationsById(regId);
+    }
 }

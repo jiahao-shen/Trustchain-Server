@@ -1,5 +1,6 @@
 package com.trustchain.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.APIConvert;
@@ -28,7 +29,7 @@ public class APIController {
     private static final Logger logger = LogManager.getLogger(APIController.class);
 
     @PostMapping("/register/apply")
-    private ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
+    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
         APIRegister apiReg = new APIRegister();
 
         apiReg.setUserId(request.getString("userId"));
@@ -55,7 +56,7 @@ public class APIController {
     }
 
     @PostMapping("/register/apply/list")
-    private ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
+    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
 
         List<APIRegister> apiRegs = apiService.registerApplyList(userId);
@@ -66,6 +67,19 @@ public class APIController {
                         APIConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
     }
 
+    @PostMapping("/register/apply/detail")
+    public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
+        String regId = request.getString("regId");
+
+        logger.info(request);
+
+        APIRegister apiReg = apiService.registerApplyDetail(regId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        APIConvert.INSTANCE.toAPIRegisterVO(apiReg)));
+    }
 //    /**
 //     * 发起API注册申请
 //     */
