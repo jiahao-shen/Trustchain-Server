@@ -6,7 +6,7 @@ import com.mybatisflex.annotation.EnumValue;
 
 @Getter
 @AllArgsConstructor
-public enum APIInvokeMethod {
+public enum ApiInvokeMethod {
     WEB(1, "网页"),
     SDK(2, "SDK");
 

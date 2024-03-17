@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum APIVisible {
+public enum ApiVisible {
     PRIVATE(1), // 机构内部可见
     PUBLIC(2);  // 所有人可见
 

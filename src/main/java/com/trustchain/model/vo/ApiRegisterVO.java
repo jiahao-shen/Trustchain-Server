@@ -2,7 +2,7 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.entity.*;
-import com.trustchain.model.enums.APIVisible;
+import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
 import com.trustchain.model.enums.RegisterStatus;
@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIRegisterVO {
+public class ApiRegisterVO {
     private String regId;   // 注册ID
 
     private RegisterStatus regStatus;  // 申请状态
@@ -45,17 +45,17 @@ public class APIRegisterVO {
 
     private String introduction;    // API介绍
 
-    private APIVisible visible; // API可见性
+    private ApiVisible visible; // API可见性
 
-    private List<APIParamItem> param;   // param参数
+    private List<ApiParamItem> param;   // param参数
 
-    private List<APIQueryItem> query;   // Query参数
+    private List<ApiQueryItem> query;   // Query参数
 
-    private List<APIHeaderItem> requestHeader;   // 请求头
+    private List<ApiHeaderItem> requestHeader;   // 请求头
 
-    private APIBody requestBody; // 请求体
+    private ApiBody requestBody; // 请求体
 
-    private List<APIHeaderItem> responseHeader;  // 返回头
+    private List<ApiHeaderItem> responseHeader;  // 返回头
 
-    private APIBody responseBody;    // 返回体
+    private ApiBody responseBody;    // 返回体
 }

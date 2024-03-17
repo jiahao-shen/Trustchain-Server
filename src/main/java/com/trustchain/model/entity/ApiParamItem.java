@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIFormDataItem {
+public class ApiParamItem {
     private String key;
     private String type;
     private String value;

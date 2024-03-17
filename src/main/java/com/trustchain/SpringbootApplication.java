@@ -1,13 +1,17 @@
 package com.trustchain;
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.fastjson2.support.config.FastJsonConfig;
+import com.mybatisflex.core.mask.MaskManager;
+import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -31,6 +35,10 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringbootApplication.class, args);
+
+        MaskManager.registerMaskProcessor("url", data -> {
+            return "********************************";
+        });
     }
 
     @Override
@@ -85,14 +93,13 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         registry.addInterceptor(new HandlerInterceptor() {
                     @Override
                     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//                        logger.info(request.getRequestURI());
-//                        if (StpUtil.isLogin()) {
-//                            return true;
-//                        } else {
-//                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-//                            return false;
-//                        }
-                        return true;
+                        logger.info(request.getRequestURI());
+                        if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
+                            return true;
+                        } else {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            return false;
+                        }
                     }
 
                     @Override

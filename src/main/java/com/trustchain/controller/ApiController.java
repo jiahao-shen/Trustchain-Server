@@ -1,36 +1,32 @@
 package com.trustchain.controller;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.trustchain.model.convert.APIConvert;
+import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.APIService;
+import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class APIController {
+public class ApiController {
     @Autowired
     private APIService apiService;
 
-    private static final Logger logger = LogManager.getLogger(APIController.class);
+    private static final Logger logger = LogManager.getLogger(ApiController.class);
 
     @PostMapping("/register/apply")
     public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
-        APIRegister apiReg = new APIRegister();
+        ApiRegister apiReg = new ApiRegister();
 
         apiReg.setUserId(request.getString("userId"));
         apiReg.setName(request.getString("name"));
@@ -39,13 +35,13 @@ public class APIController {
         apiReg.setUrl(request.getString("url"));
         apiReg.setMethod(HttpMethod.valueOf(request.getString("method")));
         apiReg.setIntroduction(request.getString("introduction"));
-        apiReg.setVisible(APIVisible.valueOf(request.getString("visible")));
-        apiReg.setParam(request.getList("param", APIParamItem.class));
-        apiReg.setQuery(request.getList("query", APIQueryItem.class));
-        apiReg.setRequestHeader(request.getList("requestHeader", APIHeaderItem.class));
-        apiReg.setRequestBody(request.getObject("requestBody", APIBody.class));
-        apiReg.setResponseHeader(request.getList("responseHeader", APIHeaderItem.class));
-        apiReg.setResponseBody(request.getObject("responseBody", APIBody.class));
+        apiReg.setVisible(ApiVisible.valueOf(request.getString("visible")));
+        apiReg.setParam(request.getList("param", ApiParamItem.class));
+        apiReg.setQuery(request.getList("query", ApiQueryItem.class));
+        apiReg.setRequestHeader(request.getList("requestHeader", ApiHeaderItem.class));
+        apiReg.setRequestBody(request.getObject("requestBody", ApiBody.class));
+        apiReg.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
+        apiReg.setResponseBody(request.getObject("responseBody", ApiBody.class));
         apiReg.setRegStatus(RegisterStatus.PENDING);
 
         boolean success = apiService.registerApply(apiReg);
@@ -55,16 +51,16 @@ public class APIController {
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", success));
     }
 
-    @PostMapping("/register/apply/list")
-    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
-        String userId = request.getString("userId");
+    @GetMapping("/register/apply/list")
+    public ResponseEntity<Object> registerApplyList() {
+        User user = AuthUtil.getUser();
 
-        List<APIRegister> apiRegs = apiService.registerApplyList(userId);
+        List<ApiRegister> apiRegs = apiService.registerApplyList(user.getId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        APIConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
+                        ApiConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
     }
 
     @PostMapping("/register/apply/detail")
@@ -73,12 +69,50 @@ public class APIController {
 
         logger.info(request);
 
-        APIRegister apiReg = apiService.registerApplyDetail(regId);
+        ApiRegister apiReg = apiService.registerApplyDetail(regId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        APIConvert.INSTANCE.toAPIRegisterVO(apiReg)));
+                        ApiConvert.INSTANCE.toAPIRegisterVO(apiReg)));
+    }
+
+    @GetMapping("/register/approval/list")
+    public ResponseEntity<Object> registerApprovalList() {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        List<ApiRegister> apiRegs = apiService.registerApprovalList(user.getOrganizationId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
+    }
+
+    @PostMapping("/register/approval/detail")
+    public ResponseEntity<Object> registerApprovalDetail(@RequestBody JSONObject request) {
+        String regId = request.getString("regId");
+
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        ApiRegister apiReg = apiService.registerApprovalDetail(regId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toAPIRegisterVO(apiReg)));
     }
 //    /**
 //     * 发起API注册申请

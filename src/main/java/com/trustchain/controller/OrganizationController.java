@@ -1,16 +1,20 @@
 package com.trustchain.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.OrganizationConvert;
+import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.model.enums.RegisterStatus;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
+import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.OrganizationService;
+import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +106,17 @@ public class OrganizationController {
                         OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
     }
 
-    @PostMapping("/register/list")
-    public ResponseEntity<Object> registerList(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
+    @GetMapping("/register/list")
+    public ResponseEntity<Object> registerList() {
+        User user = AuthUtil.getUser();
 
-        List<OrganizationRegister> orgRegs = orgService.registerList(orgId);
+        if (user.getRole() != UserRole.ADMIN) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        List<OrganizationRegister> orgRegs = orgService.registerList(user.getOrganizationId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -134,6 +144,8 @@ public class OrganizationController {
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
+        User user = AuthUtil.getUser();
+
         boolean success = orgService.registerReply(regId, reply, reason);
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
@@ -155,7 +167,16 @@ public class OrganizationController {
 
     @PutMapping("/information/update")
     public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
         Organization org = new Organization();
+
         org.setId(request.getString("orgId"));
         org.setLogo(request.getString("logo"));
         org.setName(request.getString("name"));
@@ -185,6 +206,14 @@ public class OrganizationController {
 
     @PostMapping("/information/history")
     public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
         String orgId = request.getString("orgId");
 
         List<Organization> orgs = orgService.informationHistory(orgId);
@@ -196,6 +225,14 @@ public class OrganizationController {
 
     @PostMapping("/information/rollback")
     public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
         String orgId = request.getString("orgId");
         String version = request.getString("version");
 
@@ -206,13 +243,17 @@ public class OrganizationController {
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
-    @PostMapping("/subordinate/list")
-    public ResponseEntity<Object> subordinateList(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
+    @GetMapping("/subordinate/list")
+    public ResponseEntity<Object> subordinateList() {
+        User user = AuthUtil.getUser();
 
-        List<Organization> subOrgs = orgService.subordinateList(orgId);
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
 
-        logger.info(subOrgs);
+        List<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -107,10 +107,10 @@ public class OrganizationServiceImpl implements OrganizationService {
      * @return: 注册申请列表
      */
     @Override
-    public List<OrganizationRegister> registerList(String id) {
+    public List<OrganizationRegister> registerList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
                 .from(OrganizationRegister.class)
-                .where(OrganizationRegister::getSuperiorId).eq(id);
+                .where(OrganizationRegister::getSuperiorId).eq(orgId);
 
         return orgRegMapper.selectListByQuery(query);
     }

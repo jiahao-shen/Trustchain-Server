@@ -13,6 +13,7 @@ import com.trustchain.model.vo.UserLogin;
 import com.trustchain.model.vo.UserVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.UserService;
+import com.trustchain.util.AuthUtil;
 import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -188,11 +189,17 @@ public class UserController {
                         UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
     }
 
-    @PostMapping("/register/list")
-    public ResponseEntity<Object> registerList(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
+    @GetMapping("/register/list")
+    public ResponseEntity<Object> registerList() {
+        User user = AuthUtil.getUser();
 
-        List<UserRegister> userRegs = userService.registerList(orgId);
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        List<UserRegister> userRegs = userService.registerList(user.getOrganizationId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -214,6 +221,14 @@ public class UserController {
 
     @PostMapping("/register/reply")
     public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
         String regId = request.getString("regId");
         RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
@@ -223,11 +238,17 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
 
-    @PostMapping("/subordinate/list")
-    public ResponseEntity<Object> subordindateList(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
+    @GetMapping("/subordinate/list")
+    public ResponseEntity<Object> subordindateList() {
+        User user = AuthUtil.getUser();
 
-        List<User> users = userService.subordinateList(orgId);
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        List<User> users = userService.subordinateList(user.getOrganizationId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -278,7 +299,7 @@ public class UserController {
         }
 
         User updateUser = userService.informationUpdate(user);
-        StpUtil.getSession().set("user", updateUser);
+        AuthUtil.setUser(user);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

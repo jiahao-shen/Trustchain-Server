@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIHeaderItem {
+public class ApiHeaderItem {
     private String key;
     private String type;
     private String value;

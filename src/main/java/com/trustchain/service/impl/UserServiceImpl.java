@@ -1,6 +1,7 @@
 package com.trustchain.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.fastjson2.JSON;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.model.enums.RegisterStatus;
@@ -14,6 +15,7 @@ import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.FabricService;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.UserService;
+import com.trustchain.util.AuthUtil;
 import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +48,8 @@ public class UserServiceImpl implements UserService {
         if (user != null && PasswordUtil.match(password, user.getPassword())) {
             // SA-Token登录并缓存数据
             StpUtil.login(user.getId());
-            StpUtil.getSession().set("user", user);
+            AuthUtil.setUser(user);
+
             return new UserLogin(UserConvert.INSTANCE.toUserVO(user), StpUtil.getTokenInfo());
         } else {
             return null;

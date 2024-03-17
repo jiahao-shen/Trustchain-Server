@@ -54,6 +54,10 @@ public class User {
 
     @Column(value = "is_delete", isLogicDelete = true)
     private Boolean isDelete;   // 逻辑删除标志位
+
+    public Boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
 }
 
 

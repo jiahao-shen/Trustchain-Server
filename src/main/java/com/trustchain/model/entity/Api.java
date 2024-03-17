@@ -3,10 +3,9 @@ package com.trustchain.model.entity;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.handler.Fastjson2TypeHandler;
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.trustchain.model.enums.APIVisible;
+import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
-import com.trustchain.model.enums.RegisterStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,24 +16,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("api_register")
-public class APIRegister {
+@Table("api")
+public class Api {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
-    @Column("reg_id")
-    private String regId;   // 注册ID
-
-    @Column("reg_status")
-    private RegisterStatus regStatus;  // 申请状态
-
-    @Column(value = "apply_time", onInsertValue = "now()")
-    private Date applyTime;    // 申请时间
-
-    @Column("reply_time")
-    private Date replyTime;   // 批复时间
-
-    @Column("reply_reason")
-    private String replyReason;    // 批复内容
-
     @Column("id")
     private String id;  // API标识符
 
@@ -54,6 +38,7 @@ public class APIRegister {
     private InternetProtocol protocol;    // API协议
 
     @Column("url")
+    @ColumnMask("url")
     private String url; // API地址
 
     @Column("method")
@@ -63,25 +48,34 @@ public class APIRegister {
     private String introduction;    // API介绍
 
     @Column("visible")
-    private APIVisible visible; // API可见性
+    private ApiVisible visible; // API可见性
 
     @Column(value = "param", typeHandler = Fastjson2TypeHandler.class)
-    private List<APIParamItem> param;   // param参数
+    private List<ApiParamItem> param;   // param参数
 
     @Column(value = "query", typeHandler = Fastjson2TypeHandler.class)
-    private List<APIQueryItem> query;   // Query参数
+    private List<ApiQueryItem> query;   // Query参数
 
     @Column(value = "request_header", typeHandler = Fastjson2TypeHandler.class)
-    private List<APIHeaderItem> requestHeader;   // 请求头
+    private List<ApiHeaderItem> requestHeader;   // 请求头
 
     @Column(value = "request_body", typeHandler = Fastjson2TypeHandler.class)
-    private APIBody requestBody; // 请求体
+    private ApiBody requestBody; // 请求体
 
     @Column(value = "response_header", typeHandler = Fastjson2TypeHandler.class)
-    private List<APIHeaderItem> responseHeader;  // 返回头
+    private List<ApiHeaderItem> responseHeader;  // 返回头
 
     @Column(value = "response_body", typeHandler = Fastjson2TypeHandler.class)
-    private APIBody responseBody;    // 返回体
+    private ApiBody responseBody;    // 返回体
+
+    @Column("version")
+    private String version; // 版本号
+
+    @Column(value = "registration_time", onInsertValue = "now()")
+    private Date registrationTime;   // 注册时间
+
+    @Column(value = "last_modified", onInsertValue = "now()", onUpdateValue = "now()")
+    private Date lastModified;   // 最后修改时间
 
     @Column(value = "is_delete", isLogicDelete = true)
     private Boolean isDelete;   // 逻辑删除标志位

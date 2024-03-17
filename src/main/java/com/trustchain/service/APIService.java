@@ -1,7 +1,7 @@
 package com.trustchain.service;
 
-import com.trustchain.model.entity.API;
-import com.trustchain.model.entity.APIRegister;
+import com.trustchain.model.entity.Api;
+import com.trustchain.model.entity.ApiRegister;
 
 import java.util.List;
 
@@ -10,15 +10,19 @@ public interface APIService {
      * @param api
      * @return
      */
-    boolean register(API api);
+    boolean register(Api api);
 
     /**
      * @param apiReg
      * @return
      */
-    boolean registerApply(APIRegister apiReg);
+    boolean registerApply(ApiRegister apiReg);
 
-    List<APIRegister> registerApplyList(String userId);
+    List<ApiRegister> registerApplyList(String userId);
 
-    APIRegister registerApplyDetail(String regId);
+    ApiRegister registerApplyDetail(String regId);
+
+    List<ApiRegister> registerApprovalList(String orgId);
+
+    ApiRegister registerApprovalDetail(String regId);
 }

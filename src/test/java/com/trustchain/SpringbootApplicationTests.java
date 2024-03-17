@@ -1,21 +1,20 @@
 package com.trustchain;
 
 import com.alibaba.fastjson2.JSON;
-import com.trustchain.model.entity.APIBody;
-import com.trustchain.model.entity.UserRegister;
+import com.mybatisflex.core.mask.MaskManager;
+import com.trustchain.model.entity.ApiBody;
+import com.trustchain.model.entity.ApiRegister;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
-import com.trustchain.model.enums.StatusCode;
-import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.model.vo.UserRegisterVO;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
 import io.minio.errors.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -120,10 +119,23 @@ class SpringbootApplicationTests {
     @Test
     void testFastJson2() {
         String requestBody = "{\"type\":\"FORM_DATA\",\"formDataBody\":[{\"key\":\"age\",\"type\":\"Int\",\"required\":true,\"description\":\"年龄\"}],\"xwwwFormUrlEncodedBody\":[],\"rawBody\":{\"type\":\"JSON\",\"body\":\"\"},\"binaryBody\":\"\",\"graphQLBody\":\"\"}";
-        APIBody body = JSON.parseObject(requestBody, APIBody.class);
+        ApiBody body = JSON.parseObject(requestBody, ApiBody.class);
         logger.info(body);
 //        UserRegisterVO user = new UserRegisterVO();
 //        logger.info(JSON.toJSONString(user));
+    }
+
+    @Test
+    void testMask() {
+        ApiRegister apiReg = new ApiRegister();
+        apiReg.setUrl("127.0.0.1:8080");
+        logger.info(apiReg);
+
+        MaskManager.registerMaskProcessor("url", data -> {
+            return "************************";
+        });
+
+        logger.info(MaskManager.mask("url", apiReg));
     }
 
     //    @Autowired

@@ -1,6 +1,5 @@
 package com.trustchain.model.entity;
 
-import com.trustchain.model.enums.HttpBodyRawType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIRawBody {
-    private HttpBodyRawType type;
-    private String body;
+public class ApiFormDataItem {
+    private String key;
+    private String type;
+    private String value;
+    private Boolean required;
+    private String description;
 }
