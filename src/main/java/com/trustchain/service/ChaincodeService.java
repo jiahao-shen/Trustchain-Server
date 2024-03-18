@@ -1,11 +1,13 @@
 package com.trustchain.service;
 
+import org.chainmaker.pb.common.ContractOuterClass;
 import org.chainmaker.pb.common.ResultOuterClass;
 import org.chainmaker.pb.config.ChainConfigOuterClass;
 import org.chainmaker.sdk.ChainClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,5 +64,25 @@ public class ChaincodeService {
             e.printStackTrace();
         }
         return chainConfig;
+    }
+
+    public ContractOuterClass.Contract[] getContractList() {
+        ContractOuterClass.Contract[] contractConfig = null;
+        try {
+            contractConfig = chainClient.getContractList(20000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return contractConfig;
+    }
+
+    public ContractOuterClass.Contract getContractByName(String name) {
+        ContractOuterClass.Contract contractConfig = null;
+        try {
+            contractConfig = chainClient.getContractInfo("fact", 20000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return contractConfig;
     }
 }

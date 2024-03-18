@@ -1,6 +1,7 @@
 package com.trustchain.controller.chainmaker;
 
 import com.trustchain.service.ChaincodeService;
+import org.chainmaker.pb.common.ContractOuterClass;
 import org.chainmaker.pb.common.ResultOuterClass;
 import org.chainmaker.pb.config.ChainConfigOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,29 @@ public class ChainCodeController {
         ChainConfigOuterClass.ChainConfig responseInfo;
         try {
             responseInfo = chaincodeService.getChainConfig();
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
+    }
+
+    //todo: conflict with fastJson version
+    @PostMapping("/chaincode/test/getContractList")
+    public ResponseEntity<Object> GetContractList(){
+        ContractOuterClass.Contract[] responseInfo;
+        try {
+            responseInfo = chaincodeService.getContractList();
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
+    }
+
+    @PostMapping("/chaincode/test/getContractByName/{contractName}")
+    public ResponseEntity<Object> GetContractByName(@PathVariable String contractName){
+        ContractOuterClass.Contract responseInfo;
+        try {
+            responseInfo = chaincodeService.getContractByName(contractName);
         } catch(Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
         }
