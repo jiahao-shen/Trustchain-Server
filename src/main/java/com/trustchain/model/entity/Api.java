@@ -3,6 +3,10 @@ package com.trustchain.model.entity;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.handler.Fastjson2TypeHandler;
 import com.mybatisflex.core.keygen.KeyGenerators;
+import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiHeaderItem;
+import com.trustchain.model.dto.ApiParamItem;
+import com.trustchain.model.dto.ApiQueryItem;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
@@ -38,7 +42,6 @@ public class Api {
     private InternetProtocol protocol;    // API协议
 
     @Column("url")
-    @ColumnMask("url")
     private String url; // API地址
 
     @Column("method")

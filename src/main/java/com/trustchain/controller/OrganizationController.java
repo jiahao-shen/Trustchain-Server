@@ -1,11 +1,10 @@
 package com.trustchain.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.OrganizationConvert;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.OrganizationType;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
@@ -22,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -71,7 +69,6 @@ public class OrganizationController {
         orgReg.setSuperiorId(request.getString("superiorId"));
         orgReg.setCreationTime(request.getDate("creationTime"));
         orgReg.setFile(request.getString("file"));
-        orgReg.setRegStatus(RegisterStatus.PENDING);
 
         String code = request.getString("code");
         // 判断验证码是否正确
@@ -81,12 +78,12 @@ public class OrganizationController {
                     .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
         }
 
-        String regId = orgService.registerApply(orgReg);
+        String applyId = orgService.registerApply(orgReg);
 
-        if (regId != null) {
+        if (applyId != null) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", regId));
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", applyId));
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -96,9 +93,9 @@ public class OrganizationController {
 
     @PostMapping("/register/apply/search")
     public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
-        List<String> regIds = request.getList("regIds", String.class);
+        List<String> applyIds = request.getList("applyIds", String.class);
 
-        List<OrganizationRegister> orgRegs = orgService.registerApplySearch(regIds);
+        List<OrganizationRegister> orgRegs = orgService.registerApplySearch(applyIds);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -126,9 +123,9 @@ public class OrganizationController {
 
     @PostMapping("/register/detail")
     public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
-        String regId = request.getString("regId");
+        String applyId = request.getString("applyId");
 
-        OrganizationRegister orgReg = orgService.registerDetail(regId);
+        OrganizationRegister orgReg = orgService.registerDetail(applyId);
 
         logger.info(OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
 
@@ -140,13 +137,18 @@ public class OrganizationController {
 
     @PostMapping("/register/reply")
     public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
-        String regId = request.getString("regId");
-        RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
+        String applyId = request.getString("applyId");
+        ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
         User user = AuthUtil.getUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
 
-        boolean success = orgService.registerReply(regId, reply, reason);
+        boolean success = orgService.registerReply(applyId, reply, reason);
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }

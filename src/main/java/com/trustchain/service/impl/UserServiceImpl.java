@@ -1,10 +1,9 @@
 package com.trustchain.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson2.JSON;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.mapper.UserRegisterMapper;
@@ -75,18 +74,18 @@ public class UserServiceImpl implements UserService {
         if (count != 0) {
             emailSerivce.send(userReg.getEmail(),
                     "数据资源可信共享平台 注册申请",
-                    "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" + "<h3>" + userReg.getRegId() + "</h3>");
-            return userReg.getRegId();
+                    "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" + "<h3>" + userReg.getApplyId() + "</h3>");
+            return userReg.getApplyId();
         } else {
             return null;
         }
     }
 
     @Override
-    public List<UserRegister> registerApplySearch(List<String> regIds) {
+    public List<UserRegister> registerApplySearch(List<String> applyIds) {
         List<UserRegister> userRegs = new ArrayList<UserRegister>();
-        regIds.forEach(regId -> {
-            userRegs.add(userRegMapper.selectOneWithRelationsById(regId));
+        applyIds.forEach(applyId -> {
+            userRegs.add(userRegMapper.selectOneWithRelationsById(applyId));
         });
 
         logger.info(userRegs);
@@ -95,12 +94,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean registerReply(String regId, RegisterStatus reply, String reason) {
-        UserRegister userReg = userRegMapper.selectOneById(regId);
+    public boolean registerReply(String applyId, ApplyStatus reply, String reason) {
+        UserRegister userReg = userRegMapper.selectOneById(applyId);
         if (userReg == null) {
             return false;
         }
-        if (reply == RegisterStatus.ALLOW) {
+        if (reply == ApplyStatus.ALLOW) {
             String oldLogoPath = userReg.getLogo();
             String newLogoPath = "user/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
             minioService.copy(oldLogoPath, newLogoPath);
@@ -110,7 +109,7 @@ public class UserServiceImpl implements UserService {
             int count = userMapper.insert(user);
             if (count != 0) {
                 userReg.setId(user.getId());
-                userReg.setRegStatus(RegisterStatus.ALLOW);
+                userReg.setApplyStatus(ApplyStatus.ALLOW);
                 userReg.setReplyTime(new Date());
 
                 userRegMapper.update(userReg);
@@ -121,8 +120,8 @@ public class UserServiceImpl implements UserService {
                 return true;
             }
             return false;
-        } else if (reply == RegisterStatus.REJECT) {
-            userReg.setRegStatus(RegisterStatus.REJECT);
+        } else if (reply == ApplyStatus.REJECT) {
+            userReg.setApplyStatus(ApplyStatus.REJECT);
             userReg.setReplyTime(new Date());
             userReg.setReplyReason(reason);
 
@@ -153,9 +152,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserRegister registerDetail(String regId) {
+    public UserRegister registerDetail(String applyId) {
         RelationManager.setMaxDepth(1);
-        return userRegMapper.selectOneWithRelationsById(regId);
+        return userRegMapper.selectOneWithRelationsById(applyId);
     }
 
     @Override
@@ -193,6 +192,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User informationUpdate(User user) {
+        // TODO: 对接长安链
         String logo = user.getLogo();
         if (!minioService.isUrl(logo)) {
             String newLogoPath = "user/" + logo.substring(logo.lastIndexOf("/") + 1);
@@ -202,7 +202,6 @@ public class UserServiceImpl implements UserService {
             user.setLogo(null);
         }
         userMapper.update(user, true);
-        //TODO: 写入长安链
 
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsById(user.getId());

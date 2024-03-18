@@ -2,10 +2,15 @@ package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.ApiConvert;
+import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiHeaderItem;
+import com.trustchain.model.dto.ApiParamItem;
+import com.trustchain.model.dto.ApiQueryItem;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.model.vo.BaseResponse;
-import com.trustchain.service.APIService;
+import com.trustchain.service.ApiService;
+import com.trustchain.service.CaptchaService;
 import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +25,10 @@ import java.util.List;
 @RequestMapping("/api")
 public class ApiController {
     @Autowired
-    private APIService apiService;
+    private ApiService apiService;
+
+    @Autowired
+    private CaptchaService captchaService;
 
     private static final Logger logger = LogManager.getLogger(ApiController.class);
 
@@ -42,7 +50,7 @@ public class ApiController {
         apiReg.setRequestBody(request.getObject("requestBody", ApiBody.class));
         apiReg.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
         apiReg.setResponseBody(request.getObject("responseBody", ApiBody.class));
-        apiReg.setRegStatus(RegisterStatus.PENDING);
+        apiReg.setApplyStatus(ApplyStatus.PENDING);
 
         boolean success = apiService.registerApply(apiReg);
 
@@ -60,21 +68,21 @@ public class ApiController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        ApiConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
+                        ApiConvert.INSTANCE.toApiRegisterVOList(apiRegs)));
     }
 
     @PostMapping("/register/apply/detail")
     public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
-        String regId = request.getString("regId");
+        String applyId = request.getString("applyId");
 
         logger.info(request);
 
-        ApiRegister apiReg = apiService.registerApplyDetail(regId);
+        ApiRegister apiReg = apiService.registerApplyDetail(applyId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        ApiConvert.INSTANCE.toAPIRegisterVO(apiReg)));
+                        ApiConvert.INSTANCE.toApiRegisterVO(apiReg)));
     }
 
     @GetMapping("/register/approval/list")
@@ -92,12 +100,12 @@ public class ApiController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        ApiConvert.INSTANCE.toAPIRegisterVOList(apiRegs)));
+                        ApiConvert.INSTANCE.toApiRegisterVOList(apiRegs)));
     }
 
     @PostMapping("/register/approval/detail")
     public ResponseEntity<Object> registerApprovalDetail(@RequestBody JSONObject request) {
-        String regId = request.getString("regId");
+        String applyId = request.getString("applyId");
 
         User user = AuthUtil.getUser();
 
@@ -107,121 +115,159 @@ public class ApiController {
                     .body(null);
         }
 
-        ApiRegister apiReg = apiService.registerApprovalDetail(regId);
+        ApiRegister apiReg = apiService.registerApprovalDetail(applyId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        ApiConvert.INSTANCE.toAPIRegisterVO(apiReg)));
+                        ApiConvert.INSTANCE.toApiRegisterVO(apiReg)));
     }
-//    /**
-//     * 发起API注册申请
-//     */
-//    @PostMapping("/api/register/apply")
-//    public ResponseEntity<Object> apiRegisterApply(@RequestBody JSONObject request, HttpSession session) {
-//        logger.info(request);
-//        User login = (User) session.getAttribute("login");
-//
-//        if (login == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登陆");
-//        }
-//
-//        APIRegister apiRegister = new APIRegister();
-//        apiRegister.setName(request.getString("name"));
-//        apiRegister.setAuthor(login.getId());
-//        apiRegister.setOrganization(login.getOrganization());
-//        apiRegister.setUrl(request.getString("url"));
-//        apiRegister.setMethod(HttpMethod.valueOf(request.getString("method")));
-//        apiRegister.setIntroducation(request.getString("introduction"));
-//        apiRegister.setCategory(request.getString("category"));
-//        apiRegister.setAuthorize(request.getString("authorize"));
-//        apiRegister.setVersion(request.getString("version"));
-//        apiRegister.setHeaderType(BodyType.valueOf(request.getString("headerType")));
-//        apiRegister.setHeader(request.getString("header"));
-//        apiRegister.setRequestType(BodyType.valueOf(request.getString("requestType")));
-//        apiRegister.setRequest(request.getString("request"));
-//        apiRegister.setResponseType(BodyType.valueOf(request.getString("responseType")));
-//        apiRegister.setResponse(request.getString("response"));
-//        apiRegister.setStatus(RegisterStatus.PROCESSED);
-//        apiRegister.setApplyTime(new Date());
-//
-//        int count = apiRegisterMapper.insert(apiRegister);
-//        if (count == 0) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("未知错误");
-//        }
-//
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(true);
-//
-//    }
-//
-//    /**
-//     * 获取别人发起的注册申请
-//     */
-//    @GetMapping("/api/register/apply/list")
-//    public ResponseEntity<Object> apiRegisterApplyList(HttpSession sesssion) {
-//        User login = (User) sesssion.getAttribute("login");
-//
-//        if (login == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("请重新登录");
-//        }
-//
-//        LambdaQueryWrapper<APIRegister> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(APIRegister::getOrganization, login.getOrganization()).orderByDesc(APIRegister::getApplyTime);
-//
-//        List<APIRegister> apiRegisterList = apiRegisterMapper.selectList(queryWrapper);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(apiRegisterList);
-//    }
-//
-//    @PostMapping("/api/register/reply")
-//    public ResponseEntity<Object> apiRegisterReply(@RequestBody JSONObject request, HttpSession session) {
-//        logger.info(request);
-//
-//        RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
-//
-//        APIRegister apiRegister = apiRegisterMapper.selectById(Long.parseLong(request.getString("serialNumber")));
-//
-//        API api = new API();
-//        api.setAuthor(apiRegister.getAuthor());
-//        api.setOrganization(apiRegister.getOrganization());
-//        api.setName(apiRegister.getName());
-//        api.setUrl(apiRegister.getUrl());
-//        api.setMethod(apiRegister.getMethod());
-//        api.setIntroducation(apiRegister.getIntroducation());
-//        api.setCategory(apiRegister.getCategory());
-//        api.setAuthorize(apiRegister.getAuthorize());
-//        api.setVersion(apiRegister.getVersion());
-//        api.setHeaderType(apiRegister.getHeaderType());
-//        api.setHeader(apiRegister.getHeader());
-//        api.setRequestType(apiRegister.getRequestType());
-//        api.setRequest(apiRegister.getRequest());
-//        api.setResponseType(apiRegister.getResponseType());
-//        api.setResponse(apiRegister.getResponse());
-//        api.setCreatedTime(new Date());
-//
-//        int count = apiMapper.insert(api);
-//
-//        if (count == 0) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("机构API失败");
-//        }
-//
-//        Long apiID = api.getId();
-//        apiRegister.setId(apiID);
-//        apiRegister.setStatus(reply);
-//        if (reply == RegisterStatus.REJECT) {
-//            String reason = request.getString("reason");
-//            apiRegister.setReplyMessage(reason);
-//        }
-//        apiRegister.setReplyTime(new Date());
-//        apiRegisterMapper.updateById(apiRegister);
-//
-//        // 存储上链
-//        fabricService.saveAPI(api);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(true);
-//    }
-//
+
+    @PostMapping("/register/reply")
+    public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+        ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
+        String reason = request.getString("reason");
+
+        User user = AuthUtil.getUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        }
+
+        boolean success = apiService.registerReply(applyId, reply, reason);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+    }
+
+    @GetMapping("/list/my")
+    public ResponseEntity<Object> myApiList() {
+        User user = AuthUtil.getUser();
+
+        List<Api> apis = apiService.myApiList(user);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVOList(apis)));
+    }
+
+    @GetMapping("/list/all")
+    public ResponseEntity<Object> allApiList() {
+        User user = AuthUtil.getUser();
+
+        List<Api> apis = apiService.allApiList(user);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVOList(apis)));
+    }
+
+    @PostMapping("/information/detail")
+    public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
+        String apiId = request.getString("apiId");
+        String version = request.getString("version");
+
+        User user = AuthUtil.getUser();
+
+        Api api = apiService.informationDetail(apiId, version, user.getId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVO(api)));
+    }
+
+    @PutMapping("/information/update")
+    public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        Api api = new Api();
+
+        api.setId(request.getString("apiId"));
+        api.setName(request.getString("name"));
+        api.setPrice(request.getDouble("price"));
+        api.setProtocol(InternetProtocol.valueOf(request.getString("protocol")));
+        api.setUrl(request.getString("url"));
+        api.setMethod(HttpMethod.valueOf(request.getString("method")));
+        api.setIntroduction(request.getString("introduction"));
+        api.setVisible(ApiVisible.valueOf(request.getString("visible")));
+        api.setParam(request.getList("param", ApiParamItem.class));
+        api.setQuery(request.getList("query", ApiQueryItem.class));
+        api.setRequestHeader(request.getList("requestHeader", ApiHeaderItem.class));
+        api.setRequestBody(request.getObject("requestBody", ApiBody.class));
+        api.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
+        api.setResponseBody(request.getObject("responseBody", ApiBody.class));
+
+        String code = request.getString("code");
+
+        if (!captchaService.verify(user.getEmail(), code)) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
+        }
+
+        boolean success = apiService.informationUpdate(api);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+
+    }
+
+    @PostMapping("/information/history")
+    public ResponseEntity<Object> informationHistory() {
+        return null;
+    }
+
+    @GetMapping("/invoke/apply/list")
+    public ResponseEntity<Object> invokeApplyList() {
+        User user = AuthUtil.getUser();
+
+        List<ApiInvokeApply> apiInvokeApplyList = apiService.invokeApplyList(user.getId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toApiInvokeApplyVOList(apiInvokeApplyList)));
+    }
+
+    @PostMapping("/invoke/apply")
+    public ResponseEntity<Object> invokeApply(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        ApiInvokeApply apiInvokeApply = new ApiInvokeApply();
+        apiInvokeApply.setApiId(request.getString("apiId"));
+        apiInvokeApply.setUserId(user.getId());
+        apiInvokeApply.setApplyReason(request.getString("applyReason"));
+        apiInvokeApply.setRange(ApiInvokeRange.valueOf(request.getString("range")));
+        apiInvokeApply.setStartTime(request.getDate("startTime"));
+        apiInvokeApply.setEndTime(request.getDate("endTime"));
+
+        boolean success = apiService.invokeApply(apiInvokeApply);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+
+    }
+
+    @PostMapping("/invoke/apply/detail")
+    public ResponseEntity<Object> invokeApplyDetail(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+
+        ApiInvokeApply apiInvokeApply = apiService.invokeApplyDetail(applyId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply)));
+    }
+
+    @PostMapping("/invoke/log/list")
+    public ResponseEntity<Object> invokeLogList(@RequestBody JSONObject request) {
+        return null;
+    };
+
 //
 //    @GetMapping("/api/list/my")
 //    public ResponseEntity<Object> myAPIList(HttpSession session) {

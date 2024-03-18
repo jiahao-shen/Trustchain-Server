@@ -25,12 +25,6 @@ public class CaptchaServiceImpl implements CaptchaService {
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
-    /**
-     * 向指定邮箱发送验证码
-     *
-     * @param email: 邮箱
-     * @return: 是否发送成功
-     */
     @Override
     public boolean send(String email) {
         // TODO: 开发调试用
@@ -47,13 +41,6 @@ public class CaptchaServiceImpl implements CaptchaService {
                         "<h3>" + code + "</h3>");
     }
 
-    /**
-     * 验证码是否正确
-     *
-     * @param email: 邮箱
-     * @param code:  验证码
-     * @return: 是否正确
-     */
     @Override
     public boolean verify(String email, String code) {
         // TODO: 开发调试用

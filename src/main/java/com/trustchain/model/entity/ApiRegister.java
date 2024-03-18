@@ -3,10 +3,14 @@ package com.trustchain.model.entity;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.handler.Fastjson2TypeHandler;
 import com.mybatisflex.core.keygen.KeyGenerators;
+import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiHeaderItem;
+import com.trustchain.model.dto.ApiParamItem;
+import com.trustchain.model.dto.ApiQueryItem;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,11 +24,11 @@ import java.util.List;
 @Table("api_register")
 public class ApiRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
-    @Column("reg_id")
-    private String regId;   // 注册ID
+    @Column("apply_id")
+    private String applyId;   // 注册ID
 
-    @Column("reg_status")
-    private RegisterStatus regStatus;  // 申请状态
+    @Column("apply_status")
+    private ApplyStatus applyStatus;  // 申请状态
 
     @Column(value = "apply_time", onInsertValue = "now()")
     private Date applyTime;    // 申请时间
@@ -54,7 +58,6 @@ public class ApiRegister {
     private InternetProtocol protocol;    // API协议
 
     @Column("url")
-    @ColumnMask("url")
     private String url; // API地址
 
     @Column("method")

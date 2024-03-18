@@ -35,8 +35,8 @@ DROP TABLE IF EXISTS `organization_register`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `organization_register`
 (
-    `reg_id`        varchar(32)  NOT NULL,
-    `reg_status`    tinyint(4)   NOT NULL,
+    `apply_id`      varchar(32)  NOT NULL,
+    `apply_status`  tinyint(4)   NOT NULL,
     `apply_time`    datetime     NOT NULL,
     `reply_time`    datetime      DEFAULT NULL,
     `reply_reason`  varchar(1024) DEFAULT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `organization_register`
     `logo`          varchar(1024) DEFAULT NULL,
     `file`          varchar(1024) DEFAULT NULL,
     `is_delete`     tinyint(4)    DEFAULT NULL,
-    PRIMARY KEY (`reg_id`),
+    PRIMARY KEY (`apply_id`),
     UNIQUE KEY `name` (`name`),
     KEY `id` (`id`),
     CONSTRAINT `organization_register_ibfk_1` FOREIGN KEY (`id`) REFERENCES `organization` (`id`)
@@ -88,8 +88,8 @@ DROP TABLE IF EXISTS `user_register`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_register`
 (
-    `reg_id`          varchar(32)  NOT NULL,
-    `reg_status`      tinyint(4)   NOT NULL,
+    `apply_id`        varchar(32)  NOT NULL,
+    `apply_status`    tinyint(4)   NOT NULL,
     `apply_time`      datetime     NOT NULL,
     `reply_time`      datetime      DEFAULT NULL,
     `reply_reason`    varchar(1024) DEFAULT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE `user_register`
     `organization_id` varchar(32)  NOT NULL,
     `logo`            varchar(1024) DEFAULT NULL,
     `is_delete`       tinyint(4)    DEFAULT NULL,
-    PRIMARY KEY (`reg_id`),
+    PRIMARY KEY (`apply_id`),
     KEY `id` (`id`),
     KEY `organization_id` (`organization_id`),
     CONSTRAINT `user_register_ibfk_1` FOREIGN KEY (`id`) REFERENCES `user` (`id`),
@@ -141,8 +141,8 @@ CREATE TABLE `api`
 DROP TABLE IF EXISTS `api_register`;
 CREATE TABLE `api_register`
 (
-    `reg_id`          varchar(32)   NOT NULL,
-    `reg_status`      tinyint(4)    NOT NULL,
+    `apply_id`        varchar(32)   NOT NULL,
+    `apply_status`    tinyint(4)    NOT NULL,
     `apply_time`      datetime      NOT NULL,
     `reply_time`      datetime      DEFAULT NULL,
     `reply_reason`    varchar(1024) DEFAULT NULL,
@@ -162,11 +162,39 @@ CREATE TABLE `api_register`
     `response_header` JSON          DEFAULT NULL,
     `response_body`   JSON          DEFAULT NULL,
     `is_delete`       tinyint(4)    DEFAULT NULL,
-    PRIMARY KEY (`reg_id`),
+    PRIMARY KEY (`apply_id`),
     KEY `id` (`id`),
     KEY `user_id` (`user_id`),
     CONSTRAINT `api_register_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
     CONSTRAINT `api_register_ibfk_2` FOREIGN KEY (`id`) REFERENCES `api` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+
+
+DROP TABLE IF EXISTS `api_invoke_apply`;
+CREATE TABLE `api_invoke_apply`
+(
+    `apply_id`      varchar(32) NOT NULL,
+    `apply_status`  tinyint(4)  NOT NULL,
+    `apply_time`    datetime    NOT NULL,
+    `apply_reason`  varchar(1024) DEFAULT NULL,
+    `reply_time`    datetime      DEFAULT NULL,
+    `reply_reason`  varchar(1024) DEFAULT NULL,
+    `invoke_status` tinyint(4)  NOT NULL,
+    `api_id`        varchar(32) NOT NULL,
+    `user_id`       varchar(32) NOT NULL,
+    `range`         tinyint(4)  NOT NULL,
+    `start_time`    datetime    NOT NULL,
+    `end_time`      datetime    NOT NULL,
+    `app_key`       varchar(32)   DEFAULT NULL,
+    `secret_key`    varchar(32)   DEFAULT NULL,
+    `is_delete`     tinyint(4)    DEFAULT NULL,
+    PRIMARY KEY (`apply_id`),
+    KEY `api_id` (`api_id`),
+    KEY `user_id` (`user_id`),
+    CONSTRAINT `api_invoke_apply_ibfk_1` FOREIGN KEY (`api_id`) REFERENCES `api` (`id`),
+    CONSTRAINT `api_invoke_apply_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
 

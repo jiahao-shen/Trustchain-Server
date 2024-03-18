@@ -2,7 +2,7 @@ package com.trustchain.model.entity;
 
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.UserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,11 +17,11 @@ import java.util.Date;
 @Table("user_register")
 public class UserRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
-    @Column("reg_id")
-    private String regId;  // 注册号
+    @Column("apply_id")
+    private String applyId;  // 注册号
 
-    @Column("reg_status")
-    private RegisterStatus regStatus;  // 申请状态
+    @Column("apply_status")
+    private ApplyStatus applyStatus = ApplyStatus.PENDING;  // 申请状态
 
     @Column(value = "apply_time", onInsertValue = "now()")
     private Date applyTime;    // 申请时间

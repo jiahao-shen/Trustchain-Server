@@ -1,4 +1,4 @@
-package com.trustchain.model.entity;
+package com.trustchain.model.dto;
 
 import com.trustchain.model.enums.HttpBodyType;
 import lombok.AllArgsConstructor;

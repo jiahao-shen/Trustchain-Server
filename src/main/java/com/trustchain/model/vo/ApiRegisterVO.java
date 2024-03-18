@@ -1,11 +1,14 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.trustchain.model.entity.*;
+import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiHeaderItem;
+import com.trustchain.model.dto.ApiParamItem;
+import com.trustchain.model.dto.ApiQueryItem;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,9 +20,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiRegisterVO {
-    private String regId;   // 注册ID
+    private String applyId;   // 注册ID
 
-    private RegisterStatus regStatus;  // 申请状态
+    private ApplyStatus applyStatus;  // 申请状态
 
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date applyTime;    // 申请时间
@@ -31,7 +34,7 @@ public class ApiRegisterVO {
 
     private String id;  // API标识符
 
-    private User user;  // API所有者
+    private UserVO user;  // API所有者
 
     private String name;    // API名称
 

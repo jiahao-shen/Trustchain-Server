@@ -43,7 +43,7 @@ public class OrganizationVO {
 
     private String version;  // 版本号
 
-    private boolean latest; // 是否为最新
+    private Boolean latest = true; // 是否为最新
 
     @JSONField(serializeUsing = MinioURLSerializer.class)
     private String logo; // 机构Logo

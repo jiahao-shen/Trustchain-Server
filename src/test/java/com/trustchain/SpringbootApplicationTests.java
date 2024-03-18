@@ -2,7 +2,7 @@ package com.trustchain;
 
 import com.alibaba.fastjson2.JSON;
 import com.mybatisflex.core.mask.MaskManager;
-import com.trustchain.model.entity.ApiBody;
+import com.trustchain.model.dto.ApiBody;
 import com.trustchain.model.entity.ApiRegister;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.mapper.UserMapper;
@@ -14,7 +14,6 @@ import com.trustchain.service.UserService;
 import io.minio.errors.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,9 +1,8 @@
 package com.trustchain.model.vo;
 
-import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.OrganizationType;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.serializer.MinioURLSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,9 +14,9 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrganizationRegisterVO {
-    private String regId;  // 注册ID
+    private String applyId;  // 注册ID
 
-    private RegisterStatus regStatus;  // 申请状态
+    private ApplyStatus applyStatus;  // 申请状态
 
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date applyTime;    // 申请时间

@@ -4,7 +4,6 @@ package com.trustchain;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.fastjson2.support.config.FastJsonConfig;
-import com.mybatisflex.core.mask.MaskManager;
 import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -35,10 +34,6 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringbootApplication.class, args);
-
-        MaskManager.registerMaskProcessor("url", data -> {
-            return "********************************";
-        });
     }
 
     @Override

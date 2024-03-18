@@ -1,6 +1,6 @@
 package com.trustchain.service;
 
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.vo.UserLogin;
@@ -44,18 +44,18 @@ public interface UserService {
     String registerApply(UserRegister userReg);
 
     /**
-     * @param regIds: 注册ID
+     * @param applyIds: 注册ID
      * @return: 用户注册申请
      */
-    List<UserRegister> registerApplySearch(List<String> regIds);
+    List<UserRegister> registerApplySearch(List<String> applyIds);
 
     /**
-     * @param regId:  注册ID
+     * @param applyId:  注册ID
      * @param reply:  回复
      * @param reason: 回复理由
      * @return
      */
-    boolean registerReply(String regId, RegisterStatus reply, String reason);
+    boolean registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param user: 用户对象
@@ -70,10 +70,10 @@ public interface UserService {
     List<UserRegister> registerList(String orgId);
 
     /**
-     * @param regId: 注册ID
+     * @param applyId: 注册ID
      * @return
      */
-    UserRegister registerDetail(String regId);
+    UserRegister registerDetail(String applyId);
 
     /**
      * @param orgId: 机构ID

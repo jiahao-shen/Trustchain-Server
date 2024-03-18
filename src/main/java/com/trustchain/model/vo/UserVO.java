@@ -24,7 +24,7 @@ public class UserVO {
 
     private UserRole role; // 角色
 
-    private Organization organization;  // 所属机构
+    private OrganizationVO organization;  // 所属机构
 
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date registrationTime;  // 注册时间
@@ -37,5 +37,5 @@ public class UserVO {
 
     private String version; // 版本号
 
-    private boolean latest; // 是否为最新
+    private Boolean latest = true; // 是否为最新
 }

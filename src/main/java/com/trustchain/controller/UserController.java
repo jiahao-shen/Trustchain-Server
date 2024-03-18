@@ -1,9 +1,8 @@
 package com.trustchain.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.convert.UserConvert;
-import com.trustchain.model.enums.RegisterStatus;
+import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.entity.User;
@@ -153,7 +152,6 @@ public class UserController {
         userReg.setTelephone(request.getString("telephone"));
         userReg.setEmail(request.getString("email"));
         userReg.setRole(UserRole.valueOf(request.getString("role")));
-        userReg.setRegStatus(RegisterStatus.PENDING);
 
         String code = request.getString("code");
         // 判断验证码是否正确
@@ -163,12 +161,12 @@ public class UserController {
                     .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
         }
 
-        String regId = userService.registerApply(userReg);
+        String applyId = userService.registerApply(userReg);
 
-        if (regId != null) {
+        if (applyId != null) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", regId));
+                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", applyId));
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -178,10 +176,9 @@ public class UserController {
 
     @PostMapping("/register/apply/search")
     public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
-        System.out.println(request);
-        List<String> regIds = request.getList("regIds", String.class);
+        List<String> applyIds = request.getList("applyIds", String.class);
 
-        List<UserRegister> userRegs = userService.registerApplySearch(regIds);
+        List<UserRegister> userRegs = userService.registerApplySearch(applyIds);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -209,9 +206,9 @@ public class UserController {
 
     @PostMapping("/register/detail")
     public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
-        String regId = request.getString("regId");
+        String applyId = request.getString("applyId");
 
-        UserRegister userReg = userService.registerDetail(regId);
+        UserRegister userReg = userService.registerDetail(applyId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -229,11 +226,11 @@ public class UserController {
                     .body(null);
         }
 
-        String regId = request.getString("regId");
-        RegisterStatus reply = RegisterStatus.valueOf(request.getString("reply"));
+        String applyId = request.getString("applyId");
+        ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        boolean result = userService.registerReply(regId, reply, reason);
+        boolean result = userService.registerReply(applyId, reply, reason);
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
