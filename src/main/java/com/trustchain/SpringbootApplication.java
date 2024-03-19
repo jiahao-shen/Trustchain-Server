@@ -116,7 +116,7 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                         "/user/register",
                         "/user/register/apply",
                         "/user/register/apply/search",
-                        "/user/resetPassword",
+                        "/user/forgetPassword",
                         "/organization/selectList",
                         "/organization/exist",
                         "/organization/register/apply",

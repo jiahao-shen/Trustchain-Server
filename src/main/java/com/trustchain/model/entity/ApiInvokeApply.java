@@ -1,9 +1,6 @@
 package com.trustchain.model.entity;
 
-import com.mybatisflex.annotation.Column;
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.RelationOneToOne;
+import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.model.enums.ApiInvokeRange;
 import com.trustchain.model.enums.ApiInvokeStatus;
@@ -18,6 +15,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table("api_invoke_apply")
 public class ApiInvokeApply {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("apply_id")

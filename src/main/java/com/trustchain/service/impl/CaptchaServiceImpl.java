@@ -1,5 +1,6 @@
 package com.trustchain.service.impl;
 
+import com.trustchain.exception.CaptchaException;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.service.CaptchaService;
@@ -42,11 +43,13 @@ public class CaptchaServiceImpl implements CaptchaService {
     }
 
     @Override
-    public boolean verify(String email, String code) {
+    public void verify(String email, String code) {
         // TODO: 开发调试用
         email = "1843781563@qq.com";
         String value = redisTemplate.opsForValue().get("captcha:" + email);
 
-        return code.equals(value);
+        if (!code.equals(value)) {
+            throw new CaptchaException();
+        }
     }
 }

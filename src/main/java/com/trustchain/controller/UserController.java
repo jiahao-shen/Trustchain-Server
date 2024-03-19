@@ -1,6 +1,7 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.StatusCode;
@@ -42,16 +43,9 @@ public class UserController {
 
         UserLogin user = userService.login(orgId, username, password);
 
-        if (user != null) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS,
-                            "登录成功", user));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.LOGIN_FAILED, "用户名或密码错误", null));
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", user));
     }
 
     @PostMapping("/logout")
@@ -76,40 +70,44 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
     }
 
-    @PutMapping("/resetPassword")
-    public ResponseEntity<Object> resetPassword(@RequestBody JSONObject request) {
+    @PutMapping("/forgetPassword")
+    public ResponseEntity<Object> forgetPassword(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String username = request.getString("username");
         String password = request.getString("password");
-
         String email = request.getString("email");
         String code = request.getString("code");
 
-        // 判断用户是否存在以及邮箱是否正确
         User user = userService.findByUsername(orgId, username);
+
         if (user == null || !user.getEmail().equals(email)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.RESET_PASSWORD_FAILED, "用户名或邮箱错误", null));
+            throw new NoPermissionException("用户不存在或邮箱错误");
         }
 
         // 判断验证码是否正确
-        if (!captchaService.verify(email, code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(email, code);
 
-        // 重置密码
-        if (userService.resetPassword(user, password)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", null));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.RESET_PASSWORD_FAILED, "未知错误", null));
-        }
+        boolean success = userService.resetPassword(user, password);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success));
+    }
+
+    @PutMapping("/resetPassword")
+    public ResponseEntity<Object> resetPassword(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+        String password = request.getString("password");
+        String code = request.getString("code");
+
+        // 判断验证码是否正确
+        captchaService.verify(user.getEmail(), code);
+
+        boolean success = userService.resetPassword(user, password);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success));
     }
 
     @PostMapping("/register")
@@ -122,24 +120,15 @@ public class UserController {
         user.setEmail(request.getString("email"));
         user.setRole(UserRole.valueOf(request.getString("role")));
 
-        String code = request.getString("code");
         // 判断验证码是否正确
-        if (!captchaService.verify(user.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(user.getEmail(), request.getString("code"));
 
         // 注册新用户
-        if (userService.register(user)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册成功", null));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "未知错误", null));
-        }
+        boolean success = userService.register(user);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
     @PostMapping("/register/apply")
@@ -153,32 +142,21 @@ public class UserController {
         userReg.setEmail(request.getString("email"));
         userReg.setRole(UserRole.valueOf(request.getString("role")));
 
-        String code = request.getString("code");
         // 判断验证码是否正确
-        if (!captchaService.verify(userReg.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(userReg.getEmail(), request.getString("code"));
 
         String applyId = userService.registerApply(userReg);
 
-        if (applyId != null) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", applyId));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "未知错误", null));
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", applyId));
     }
 
-    @PostMapping("/register/apply/search")
-    public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
+    @PostMapping("/register/apply/list")
+    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
 
-        List<UserRegister> userRegs = userService.registerApplySearch(applyIds);
+        List<UserRegister> userRegs = userService.registerApplyList(applyIds);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -186,14 +164,24 @@ public class UserController {
                         UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
     }
 
-    @GetMapping("/register/list")
-    public ResponseEntity<Object> registerList() {
-        User user = AuthUtil.getUser();
+    @PostMapping("/register/apply/detail")
+    public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
 
+        UserRegister userReg = userService.registerApplyDetail(applyId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        UserConvert.INSTANCE.toUserRegisterVO(userReg)));
+
+    }
+
+    @GetMapping("/register/approval/list")
+    public ResponseEntity<Object> registerApprovalList() {
+        User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员用户无法查看用户注册审批列表");
         }
 
         List<UserRegister> userRegs = userService.registerList(user.getOrganizationId());
@@ -204,10 +192,13 @@ public class UserController {
                         UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
     }
 
-    @PostMapping("/register/detail")
-    public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
-        String applyId = request.getString("applyId");
+    @PostMapping("/register/approval/detail")
+    public ResponseEntity<Object> registerApprovalDetail(@RequestBody JSONObject request) {
+        if (!AuthUtil.getUser().isAdmin()) {
+            throw new NoPermissionException("非管理员用户无法查看用户注册审批详情");
+        }
 
+        String applyId = request.getString("applyId");
         UserRegister userReg = userService.registerDetail(applyId);
 
         return ResponseEntity
@@ -218,31 +209,24 @@ public class UserController {
 
     @PostMapping("/register/reply")
     public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
-        User user = AuthUtil.getUser();
-
-        if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+        if (!AuthUtil.getUser().isAdmin()) {
+            throw new NoPermissionException("非管理员用户无法审批用户注册申请");
         }
 
         String applyId = request.getString("applyId");
         ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        boolean result = userService.registerReply(applyId, reply, reason);
+        boolean success = userService.registerReply(applyId, reply, reason);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
     @GetMapping("/subordinate/list")
     public ResponseEntity<Object> subordindateList() {
         User user = AuthUtil.getUser();
-
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员用户无法查看用户列表");
         }
 
         List<User> users = userService.subordinateList(user.getOrganizationId());
@@ -279,21 +263,15 @@ public class UserController {
 
     @PutMapping("/information/update")
     public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
-        User user = new User();
-        user.setId(request.getString("userId"));
+        User user = AuthUtil.getUser();
+
         user.setLogo(request.getString("logo"));
         user.setUsername(request.getString("username"));
         user.setTelephone(request.getString("telephone"));
         user.setEmail(request.getString("email"));
 
-        String code = request.getString("code");
-
         // 判断验证码是否正确
-        if (!captchaService.verify(user.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(user.getEmail(), request.getString("code"));
 
         User updateUser = userService.informationUpdate(user);
         AuthUtil.setUser(user);
@@ -305,12 +283,33 @@ public class UserController {
 
     @PostMapping("/information/history")
     public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
-        return null;
+        String userId = request.getString("userId");
+
+        if (!AuthUtil.getUser().getId().equals(userId)) {
+            throw new NoPermissionException("非本用户无法查看用户信息历史记录");
+        }
+
+        List<User> users = userService.informationHistory(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users)));
     }
 
     @PostMapping("/information/rollback")
     public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
-        return null;
+        String userId = request.getString("userId");
+        String version = request.getString("version");
+
+        if (!AuthUtil.getUser().getId().equals(userId)) {
+            throw new NoPermissionException("非本用户无法回滚用户信息");
+        }
+
+        boolean success = userService.informationRollback(userId, version);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
 }

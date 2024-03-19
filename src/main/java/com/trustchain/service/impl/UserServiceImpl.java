@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
     public boolean resetPassword(User user, String password) {
         user.setPassword(PasswordUtil.encrypt(password));
 
-        return userMapper.update(user) != 0;
+        return userMapper.update(user, true) != 0;
     }
 
     @Override
@@ -82,7 +82,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserRegister> registerApplySearch(List<String> applyIds) {
+    public List<UserRegister> registerApplyList(List<String> applyIds) {
+
         List<UserRegister> userRegs = new ArrayList<UserRegister>();
         applyIds.forEach(applyId -> {
             userRegs.add(userRegMapper.selectOneWithRelationsById(applyId));
@@ -91,6 +92,12 @@ public class UserServiceImpl implements UserService {
         logger.info(userRegs);
 
         return userRegs;
+    }
+
+    @Override
+    public UserRegister registerApplyDetail(String applyId) {
+        RelationManager.setMaxDepth(1);
+        return userRegMapper.selectOneWithRelationsById(applyId);
     }
 
     @Override

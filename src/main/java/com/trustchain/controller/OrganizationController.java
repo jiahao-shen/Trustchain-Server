@@ -1,6 +1,7 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.OrganizationConvert;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.OrganizationType;
@@ -8,7 +9,6 @@ import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
-import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.CaptchaService;
@@ -70,50 +70,47 @@ public class OrganizationController {
         orgReg.setCreationTime(request.getDate("creationTime"));
         orgReg.setFile(request.getString("file"));
 
-        String code = request.getString("code");
-        // 判断验证码是否正确
-        if (!captchaService.verify(orgReg.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(orgReg.getEmail(), request.getString("code"));
 
         String applyId = orgService.registerApply(orgReg);
 
-        if (applyId != null) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.SUCCESS, "注册申请成功", applyId));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.REGISTER_FAILED, "未知错误", null));
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", applyId));
     }
 
-    @PostMapping("/register/apply/search")
-    public ResponseEntity<Object> registerApplySearch(@RequestBody JSONObject request) {
+    @PostMapping("/register/apply/list")
+    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
 
-        List<OrganizationRegister> orgRegs = orgService.registerApplySearch(applyIds);
+        List<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "",
                         OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
     }
+    @PostMapping("/register/apply/detail")
+    public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
 
-    @GetMapping("/register/list")
+        OrganizationRegister orgReg = orgService.registerApplyDetail(applyId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg)));
+    }
+
+    @GetMapping("/register/approval/list")
     public ResponseEntity<Object> registerList() {
         User user = AuthUtil.getUser();
 
-        if (user.getRole() != UserRole.ADMIN) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+        if (!user.isAdmin()) {
+            throw new NoPermissionException("非管理员无法获取机构注册审批列表");
         }
 
-        List<OrganizationRegister> orgRegs = orgService.registerList(user.getOrganizationId());
+        List<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -121,13 +118,17 @@ public class OrganizationController {
                         OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
     }
 
-    @PostMapping("/register/detail")
+    @PostMapping("/register/approval/detail")
     public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
+        User user = AuthUtil.getUser();
+
+        if (!user.isAdmin()) {
+            throw new NoPermissionException("非管理员无法获取机构审批列表");
+        }
+
         String applyId = request.getString("applyId");
 
-        OrganizationRegister orgReg = orgService.registerDetail(applyId);
-
-        logger.info(OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
+        OrganizationRegister orgReg = orgService.registerApprovalDetail(applyId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -143,9 +144,7 @@ public class OrganizationController {
 
         User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员无法进行机构审批");
         }
 
         boolean success = orgService.registerReply(applyId, reply, reason);
@@ -172,9 +171,7 @@ public class OrganizationController {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员无法修改机构信息");
         }
 
         Organization org = new Organization();
@@ -191,13 +188,8 @@ public class OrganizationController {
         org.setIntroduction(request.getString("introduction"));
         org.setFile(request.getString("file"));
 
-        String code = request.getString("code");
         // 判断验证码是否正确
-        if (!captchaService.verify(org.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(org.getEmail(), request.getString("code"));
 
         Organization updateOrg = orgService.informationUpdate(org);
 
@@ -211,9 +203,7 @@ public class OrganizationController {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员无法查看机构信息历史记录");
         }
 
         String orgId = request.getString("orgId");
@@ -230,9 +220,7 @@ public class OrganizationController {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员无法回滚机构信息");
         }
 
         String orgId = request.getString("orgId");
@@ -250,9 +238,7 @@ public class OrganizationController {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+            throw new NoPermissionException("非管理员无法查看下级机构列表");
         }
 
         List<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId());

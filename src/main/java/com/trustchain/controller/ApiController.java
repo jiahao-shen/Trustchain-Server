@@ -1,6 +1,7 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.dto.ApiBody;
 import com.trustchain.model.dto.ApiHeaderItem;
@@ -107,12 +108,8 @@ public class ApiController {
     public ResponseEntity<Object> registerApprovalDetail(@RequestBody JSONObject request) {
         String applyId = request.getString("applyId");
 
-        User user = AuthUtil.getUser();
-
-        if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+        if (!AuthUtil.getUser().isAdmin()) {
+            throw new NoPermissionException("非管理员无法查看API注册申请列表");
         }
 
         ApiRegister apiReg = apiService.registerApprovalDetail(applyId);
@@ -129,11 +126,8 @@ public class ApiController {
         ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        User user = AuthUtil.getUser();
-        if (!user.isAdmin()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(null);
+        if (!AuthUtil.getUser().isAdmin()) {
+            throw new NoPermissionException("非管理员无法查看API注册申请列表");
         }
 
         boolean success = apiService.registerReply(applyId, reply, reason);
@@ -198,13 +192,7 @@ public class ApiController {
         api.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
         api.setResponseBody(request.getObject("responseBody", ApiBody.class));
 
-        String code = request.getString("code");
-
-        if (!captchaService.verify(user.getEmail(), code)) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new BaseResponse<>(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
-        }
+        captchaService.verify(user.getEmail(), request.getString("code"));
 
         boolean success = apiService.informationUpdate(api);
 
@@ -215,8 +203,26 @@ public class ApiController {
     }
 
     @PostMapping("/information/history")
-    public ResponseEntity<Object> informationHistory() {
-        return null;
+    public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
+        String apiId = request.getString("apiId");
+
+        List<Api> apis = apiService.informationHistory(apiId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVOList(apis)));
+    }
+
+    @PostMapping("/information/rollback")
+    public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
+        String apiId = request.getString("apiId");
+        String version = request.getString("version");
+
+        boolean success = apiService.informationRollback(apiId, version);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
     @GetMapping("/invoke/apply/list")
@@ -248,7 +254,6 @@ public class ApiController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
-
     }
 
     @PostMapping("/invoke/apply/detail")
@@ -263,10 +268,50 @@ public class ApiController {
                         ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply)));
     }
 
+    @GetMapping("/invoke/approval/list")
+    public ResponseEntity<Object> invokeApprovalList() {
+        User user = AuthUtil.getUser();
+
+        List<ApiInvokeApply> apiInvokeApprovalList = apiService.invokeApprovalList(user.getId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toApiInvokeApplyVOList(apiInvokeApprovalList)));
+    }
+
+    @PostMapping("/invoke/approval/detail")
+    public ResponseEntity<Object> invokeApprovalDetail(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+
+        ApiInvokeApply apiInvokeApply = apiService.invokeApprovalDetail(applyId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
+                        ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply)));
+    }
+
+    @PostMapping("/invoke/reply")
+    public ResponseEntity<Object> invokeReply(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+        ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
+        String reason = request.getString("reason");
+
+        User user = AuthUtil.getUser();
+
+        boolean success = apiService.invokeReply(applyId, reply, reason);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+    }
+
+
     @PostMapping("/invoke/log/list")
     public ResponseEntity<Object> invokeLogList(@RequestBody JSONObject request) {
         return null;
-    };
+    }
 
 //
 //    @GetMapping("/api/list/my")

@@ -12,7 +12,6 @@ public interface CaptchaService {
     /**
      * @param email 邮箱
      * @param code  验证码
-     * @return 是否验证成功
      */
-    boolean verify(String email, String code);
+    void verify(String email, String code);
 }

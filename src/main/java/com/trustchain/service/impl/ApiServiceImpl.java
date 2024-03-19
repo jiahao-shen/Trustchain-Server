@@ -2,6 +2,7 @@ package com.trustchain.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
+import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.ApiInvokeApplyMapper;
 import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.ApiRegisterMapper;
@@ -14,6 +15,7 @@ import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.service.ApiService;
+import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.util.StringUtil;
@@ -22,7 +24,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+import static com.trustchain.model.entity.table.ApiInvokeApplyTableDef.API_INVOKE_APPLY;
 import static com.trustchain.model.entity.table.ApiTableDef.API;
 import static com.trustchain.model.entity.table.UserTableDef.USER;
 import static com.trustchain.model.entity.table.ApiRegisterTableDef.API_REGISTER;
@@ -177,6 +181,9 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public boolean informationUpdate(Api api) {
         // TODO: 对接长安链
+        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneByEntityId(api).getUserId())) {
+            throw new NoPermissionException("非API的所有者无法修改API信息");
+        }
 
         int count = apiMapper.update(api, true);
 
@@ -184,7 +191,19 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    public List<Api> informationHistory(String apiId) {
+        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
+            throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
+        }
+        // 对接长安链
+        return null;
+    }
+
+    @Override
     public boolean informationRollback(String apiId, String version) {
+        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
+            throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
+        }
         // TODO: 对接长安链
         return false;
     }
@@ -223,5 +242,59 @@ public class ApiServiceImpl implements ApiService {
         apiInvokeApplyMapper.update(apiInvokeApply);
 
         return apiInvokeApply;
+    }
+
+    @Override
+    public List<ApiInvokeApply> invokeApprovalList(String userId) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(API_INVOKE_APPLY)
+                .leftJoin(API).on(API_INVOKE_APPLY.API_ID.eq(API.ID))
+                .and(API.USER_ID.eq(userId));
+
+        RelationManager.setMaxDepth(2);
+
+        List<ApiInvokeApply> apiInvokeAppovalList = apiInvokeApplyMapper.selectListWithRelationsByQuery(query);
+
+        return apiInvokeAppovalList;
+    }
+
+    @Override
+    public ApiInvokeApply invokeApprovalDetail(String applyId) {
+        RelationManager.setMaxDepth(3);
+        ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
+
+        if (!AuthUtil.getUser().getId().equals(apiInvokeApply.getApi().getUserId())) {
+            throw new NoPermissionException("非本API的所有者无法查看API调用审批详情");
+        }
+
+        apiInvokeApply.getInvokeStatus();
+        apiInvokeApplyMapper.update(apiInvokeApply);
+
+        return apiInvokeApply;
+    }
+
+    @Override
+    public boolean invokeReply(String applyId, ApplyStatus reply, String reason) {
+        RelationManager.setMaxDepth(3);
+        ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
+
+        if (!AuthUtil.getUser().getId().equals(apiInvokeApply.getApi().getUserId())) {
+            throw new NoPermissionException("非本API的所有者无法进行API调用审批");
+        }
+
+        apiInvokeApply.setApplyStatus(reply);
+        apiInvokeApply.setReplyTime(new Date());
+
+        if (reply == ApplyStatus.ALLOW) {
+            apiInvokeApply.setAppKey(UUID.randomUUID().toString().replace("-", "").toLowerCase());
+            apiInvokeApply.setSecretKey(UUID.randomUUID().toString().replace("-", "").toLowerCase());
+        } else if (reply == ApplyStatus.REJECT) {
+            apiInvokeApply.setReplyReason(reason);
+        }
+        apiInvokeApply.getInvokeStatus();
+
+        int count = apiInvokeApplyMapper.update(apiInvokeApply);
+
+        return count != 0;
     }
 }

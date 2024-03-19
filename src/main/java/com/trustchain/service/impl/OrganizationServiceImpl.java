@@ -69,12 +69,18 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public List<OrganizationRegister> registerApplySearch(List<String> applyIds) {
+    public List<OrganizationRegister> registerApplyList(List<String> applyIds) {
         return orgRegMapper.selectListByIds(applyIds);
     }
 
     @Override
-    public List<OrganizationRegister> registerList(String orgId) {
+    public OrganizationRegister registerApplyDetail(String applyId) {
+        RelationManager.setMaxDepth(1);
+        return orgRegMapper.selectOneById(applyId);
+    }
+
+    @Override
+    public List<OrganizationRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
                 .from(OrganizationRegister.class)
                 .where(OrganizationRegister::getSuperiorId).eq(orgId);
@@ -83,7 +89,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public OrganizationRegister registerDetail(String applyId) {
+    public OrganizationRegister registerApprovalDetail(String applyId) {
         return orgRegMapper.selectOneById(applyId);
     }
 

@@ -39,7 +39,13 @@ public interface OrganizationService {
      * @param applyIds 注册申请号
      * @return 注册申请列表
      */
-    List<OrganizationRegister> registerApplySearch(List<String> applyIds);
+    List<OrganizationRegister> registerApplyList(List<String> applyIds);
+
+    /**
+     * @param applyId 注册申请号
+     * @return  注册申请详情
+     */
+    OrganizationRegister registerApplyDetail(String applyId);
 
     /**
      * 获取注册申请列表
@@ -47,20 +53,20 @@ public interface OrganizationService {
      * @param orgId 机构ID
      * @return 注册申请列表
      */
-    List<OrganizationRegister> registerList(String orgId);
+    List<OrganizationRegister> registerApprovalList(String orgId);
 
     /**
      * @param applyId 注册申请号
      * @return 注册申请信息
      */
-    OrganizationRegister registerDetail(String applyId);
+    OrganizationRegister registerApprovalDetail(String applyId);
 
     /**
      * 注册申请回复
      *
-     * @param applyId  注册申请号
-     * @param reply  回复类型
-     * @param reason 回复理由
+     * @param applyId 注册申请号
+     * @param reply   回复类型
+     * @param reason  回复理由
      * @return 成功与否
      */
     boolean registerReply(String applyId, ApplyStatus reply, String reason);
