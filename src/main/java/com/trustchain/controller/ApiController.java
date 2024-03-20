@@ -1,6 +1,7 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.filter.SimplePropertyPreFilter;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.dto.ApiBody;

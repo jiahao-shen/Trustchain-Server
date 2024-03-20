@@ -42,8 +42,9 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public String upload(MultipartFile file) {
         try {
-            // 使用Tika分析文件类型并获取后缀
+            // 分析文件类型
             MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file.getBytes()));
+            // 获取文件后缀
             String extension = mediaType.getExtension();
             // 获取文件MD5值解决重复上传问题
             String fileName = "tmp/" + DigestUtils.md5Hex(file.getInputStream()) + extension;

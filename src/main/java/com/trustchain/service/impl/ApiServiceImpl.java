@@ -7,7 +7,6 @@ import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.ApiInvokeApplyMapper;
 import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.ApiRegisterMapper;
-import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.dto.*;
 import com.trustchain.model.entity.Api;
@@ -17,18 +16,14 @@ import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.ApiInvokeStatus;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.ApplyStatus;
-import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.util.StringUtil;
 import org.apache.tika.Tika;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
+import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -361,8 +356,6 @@ public class ApiServiceImpl implements ApiService {
         HttpUrl requestUrl = urlBuilder.build();
         logger.info(requestUrl.url());
 
-//        OkHttpClient client = new OkHttpClient();
-
         // TODO: 处理requestHeader
         Request.Builder requestBuilder = new Request.Builder();
         for (ApiHeaderItem item : header) {
@@ -370,26 +363,23 @@ public class ApiServiceImpl implements ApiService {
         }
 
         // TODO: 处理requestBody
-        RequestBody requestBody;
+        RequestBody requestBody = null;
         switch (api.getRequestBody().getType()) {
             case NONE:
                 break;
             case FORM_DATA:
                 MultipartBody.Builder formBodyBuilder = new MultipartBody.Builder();
                 for (ApiFormDataItem item : body.getFormDataBody()) {
-                    if (item.getType().equals("FILE")) {
-//                        try {
-//                            InputStream file = minioService.get(item.getKey());
-//                            MediaType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file));
-//                            MediaType.parse();
-//                            RequestBody fileBody = RequestBody.create(file, mediaType);
-//                            InputStreamRequestBody fileBody = InputStreamRequestBody.create(mediaType, file);
+                    if (item.getType().equals("File")) {
+                        try {
+                            InputStream file = minioService.get(item.getKey());
+                            MediaType mediaType = MediaType.parse(new Tika().detect(file));
+                            formBodyBuilder.addFormDataPart(item.getKey(), item.getValue(),
+                                    InputStreamRequestBody.create(mediaType, file));
 
-//                        } catch (MimeTypeException | IOException e) {
-//                            throw new RuntimeException(e);
-//                        };
-
-                        formBodyBuilder.addFormDataPart(item.getKey(), item.getValue(), null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     } else {
                         formBodyBuilder.addFormDataPart(item.getKey(), item.getValue());
                     }
@@ -404,12 +394,33 @@ public class ApiServiceImpl implements ApiService {
                 requestBody = xwwwBodyBuilder.build();
                 break;
             case RAW:
+                MediaType mediaType = null;
+                switch (api.getRequestBody().getRawBody().getType()) {
+                    case TEXT:
+                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_PLAIN_VALUE);
+                        break;
+                    case JSON:
+                        mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                        break;
+                    case JAVASCRIPT:
+                        // TODO:
+                        break;
+                    case HTML:
+                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_HTML_VALUE);
+                        break;
+                    case XML:
+                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_XML_VALUE);
+                        break;
+                }
+                requestBody = RequestBody.create(body.getRawBody().getBody(), mediaType);
                 break;
             case BINARY:
                 break;
             case GRAPHQL:
                 break;
         }
+
+        OkHttpClient client = new OkHttpClient();
 
         switch (api.getMethod()) {
             case GET:

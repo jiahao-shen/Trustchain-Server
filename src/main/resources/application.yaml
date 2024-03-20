@@ -51,8 +51,8 @@ server:
 minio:
   endpoint: http://8.130.150.176:9000
   bucket: trustchain
-  accessKey: DoYNWkL7Jg6P1pTc4A3Y
-  secretKey: h438yV6ubzsYH6mRt38w6ITAHyRMUnnrZmCri1ZA
+  accessKey: Qp2uoUDK44wl5Tlx6SPN
+  secretKey: Qnubzt8Z3q3a3iP3LGOhssY6WELJswPwPVLjlJzR
   # MacPro
   #  accessKey: cW3wffjaswmJBZEnBU2j
   #  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
