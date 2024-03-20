@@ -2,9 +2,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    url: jdbc:mysql://8.130.150.176:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
     username: root
-    password: 258667
+    password: Hawkeye2024!@#
   servlet:
     multipart:
       max-file-size: 100MB
@@ -29,7 +29,7 @@ spring:
               class: java.net.ssl.SSLSocketFactory
   redis:
     database: 0
-    host: 127.0.0.1
+    host: 8.130.150.176
     port: 6379
     password: Hawkeye2024!@#
     lettuce:
@@ -40,7 +40,6 @@ spring:
         max-wait: -1ms
     connect-timeout: 30000ms
 
-
 logging:
   config: classpath:log4j2.xml
 
@@ -50,11 +49,14 @@ server:
       timeout: 3600s
 
 minio:
-  endpoint: http://127.0.0.1:9000
+  endpoint: http://8.130.150.176:9000
   bucket: trustchain
+  accessKey: DoYNWkL7Jg6P1pTc4A3Y
+  secretKey: h438yV6ubzsYH6mRt38w6ITAHyRMUnnrZmCri1ZA
   # MacPro
   #  accessKey: cW3wffjaswmJBZEnBU2j
   #  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT
   #  MacbookPro
-  accessKey: 3wIc88pusSVNraoT1qrV
-  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
+  #  accessKey: 3wIc88pusSVNraoT1qrV
+  #  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
+

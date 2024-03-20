@@ -16,3 +16,17 @@
 
 ## TODO
 - 对接长安链
+
+## 部署注意事项
+- 安装Mariadb并修改application.yaml中的字段
+  - spring.datasouce.url
+  - spring.datasouce.username
+  - spring.datasouce.password
+- 安装Minio并修改application.yaml中的字段
+  - minio.endpoint
+  - minio.accessKey
+  - minio.secretkey
+- 安装Redis并修改application.yaml中的字段
+  - spring.redis.host
+  - spring.redis.port
+  - spring.redis.password

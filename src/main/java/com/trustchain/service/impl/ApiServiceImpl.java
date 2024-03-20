@@ -1,5 +1,6 @@
 package com.trustchain.service.impl;
 
+import com.ibm.cloud.sdk.core.http.InputStreamRequestBody;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
@@ -8,20 +9,31 @@ import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.ApiRegisterMapper;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.model.convert.ApiConvert;
+import com.trustchain.model.dto.*;
 import com.trustchain.model.entity.Api;
 import com.trustchain.model.entity.ApiInvokeApply;
 import com.trustchain.model.entity.ApiRegister;
 import com.trustchain.model.entity.User;
+import com.trustchain.model.enums.ApiInvokeStatus;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.ApplyStatus;
+import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.service.ApiService;
+import com.trustchain.service.MinioService;
 import com.trustchain.util.AuthUtil;
+import okhttp3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.util.StringUtil;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +52,7 @@ public class ApiServiceImpl implements ApiService {
     @Autowired
     private ApiInvokeApplyMapper apiInvokeApplyMapper;
     @Autowired
-    private UserMapper userMapper;
+    private MinioService minioService;
 
     private static final Logger logger = LogManager.getLogger(ApiServiceImpl.class);
 
@@ -84,7 +96,7 @@ public class ApiServiceImpl implements ApiService {
         RelationManager.setMaxDepth(1);
         List<ApiRegister> apiRegs = apiRegMapper.selectListWithRelationsByQuery(query);
         apiRegs.forEach(item -> {
-            item.setUrl(StringUtil.repeat('*', 32));
+            item.setUrl(null);
         });
         return apiRegs;
     }
@@ -94,7 +106,7 @@ public class ApiServiceImpl implements ApiService {
         RelationManager.setMaxDepth(1);
 
         ApiRegister apiReg = apiRegMapper.selectOneWithRelationsById(applyId);
-        apiReg.setUrl(StringUtil.repeat('*', 32));
+        apiReg.setUrl(null);
 
         return apiReg;
     }
@@ -157,7 +169,7 @@ public class ApiServiceImpl implements ApiService {
         List<Api> apis = apiMapper.selectListWithRelationsByQuery(query);
         apis.forEach(item -> {
             if (!item.getUserId().equals(user.getId())) {
-                item.setUrl(StringUtil.repeat('*', 32));
+                item.setUrl(null);
             }
         });
 
@@ -172,7 +184,7 @@ public class ApiServiceImpl implements ApiService {
 
         if (!api.getUserId().equals(userId)) {
             // 如果不是自己的API则隐藏Url
-            api.setUrl(StringUtil.repeat('*', 32));
+            api.setUrl(null);
         }
 
         return api;
@@ -255,6 +267,11 @@ public class ApiServiceImpl implements ApiService {
 
         List<ApiInvokeApply> apiInvokeAppovalList = apiInvokeApplyMapper.selectListWithRelationsByQuery(query);
 
+        apiInvokeAppovalList.forEach(item -> {
+            item.setAppKey(null);
+            item.setSecretKey(null);
+        });
+
         return apiInvokeAppovalList;
     }
 
@@ -269,6 +286,9 @@ public class ApiServiceImpl implements ApiService {
 
         apiInvokeApply.getInvokeStatus();
         apiInvokeApplyMapper.update(apiInvokeApply);
+
+        apiInvokeApply.setAppKey(null);
+        apiInvokeApply.setSecretKey(null);
 
         return apiInvokeApply;
     }
@@ -297,4 +317,120 @@ public class ApiServiceImpl implements ApiService {
 
         return count != 0;
     }
+
+    @Override
+    public ApiInvokeApply invokeInitialize(String applyId) {
+        RelationManager.setMaxDepth(1);
+
+        ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
+
+        apiInvokeApply.getApi().setUrl(null);
+
+        return apiInvokeApply;
+    }
+
+    @Override
+    public void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) {
+        RelationManager.setMaxDepth(1);
+        ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
+
+        if (apiInvokeApply.getInvokeStatus() != ApiInvokeStatus.VALID) {
+            // TODO: 不在有效期内就抛出异常
+            return;
+        }
+
+        Api api = apiInvokeApply.getApi();
+
+        // TODO: 拼接协议和url
+        String baseUrl = api.getProtocol().toString().toLowerCase() + "://" + api.getUrl();
+        logger.info("initial url:" + baseUrl);
+
+        // TODO: 处理param
+        for (ApiParamItem item : param) {
+            baseUrl = baseUrl.replaceAll("\\{" + item.getKey() + "\\}", item.getValue());
+        }
+
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl).newBuilder();
+
+        // TODO: 处理query
+        for (ApiQueryItem item : query) {
+            urlBuilder.addQueryParameter(item.getKey(), item.getValue());
+//            urlBuilder.addEncodedQueryParameter(item.getKey(), item.getValue());
+        }
+
+        HttpUrl requestUrl = urlBuilder.build();
+        logger.info(requestUrl.url());
+
+//        OkHttpClient client = new OkHttpClient();
+
+        // TODO: 处理requestHeader
+        Request.Builder requestBuilder = new Request.Builder();
+        for (ApiHeaderItem item : header) {
+            requestBuilder.addHeader(item.getKey(), item.getValue());
+        }
+
+        // TODO: 处理requestBody
+        RequestBody requestBody;
+        switch (api.getRequestBody().getType()) {
+            case NONE:
+                break;
+            case FORM_DATA:
+                MultipartBody.Builder formBodyBuilder = new MultipartBody.Builder();
+                for (ApiFormDataItem item : body.getFormDataBody()) {
+                    if (item.getType().equals("FILE")) {
+//                        try {
+//                            InputStream file = minioService.get(item.getKey());
+//                            MediaType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file));
+//                            MediaType.parse();
+//                            RequestBody fileBody = RequestBody.create(file, mediaType);
+//                            InputStreamRequestBody fileBody = InputStreamRequestBody.create(mediaType, file);
+
+//                        } catch (MimeTypeException | IOException e) {
+//                            throw new RuntimeException(e);
+//                        };
+
+                        formBodyBuilder.addFormDataPart(item.getKey(), item.getValue(), null);
+                    } else {
+                        formBodyBuilder.addFormDataPart(item.getKey(), item.getValue());
+                    }
+                }
+                requestBody = formBodyBuilder.build();
+                break;
+            case X_WWW_FORM_URLENCODED:
+                FormBody.Builder xwwwBodyBuilder = new FormBody.Builder();
+                for (ApiXwwwFormUrlEncodedItem item : body.getXwwwFormUrlEncodedBody()) {
+                    xwwwBodyBuilder.add(item.getKey(), item.getValue());
+                }
+                requestBody = xwwwBodyBuilder.build();
+                break;
+            case RAW:
+                break;
+            case BINARY:
+                break;
+            case GRAPHQL:
+                break;
+        }
+
+        switch (api.getMethod()) {
+            case GET:
+                break;
+            case POST:
+                break;
+            case PUT:
+                break;
+            case DELETE:
+                break;
+            case TRACE:
+                break;
+            case CONNECT:
+                break;
+            case HEAD:
+                break;
+            case OPTIONS:
+                break;
+        }
+
+
+    }
+
 }

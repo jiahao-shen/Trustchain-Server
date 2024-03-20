@@ -298,8 +298,6 @@ public class ApiController {
         ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        User user = AuthUtil.getUser();
-
         boolean success = apiService.invokeReply(applyId, reply, reason);
 
         return ResponseEntity
@@ -307,6 +305,29 @@ public class ApiController {
                 .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
     }
 
+    @PostMapping("/invoke/initialize")
+    public ResponseEntity<Object> invokeInitialize(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+
+        ApiInvokeApply apiInvokeApply = apiService.invokeInitialize(applyId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new BaseResponse<>(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply)));
+    }
+
+    @PostMapping("/invoke/web")
+    public ResponseEntity<Object> invokeWeb(@RequestBody JSONObject request) {
+        logger.info(request);
+        String applyId = request.getString("applyId");
+        List<ApiParamItem> param = request.getList("param", ApiParamItem.class);
+        List<ApiQueryItem> query = request.getList("query", ApiQueryItem.class);
+        List<ApiHeaderItem> requestHeader = request.getList("requestHeader", ApiHeaderItem.class);
+        ApiBody requestBody = request.getObject("requestBody", ApiBody.class);
+
+        apiService.invokeWeb(applyId, param, query, requestHeader, requestBody);
+        return null;
+    }
 
     @PostMapping("/invoke/log/list")
     public ResponseEntity<Object> invokeLogList(@RequestBody JSONObject request) {

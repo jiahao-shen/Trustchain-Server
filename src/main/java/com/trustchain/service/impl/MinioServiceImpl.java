@@ -6,10 +6,10 @@ import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class MinioServiceImpl implements MinioService {
@@ -40,10 +39,12 @@ public class MinioServiceImpl implements MinioService {
                 .build();
     }
 
+    @Override
     public String upload(MultipartFile file) {
         try {
             // 使用Tika分析文件类型并获取后缀
-            String extension = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file.getBytes())).getExtension();
+            MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file.getBytes()));
+            String extension = mediaType.getExtension();
             // 获取文件MD5值解决重复上传问题
             String fileName = "tmp/" + DigestUtils.md5Hex(file.getInputStream()) + extension;
             client.putObject(PutObjectArgs.builder()
@@ -65,6 +66,7 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public boolean copy(String oldPath, String newPath) {
         try {
             client.copyObject(CopyObjectArgs.builder()
@@ -80,10 +82,12 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public boolean move(String oldPath, String newPath) {
         return false;
     }
 
+    @Override
     public String presignedUrl(String file) {
         try {
             return client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
@@ -96,12 +100,27 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public boolean isUrl(String path) {
         try {
             new URL(path);
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    @Override
+    public InputStream get(String file) {
+        try {
+            return client.getObject(GetObjectArgs.builder()
+                    .bucket(config.getBucket())
+                    .object(file)
+                    .build());
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
+                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
+                 XmlParserException e) {
+            return null;
         }
     }
 }
