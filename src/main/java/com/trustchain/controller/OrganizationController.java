@@ -10,6 +10,7 @@ import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.BaseResponse;
+import com.trustchain.model.vo.OrganizationRegisterVO;
 import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.OrganizationService;
@@ -35,28 +36,28 @@ public class OrganizationController {
     private static final Logger logger = LogManager.getLogger(OrganizationController.class);
 
     @GetMapping("/selectList")
-    public ResponseEntity<Object> selectList() {
+    @ResponseBody
+    public BaseResponse<List<OrganizationVO>> selectList() {
         List<Organization> orgs = orgService.selectList();
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationSelectVOList(orgs)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationVOList(orgs));
     }
 
     @PostMapping("/exist")
-    public ResponseEntity<Object> exist(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> exist(@RequestBody JSONObject request) {
         String orgName = request.getString("orgName");
         String orgId = request.getString("orgId");
 
         boolean result = orgService.exist(orgName, orgId);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
+        return new BaseResponse(StatusCode.SUCCESS, "", result);
     }
 
     @PostMapping("/register/apply")
-    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<String> registerApply(@RequestBody JSONObject request) {
         OrganizationRegister orgReg = new OrganizationRegister();
         orgReg.setLogo(request.getString("logo"));
         orgReg.setName(request.getString("name"));
@@ -74,36 +75,34 @@ public class OrganizationController {
 
         String applyId = orgService.registerApply(orgReg);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", applyId));
+        return new BaseResponse(StatusCode.SUCCESS, "", applyId);
     }
 
     @PostMapping("/register/apply/list")
-    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<List<OrganizationRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
 
         List<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs));
     }
+
     @PostMapping("/register/apply/detail")
-    public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<OrganizationRegisterVO> registerApplyDetail(@RequestBody JSONObject request) {
         String applyId = request.getString("applyId");
 
         OrganizationRegister orgReg = orgService.registerApplyDetail(applyId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg)));
+        return new BaseResponse<>(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
     }
 
     @GetMapping("/register/approval/list")
-    public ResponseEntity<Object> registerList() {
+    @ResponseBody
+    public BaseResponse<List<OrganizationRegisterVO>> registerList() {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -112,14 +111,13 @@ public class OrganizationController {
 
         List<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs));
     }
 
     @PostMapping("/register/approval/detail")
-    public ResponseEntity<Object> registerDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<OrganizationRegisterVO> registerDetail(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -130,14 +128,13 @@ public class OrganizationController {
 
         OrganizationRegister orgReg = orgService.registerApprovalDetail(applyId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
     }
 
     @PostMapping("/register/reply")
-    public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> registerReply(@RequestBody JSONObject request) {
         String applyId = request.getString("applyId");
         ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
@@ -149,11 +146,12 @@ public class OrganizationController {
 
         boolean success = orgService.registerReply(applyId, reply, reason);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
     @PostMapping("/information/detail")
-    public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<OrganizationVO> informationDetail(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String version = request.getString("version");
 
@@ -161,13 +159,12 @@ public class OrganizationController {
         OrganizationVO orgInfo = OrganizationConvert.INSTANCE.toOrganizationVO(org);
         orgInfo.setLatest(true);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgInfo));
+        return new BaseResponse(StatusCode.SUCCESS, "", orgInfo);
     }
 
     @PutMapping("/information/update")
-    public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<OrganizationVO> informationUpdate(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -193,13 +190,12 @@ public class OrganizationController {
 
         Organization updateOrg = orgService.informationUpdate(org);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVO(updateOrg)));
+        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVO(updateOrg));
     }
 
     @PostMapping("/information/history")
-    public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<List<OrganizationVO>> informationHistory(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -210,13 +206,12 @@ public class OrganizationController {
 
         List<Organization> orgs = orgService.informationHistory(orgId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", orgs));
+        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVOList(orgs));
     }
 
     @PostMapping("/information/rollback")
-    public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> informationRollback(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -228,13 +223,12 @@ public class OrganizationController {
 
         boolean success = orgService.informationRollback(orgId, version);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
     @GetMapping("/subordinate/list")
-    public ResponseEntity<Object> subordinateList() {
+    @ResponseBody
+    public BaseResponse<List<OrganizationVO>> subordinateList() {
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
@@ -243,22 +237,19 @@ public class OrganizationController {
 
         List<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs)));
+        return new BaseResponse<>(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs));
     }
 
     @PostMapping("/subordinate/detail")
-    public ResponseEntity<Object> subordinateDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<OrganizationVO> subordinateDetail(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
 
         Organization org = orgService.subordinateDetail(orgId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        OrganizationConvert.INSTANCE.toOrganizationVO(org)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                OrganizationConvert.INSTANCE.toOrganizationVO(org));
     }
 
 }

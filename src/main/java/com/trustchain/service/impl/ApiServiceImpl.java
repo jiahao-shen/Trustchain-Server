@@ -1,6 +1,7 @@
 package com.trustchain.service.impl;
 
 import com.ibm.cloud.sdk.core.http.InputStreamRequestBody;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
@@ -20,13 +21,17 @@ import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
+import okio.Buffer;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
-import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.KeyGenerator;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -325,7 +330,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) {
+    public void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) throws IOException {
         RelationManager.setMaxDepth(1);
         ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
 
@@ -336,28 +341,27 @@ public class ApiServiceImpl implements ApiService {
 
         Api api = apiInvokeApply.getApi();
 
-        // TODO: 拼接协议和url
+        // 拼接协议和url
         String baseUrl = api.getProtocol().toString().toLowerCase() + "://" + api.getUrl();
         logger.info("initial url:" + baseUrl);
 
-        // TODO: 处理param
+        // 处理param
         for (ApiParamItem item : param) {
             baseUrl = baseUrl.replaceAll("\\{" + item.getKey() + "\\}", item.getValue());
         }
 
         HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl).newBuilder();
 
-        // TODO: 处理query
+        // 处理query
         for (ApiQueryItem item : query) {
             urlBuilder.addQueryParameter(item.getKey(), item.getValue());
-//            urlBuilder.addEncodedQueryParameter(item.getKey(), item.getValue());
         }
 
         HttpUrl requestUrl = urlBuilder.build();
         logger.info(requestUrl.url());
 
-        // TODO: 处理requestHeader
-        Request.Builder requestBuilder = new Request.Builder();
+        // 处理requestHeader
+        Request.Builder requestBuilder = new Request.Builder().url(requestUrl);
         for (ApiHeaderItem item : header) {
             requestBuilder.addHeader(item.getKey(), item.getValue());
         }
@@ -367,80 +371,123 @@ public class ApiServiceImpl implements ApiService {
         switch (api.getRequestBody().getType()) {
             case NONE:
                 break;
-            case FORM_DATA:
+            case FORM_DATA: {
                 MultipartBody.Builder formBodyBuilder = new MultipartBody.Builder();
                 for (ApiFormDataItem item : body.getFormDataBody()) {
-                    if (item.getType().equals("File")) {
-                        try {
-                            InputStream file = minioService.get(item.getKey());
-                            MediaType mediaType = MediaType.parse(new Tika().detect(file));
-                            formBodyBuilder.addFormDataPart(item.getKey(), item.getValue(),
-                                    InputStreamRequestBody.create(mediaType, file));
-
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                    if (item.getType().equals("File")) {    // 单独处理文件
+                        String path = item.getValue();
+                        InputStream io = minioService.get(path);
+                        byte[] fileArray = IOUtils.toByteArray(io);
+                        MediaType mediaType = MediaType.parse(new Tika().detect(fileArray));
+                        String fileName = path.substring(path.lastIndexOf("/") + 1);
+                        formBodyBuilder.addFormDataPart(item.getKey(), fileName,
+                                RequestBody.create(fileArray, mediaType));
                     } else {
                         formBodyBuilder.addFormDataPart(item.getKey(), item.getValue());
                     }
                 }
                 requestBody = formBodyBuilder.build();
                 break;
-            case X_WWW_FORM_URLENCODED:
+            }
+            case X_WWW_FORM_URLENCODED: {
                 FormBody.Builder xwwwBodyBuilder = new FormBody.Builder();
                 for (ApiXwwwFormUrlEncodedItem item : body.getXwwwFormUrlEncodedBody()) {
                     xwwwBodyBuilder.add(item.getKey(), item.getValue());
                 }
                 requestBody = xwwwBodyBuilder.build();
                 break;
-            case RAW:
+            }
+            case RAW: {
                 MediaType mediaType = null;
                 switch (api.getRequestBody().getRawBody().getType()) {
-                    case TEXT:
-                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_PLAIN_VALUE);
+                    case TEXT: {
+                        mediaType = MediaType.parse("text/plain");
                         break;
-                    case JSON:
-                        mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                    }
+                    case JSON: {
+                        mediaType = MediaType.parse("application/json");
                         break;
-                    case JAVASCRIPT:
+                    }
+                    case HTML: {
+                        mediaType = MediaType.parse("text/html");
+                        break;
+                    }
+                    case XML: {
+                        mediaType = MediaType.parse("text/xml");
+                        break;
+                    }
+                    case JAVASCRIPT: {
                         // TODO:
                         break;
-                    case HTML:
-                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_HTML_VALUE);
-                        break;
-                    case XML:
-                        mediaType = MediaType.parse(org.springframework.http.MediaType.TEXT_XML_VALUE);
-                        break;
+                    }
                 }
                 requestBody = RequestBody.create(body.getRawBody().getBody(), mediaType);
                 break;
-            case BINARY:
+            }
+            case BINARY: {
+                String path = body.getBinaryBody();
+                InputStream io = minioService.get(path);
+                byte[] fileArray = new byte[0];
+                fileArray = IOUtils.toByteArray(io);
+                MediaType mediaType = MediaType.parse(new Tika().detect(fileArray));
+                requestBody = RequestBody.create(fileArray, mediaType);
                 break;
+            }
             case GRAPHQL:
                 break;
         }
 
-        OkHttpClient client = new OkHttpClient();
-
+        Request request = null;
         switch (api.getMethod()) {
-            case GET:
+            case GET: {
+                request = requestBuilder.get().build();
                 break;
-            case POST:
+            }
+            case POST: {
+                request = requestBuilder.post(requestBody).build();
                 break;
-            case PUT:
+            }
+            case PUT: {
+                request = requestBuilder.put(null).build();
                 break;
-            case DELETE:
+            }
+            case DELETE: {
+                request = requestBuilder.delete(null).build();
                 break;
-            case TRACE:
+            }
+            case HEAD: {
+                request = requestBuilder.head().build();
                 break;
-            case CONNECT:
+            }
+            case PATCH: {
+                request = requestBuilder.patch(null).build();
                 break;
-            case HEAD:
+            }
+            case TRACE: {
+                // TODO:
                 break;
-            case OPTIONS:
+            }
+            case CONNECT: {
+                // TODO:
                 break;
+            }
+            case OPTIONS: {
+                // TODO:
+                break;
+            }
         }
 
+        OkHttpClient client = new OkHttpClient();
+
+        Response response = client.newCall(request).execute();
+        logger.info("request headers: " + request.headers());
+        if (request.body() != null) {
+            logger.info("request body: " + request.body().toString());
+        }
+        logger.info("response headers: " + response.headers());
+        if (response.body() != null) {
+            logger.info("response body: " + response.body().toString());
+        }
 
     }
 

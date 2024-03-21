@@ -44,4 +44,10 @@ public interface MinioService {
      * @return 文件对象
      */
     InputStream get(String file);
+
+    /**
+     * @param hash 哈希值
+     * @return 文件是否存在
+     */
+    String exist(String hash);
 }

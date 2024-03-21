@@ -10,6 +10,7 @@ import com.trustchain.model.entity.ApiRegister;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.ApplyStatus;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ApiService {
@@ -143,5 +144,5 @@ public interface ApiService {
      * @param header  请求标头
      * @param body    请求体
      */
-    void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body);
+    void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) throws IOException;
 }

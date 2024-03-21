@@ -43,9 +43,10 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
 
         List<MediaType> supportedMediaTypes = new ArrayList();
+        supportedMediaTypes.add(MediaType.MULTIPART_FORM_DATA);
+        supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);
         supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);
-        supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
         supportedMediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
         supportedMediaTypes.add(MediaType.APPLICATION_PDF);
         supportedMediaTypes.add(MediaType.APPLICATION_RSS_XML);
@@ -69,7 +70,17 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         );
         fastConverter.setFastJsonConfig(fastJsonConfig);
 
-        converters.add(fastConverter);
+        converters.add(0, fastConverter);
+    }
+
+    @Override
+    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        super.extendMessageConverters(converters);
+
+        converters.forEach(item -> {
+            logger.info(item.getClass().toString());
+        });
+
     }
 
     @Override
@@ -109,7 +120,9 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                 }) // 添加拦截器
                 .addPathPatterns("/**") // 添加拦截路径
                 .excludePathPatterns(// 添加排除拦截路径
+                        "/test/**",
                         "/captcha/send",
+                        "/file/exist",
                         "/file/upload",
                         "/user/login",
                         "/user/exist",

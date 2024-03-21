@@ -12,12 +12,14 @@ import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.service.UserService;
 import io.minio.errors.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.io.IOException;
@@ -135,6 +137,21 @@ class SpringbootApplicationTests {
         });
 
         logger.info(MaskManager.mask("url", apiReg));
+    }
+
+    @Test
+    void testGetObject() {
+        String path = "tmp/7e6a91659f645109dfcd40f574bd5737.zip";
+        logger.info(minioService.presignedUrl(path));
+        InputStream io = minioService.get(path);
+
+        try {
+            byte[] bytes = IOUtils.toByteArray(io);
+            logger.info(bytes);
+            logger.info(bytes.length);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //    @Autowired

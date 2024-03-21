@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS `organization`;
 CREATE TABLE `organization`
 (
     `id`                varchar(32)  NOT NULL,
-    `name`              varchar(32)  NOT NULL,
+    `name`              varchar(64)  NOT NULL,
     `type`              tinyint(4)   NOT NULL,
     `telephone`         varchar(32)  NOT NULL,
     `email`             varchar(32)  NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `organization_register`
     `reply_time`    datetime      DEFAULT NULL,
     `reply_reason`  varchar(1024) DEFAULT NULL,
     `id`            varchar(32)   DEFAULT NULL,
-    `name`          varchar(32)  NOT NULL,
+    `name`          varchar(64)  NOT NULL,
     `type`          tinyint(4)   NOT NULL,
     `telephone`     varchar(32)  NOT NULL,
     `email`         varchar(32)  NOT NULL,
@@ -66,7 +66,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`
 (
     `id`                varchar(32)  NOT NULL,
-    `username`          varchar(32)  NOT NULL,
+    `username`          varchar(64)  NOT NULL,
     `password`          varchar(128) NOT NULL,
     `telephone`         varchar(32)  NOT NULL,
     `email`             varchar(32)  NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE `user_register`
     `reply_time`      datetime      DEFAULT NULL,
     `reply_reason`    varchar(1024) DEFAULT NULL,
     `id`              varchar(32)   DEFAULT NULL,
-    `username`        varchar(32)  NOT NULL,
+    `username`        varchar(64)  NOT NULL,
     `password`        varchar(128) NOT NULL,
     `telephone`       varchar(32)  NOT NULL,
     `email`           varchar(32)  NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE `api`
 (
     `id`                varchar(32) DEFAULT NULL,
     `user_id`           varchar(32)   NOT NULL,
-    `name`              varchar(32)   NOT NULL,
+    `name`              varchar(64)   NOT NULL,
     `price`             double        NOT NULL,
     `protocol`          tinyint(4)    NOT NULL,
     `url`               varchar(2083) NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE `api_register`
     `reply_reason`    varchar(1024) DEFAULT NULL,
     `id`              varchar(32)   DEFAULT NULL,
     `user_id`         varchar(32)   NOT NULL,
-    `name`            varchar(32)   NOT NULL,
+    `name`            varchar(64)   NOT NULL,
     `price`           double        NOT NULL,
     `protocol`        tinyint(4)    NOT NULL,
     `url`             varchar(2083) NOT NULL,

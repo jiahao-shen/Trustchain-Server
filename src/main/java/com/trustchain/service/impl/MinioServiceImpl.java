@@ -124,4 +124,10 @@ public class MinioServiceImpl implements MinioService {
             return null;
         }
     }
+
+    @Override
+    public String exist(String hash) {
+        // TODO: 判断文件是否存在
+        return null;
+    }
 }

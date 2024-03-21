@@ -10,6 +10,7 @@ import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.model.vo.UserLogin;
+import com.trustchain.model.vo.UserRegisterVO;
 import com.trustchain.model.vo.UserVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.UserService;
@@ -36,42 +37,42 @@ public class UserController {
     private static final Logger logger = LogManager.getLogger(UserController.class);
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserLogin> login(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String username = request.getString("username");
         String password = request.getString("password");
 
         UserLogin user = userService.login(orgId, username, password);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", user));
+        return new BaseResponse(StatusCode.SUCCESS, "", user);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Object> logout(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<?> logout(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
         userService.logout(userId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "退出登录成功", null));
+        return new BaseResponse(StatusCode.SUCCESS, "退出登录成功", null);
     }
 
 
     @PostMapping("/exist")
-    public ResponseEntity<Object> exist(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> exist(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String username = request.getString("username");
         String userId = request.getString("userId");
 
         boolean result = userService.exist(orgId, username, userId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", result));
+        return new BaseResponse(StatusCode.SUCCESS, "", result);
     }
 
     @PutMapping("/forgetPassword")
-    public ResponseEntity<Object> forgetPassword(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> forgetPassword(@RequestBody JSONObject request) {
         String orgId = request.getString("orgId");
         String username = request.getString("username");
         String password = request.getString("password");
@@ -89,13 +90,12 @@ public class UserController {
 
         boolean success = userService.resetPassword(user, password);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success));
+        return new BaseResponse(StatusCode.SUCCESS, "密码重置成功", success);
     }
 
     @PutMapping("/resetPassword")
-    public ResponseEntity<Object> resetPassword(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> resetPassword(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
         String password = request.getString("password");
         String code = request.getString("code");
@@ -105,13 +105,12 @@ public class UserController {
 
         boolean success = userService.resetPassword(user, password);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success));
+        return new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Object> register(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> register(@RequestBody JSONObject request) {
         User user = new User();
         user.setOrganizationId(request.getString("orgId"));
         user.setUsername(request.getString("username"));
@@ -126,13 +125,12 @@ public class UserController {
         // 注册新用户
         boolean success = userService.register(user);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+        return new BaseResponse<>(StatusCode.SUCCESS, "", success);
     }
 
     @PostMapping("/register/apply")
-    public ResponseEntity<Object> registerApply(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<String> registerApply(@RequestBody JSONObject request) {
         UserRegister userReg = new UserRegister();
         userReg.setLogo(request.getString("logo"));
         userReg.setOrganizationId(request.getString("orgId"));
@@ -147,38 +145,35 @@ public class UserController {
 
         String applyId = userService.registerApply(userReg);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", applyId));
+        return new BaseResponse<>(StatusCode.SUCCESS, "", applyId);
     }
 
     @PostMapping("/register/apply/list")
-    public ResponseEntity<Object> registerApplyList(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<List<UserRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
 
         List<UserRegister> userRegs = userService.registerApplyList(applyIds);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                UserConvert.INSTANCE.toUserRegisterVOList(userRegs));
     }
 
     @PostMapping("/register/apply/detail")
-    public ResponseEntity<Object> registerApplyDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserRegisterVO> registerApplyDetail(@RequestBody JSONObject request) {
         String applyId = request.getString("applyId");
 
         UserRegister userReg = userService.registerApplyDetail(applyId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterVO(userReg)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                UserConvert.INSTANCE.toUserRegisterVO(userReg));
 
     }
 
     @GetMapping("/register/approval/list")
-    public ResponseEntity<Object> registerApprovalList() {
+    @ResponseBody
+    public BaseResponse<List<UserRegisterVO>> registerApprovalList() {
         User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员用户无法查看用户注册审批列表");
@@ -186,14 +181,13 @@ public class UserController {
 
         List<UserRegister> userRegs = userService.registerList(user.getOrganizationId());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterVOList(userRegs)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                UserConvert.INSTANCE.toUserRegisterVOList(userRegs));
     }
 
     @PostMapping("/register/approval/detail")
-    public ResponseEntity<Object> registerApprovalDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserRegisterVO> registerApprovalDetail(@RequestBody JSONObject request) {
         if (!AuthUtil.getUser().isAdmin()) {
             throw new NoPermissionException("非管理员用户无法查看用户注册审批详情");
         }
@@ -201,14 +195,13 @@ public class UserController {
         String applyId = request.getString("applyId");
         UserRegister userReg = userService.registerDetail(applyId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "",
-                        UserConvert.INSTANCE.toUserRegisterVO(userReg)));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                UserConvert.INSTANCE.toUserRegisterVO(userReg));
     }
 
     @PostMapping("/register/reply")
-    public ResponseEntity<Object> registerReply(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> registerReply(@RequestBody JSONObject request) {
         if (!AuthUtil.getUser().isAdmin()) {
             throw new NoPermissionException("非管理员用户无法审批用户注册申请");
         }
@@ -219,11 +212,12 @@ public class UserController {
 
         boolean success = userService.registerReply(applyId, reply, reason);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
     @GetMapping("/subordinate/list")
-    public ResponseEntity<Object> subordindateList() {
+    @ResponseBody
+    public BaseResponse<List<UserVO>> subordindateList() {
         User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员用户无法查看用户列表");
@@ -231,24 +225,22 @@ public class UserController {
 
         List<User> users = userService.subordinateList(user.getOrganizationId());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users)));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users));
     }
 
     @PostMapping("/subordinate/detail")
-    public ResponseEntity<Object> subordinateDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserVO> subordinateDetail(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
 
         User user = userService.subordinateDetail(userId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(user)));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(user));
     }
 
     @PostMapping("/information/detail")
-    public ResponseEntity<Object> informationDetail(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserVO> informationDetail(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
         String version = request.getString("version");
 
@@ -256,13 +248,12 @@ public class UserController {
         UserVO userInfo = UserConvert.INSTANCE.toUserVO(user);
         userInfo.setLatest(true);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", userInfo));
+        return new BaseResponse(StatusCode.SUCCESS, "", userInfo);
     }
 
     @PutMapping("/information/update")
-    public ResponseEntity<Object> informationUpdate(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<UserVO> informationUpdate(@RequestBody JSONObject request) {
         User user = AuthUtil.getUser();
 
         user.setLogo(request.getString("logo"));
@@ -276,13 +267,12 @@ public class UserController {
         User updateUser = userService.informationUpdate(user);
         AuthUtil.setUser(user);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(updateUser)));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(updateUser));
     }
 
     @PostMapping("/information/history")
-    public ResponseEntity<Object> informationHistory(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<List<UserVO>> informationHistory(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
 
         if (!AuthUtil.getUser().getId().equals(userId)) {
@@ -291,13 +281,12 @@ public class UserController {
 
         List<User> users = userService.informationHistory(userId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users)));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users));
     }
 
     @PostMapping("/information/rollback")
-    public ResponseEntity<Object> informationRollback(@RequestBody JSONObject request) {
+    @ResponseBody
+    public BaseResponse<Boolean> informationRollback(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
         String version = request.getString("version");
 
@@ -307,9 +296,7 @@ public class UserController {
 
         boolean success = userService.informationRollback(userId, version);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new BaseResponse<>(StatusCode.SUCCESS, "", success));
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
 }

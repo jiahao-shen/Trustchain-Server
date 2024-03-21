@@ -11,10 +11,11 @@ public enum HttpMethod {
     POST(2),
     PUT(3),
     DELETE(4),
-    TRACE(5),
-    CONNECT(6),
-    HEAD(7),
-    OPTIONS(8);
+    PATCH(5),
+    HEAD(6),
+    TRACE(7),
+    CONNECT(8),
+    OPTIONS(9);
 
     @EnumValue
     private final int code;
