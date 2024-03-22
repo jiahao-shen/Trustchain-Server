@@ -1,6 +1,8 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.model.enums.ApplyStatus;
@@ -19,11 +21,10 @@ import com.trustchain.util.PasswordUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -150,13 +151,21 @@ public class UserController {
 
     @PostMapping("/register/apply/list")
     @ResponseBody
-    public BaseResponse<List<UserRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
+    public BaseResponse<Page<UserRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
 
-        List<UserRegister> userRegs = userService.registerApplyList(applyIds);
+
+        Page<UserRegister> userRegs = userService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                UserConvert.INSTANCE.toUserRegisterVOList(userRegs));
+                new Page(UserConvert.INSTANCE.toUserRegisterVOList(userRegs.getRecords()),
+                        userRegs.getPageNumber(), userRegs.getPageSize(), userRegs.getTotalRow()));
     }
 
     @PostMapping("/register/apply/detail")
@@ -171,18 +180,26 @@ public class UserController {
 
     }
 
-    @GetMapping("/register/approval/list")
+    @PostMapping("/register/approval/list")
     @ResponseBody
-    public BaseResponse<List<UserRegisterVO>> registerApprovalList() {
+    public BaseResponse<Page<UserRegisterVO>> registerApprovalList(@RequestBody JSONObject request) {
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
+
         User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员用户无法查看用户注册审批列表");
         }
 
-        List<UserRegister> userRegs = userService.registerList(user.getOrganizationId());
+        Page<UserRegister> userRegs = userService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                UserConvert.INSTANCE.toUserRegisterVOList(userRegs));
+                new Page(UserConvert.INSTANCE.toUserRegisterVOList(userRegs.getRecords()),
+                        userRegs.getPageNumber(), userRegs.getPageSize(), userRegs.getTotalRow()));
     }
 
     @PostMapping("/register/approval/detail")
@@ -210,22 +227,34 @@ public class UserController {
         ApplyStatus reply = ApplyStatus.valueOf(request.getString("reply"));
         String reason = request.getString("reason");
 
-        boolean success = userService.registerReply(applyId, reply, reason);
-
-        return new BaseResponse(StatusCode.SUCCESS, "", success);
+        try {
+            userService.registerReply(applyId, reply, reason);
+            return new BaseResponse(StatusCode.SUCCESS, "", true);
+        } catch (RuntimeException e) {
+            return new BaseResponse(StatusCode.SUCCESS, e.getMessage(), false);
+        }
     }
 
-    @GetMapping("/subordinate/list")
+    @PostMapping("/subordinate/list")
     @ResponseBody
-    public BaseResponse<List<UserVO>> subordindateList() {
+    public BaseResponse<Page<UserVO>> subordindateList(@RequestBody JSONObject request) {
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
+
         User user = AuthUtil.getUser();
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员用户无法查看用户列表");
         }
 
-        List<User> users = userService.subordinateList(user.getOrganizationId());
+        Page<User> users = userService.subordinateList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                new Page(UserConvert.INSTANCE.toUserVOList(users.getRecords()),
+                        users.getPageNumber(), users.getPageSize(), users.getTotalRow()));
     }
 
     @PostMapping("/subordinate/detail")

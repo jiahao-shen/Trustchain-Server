@@ -1,6 +1,7 @@
 package com.trustchain.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.model.enums.ApplyStatus;
@@ -20,10 +21,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -95,16 +98,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<UserRegister> registerApplyList(List<String> applyIds,
+                                                Integer pageNumber,
+                                                Integer pageSize,
+                                                Map<String, List<String>> filter,
+                                                Map<String, String> sort) {
+
+        List<UserRegister> userRegs = new ArrayList<UserRegister>();
+        applyIds.forEach(applyId -> {
+            userRegs.add(userRegMapper.selectOneWithRelationsById(applyId));
+        });
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        logger.info(userRegs);
+
+        return null;
+    }
+
+    @Override
     public UserRegister registerApplyDetail(String applyId) {
         RelationManager.setMaxDepth(1);
         return userRegMapper.selectOneWithRelationsById(applyId);
     }
 
     @Override
-    public boolean registerReply(String applyId, ApplyStatus reply, String reason) {
+    @Transactional
+    public void registerReply(String applyId, ApplyStatus reply, String reason) {
         UserRegister userReg = userRegMapper.selectOneById(applyId);
         if (userReg == null) {
-            return false;
+            throw new RuntimeException("用户注册申请不存在");
         }
         if (reply == ApplyStatus.ALLOW) {
             String oldLogoPath = userReg.getLogo();
@@ -113,20 +142,16 @@ public class UserServiceImpl implements UserService {
 
             User user = UserConvert.INSTANCE.toUser(userReg);
             user.setLogo(newLogoPath);
-            int count = userMapper.insert(user);
-            if (count != 0) {
-                userReg.setId(user.getId());
-                userReg.setApplyStatus(ApplyStatus.ALLOW);
-                userReg.setReplyTime(new Date());
+            userMapper.insert(user);
+            userReg.setId(user.getId());
+            userReg.setApplyStatus(ApplyStatus.ALLOW);
+            userReg.setReplyTime(new Date());
 
-                userRegMapper.update(userReg);
+            userRegMapper.update(userReg);
 
-                emailSerivce.send(user.getEmail(),
-                        "数据资源可信共享平台 注册成功",
-                        "您的用户注册申请已通过, 请点击以下链接进行登录。<br>" + "<a>http://localhost:5173</a>");
-                return true;
-            }
-            return false;
+            emailSerivce.send(user.getEmail(),
+                    "数据资源可信共享平台 注册成功",
+                    "您的用户注册申请已通过, 请点击以下链接进行登录。<br>" + "<a>http://localhost:5173</a>");
         } else if (reply == ApplyStatus.REJECT) {
             userReg.setApplyStatus(ApplyStatus.REJECT);
             userReg.setReplyTime(new Date());
@@ -137,9 +162,7 @@ public class UserServiceImpl implements UserService {
             emailSerivce.send(userReg.getEmail(),
                     "数据资源可信共享平台 注册失败",
                     "您的用户注册申请未通过, 请点击以下链接查看详情。<br>" + "<a>http://localhost:5173/registerApplySearch</a>");
-            return true;
         }
-        return false;
     }
 
     @Override
@@ -150,7 +173,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserRegister> registerList(String orgId) {
+    public List<UserRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
                 .from(UserRegister.class)
                 .where(UserRegister::getOrganizationId).eq(orgId);
@@ -159,10 +182,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<UserRegister> registerApprovalList(String orgId,
+                                                   Integer pageNumber,
+                                                   Integer pageSize,
+                                                   Map<String, List<String>> filter,
+                                                   Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(UserRegister.class)
+                .where(UserRegister::getOrganizationId).eq(orgId);
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        return userRegMapper.paginate(pageNumber, pageSize, query);
+    }
+
+    @Override
     public UserRegister registerDetail(String applyId) {
         RelationManager.setMaxDepth(1);
         return userRegMapper.selectOneWithRelationsById(applyId);
     }
+
 
     @Override
     public boolean exist(String orgId, String username, String userId) {
@@ -184,6 +229,27 @@ public class UserServiceImpl implements UserService {
                 .where(User::getOrganizationId).eq(orgId);
 
         return userMapper.selectListByQuery(query);
+    }
+
+    @Override
+    public Page<User> subordinateList(String orgId,
+                                      Integer pageNumber,
+                                      Integer pageSize,
+                                      Map<String, List<String>> filter,
+                                      Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(User.class)
+                .where(User::getOrganizationId).eq(orgId);
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        return userMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
@@ -217,6 +283,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> informationHistory(String userId) {
         // TODO: 对接长安链
+        return null;
+    }
+
+    @Override
+    public Page<User> informationHistory(String userId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
         return null;
     }
 

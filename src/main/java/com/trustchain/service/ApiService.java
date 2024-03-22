@@ -1,5 +1,6 @@
 package com.trustchain.service;
 
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.model.dto.ApiBody;
 import com.trustchain.model.dto.ApiHeaderItem;
 import com.trustchain.model.dto.ApiParamItem;
@@ -12,6 +13,7 @@ import com.trustchain.model.enums.ApplyStatus;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface ApiService {
     /**
@@ -33,8 +35,22 @@ public interface ApiService {
     List<ApiRegister> registerApplyList(String userId);
 
     /**
+     * @param userId     用户ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return API注册申请列表
+     */
+    Page<ApiRegister> registerApplyList(String userId,
+                                        Integer pageNumber,
+                                        Integer pageSize,
+                                        Map<String, List<String>> filter,
+                                        Map<String, String> sort);
+
+    /**
      * @param applyId 注册ID
-     * @return
+     * @return API注册申请详情
      */
     ApiRegister registerApplyDetail(String applyId);
 
@@ -43,6 +59,20 @@ public interface ApiService {
      * @return API注册审批列表
      */
     List<ApiRegister> registerApprovalList(String orgId);
+
+    /**
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return API注册审批列表
+     */
+    Page<ApiRegister> registerApprovalList(String orgId,
+                                           Integer pageNumber,
+                                           Integer pageSize,
+                                           Map<String, List<String>> filter,
+                                           Map<String, String> sort);
 
     /**
      * @param applyId 注册ID
@@ -54,9 +84,8 @@ public interface ApiService {
      * @param applyId 注册ID
      * @param reply   回复类型
      * @param reason  回复理由
-     * @return 是否回复成功
      */
-    boolean registerReply(String applyId, ApplyStatus reply, String reason);
+    void registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param user 用户
@@ -65,10 +94,34 @@ public interface ApiService {
     List<Api> myApiList(User user);
 
     /**
+     * @param user       用户
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 我的API列表
+     */
+    Page<Api> myApiList(User user,
+                        Integer pageNumber,
+                        Integer pageSize,
+                        Map<String, List<String>> filter,
+                        Map<String, String> sort);
+
+    /**
+     * @param user 用户
+     * @return 我的API列表
+     */
+    List<Api> allApiList(User user);
+
+    /**
      * @param user 用户
      * @return 所有API列表
      */
-    List<Api> allApiList(User user);
+    Page<Api> allApiList(User user,
+                         Integer pageNumber,
+                         Integer pageSize,
+                         Map<String, List<String>> filter,
+                         Map<String, String> sort);
 
     /**
      * @param apiId   API的ID
@@ -84,7 +137,25 @@ public interface ApiService {
      */
     boolean informationUpdate(Api api);
 
+    /**
+     * @param apiId API的ID
+     * @return API信息的历史记录
+     */
     List<Api> informationHistory(String apiId);
+
+    /**
+     * @param apiId      API的ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return API信息的历史记录
+     */
+    Page<Api> informationHistory(String apiId,
+                                 Integer pageNumber,
+                                 Integer pageSize,
+                                 Map<String, List<String>> filter,
+                                 Map<String, String> sort);
 
     /**
      * @param apiId   API的ID
@@ -106,16 +177,44 @@ public interface ApiService {
     List<ApiInvokeApply> invokeApplyList(String userId);
 
     /**
+     * @param userId     用户ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return API调用申请列表
+     */
+    Page<ApiInvokeApply> invokeApplyList(String userId,
+                                         Integer pageNumber,
+                                         Integer pageSize,
+                                         Map<String, List<String>> filter,
+                                         Map<String, String> sort);
+
+    /**
      * @param applyId 申请号
-     * @return API调用申请
+     * @return API调用申请详情
      */
     ApiInvokeApply invokeApplyDetail(String applyId);
 
     /**
      * @param userId 用户ID
-     * @return API调用审核列表
+     * @return API调用审批列表
      */
     List<ApiInvokeApply> invokeApprovalList(String userId);
+
+    /**
+     * @param userId     用户ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return API调用审批列表
+     */
+    Page<ApiInvokeApply> invokeApprovalList(String userId,
+                                            Integer pageNumber,
+                                            Integer pageSize,
+                                            Map<String, List<String>> filter,
+                                            Map<String, String> sort);
 
     /**
      * @param applyId 调用申请号
@@ -127,9 +226,8 @@ public interface ApiService {
      * @param applyId 调用申请号
      * @param reply   回复类型
      * @param reason  回复理由
-     * @return 是否成功
      */
-    boolean invokeReply(String applyId, ApplyStatus reply, String reason);
+    void invokeReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param applyId 调用申请号

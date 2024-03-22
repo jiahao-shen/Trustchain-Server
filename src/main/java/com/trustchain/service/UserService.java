@@ -1,11 +1,13 @@
 package com.trustchain.service;
 
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.vo.UserLogin;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
@@ -43,14 +45,28 @@ public interface UserService {
     String registerApply(UserRegister userReg);
 
     /**
-     * @param applyIds 注册申请号
-     * @return 用户注册申请
+     * @param applyIds 注册申请号列表
+     * @return 用户注册申请列表
      */
     List<UserRegister> registerApplyList(List<String> applyIds);
 
     /**
+     * @param applyIds   注册申请号
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 用户注册申请列表
+     */
+    Page<UserRegister> registerApplyList(List<String> applyIds,
+                                         Integer pageNumber,
+                                         Integer pageSize,
+                                         Map<String, List<String>> filter,
+                                         Map<String, String> sort);
+
+    /**
      * @param applyId 注册申请号
-     * @return
+     * @return 用户注册申请详情
      */
     UserRegister registerApplyDetail(String applyId);
 
@@ -58,25 +74,38 @@ public interface UserService {
      * @param applyId 注册申请号
      * @param reply   回复
      * @param reason  回复理由
-     * @return
      */
-    boolean registerReply(String applyId, ApplyStatus reply, String reason);
+    void registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param user 用户对象
-     * @return
+     * @return 是否注册成功
      */
     boolean register(User user);
 
     /**
      * @param orgId 机构ID
-     * @return
+     * @return 用户注册申请列表
      */
-    List<UserRegister> registerList(String orgId);
+    List<UserRegister> registerApprovalList(String orgId);
+
+    /**
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 用户注册申请列表
+     */
+    Page<UserRegister> registerApprovalList(String orgId,
+                                            Integer pageNumber,
+                                            Integer pageSize,
+                                            Map<String, List<String>> filter,
+                                            Map<String, String> sort);
 
     /**
      * @param applyId 注册申请号
-     * @return
+     * @return 用户注册申请详情
      */
     UserRegister registerDetail(String applyId);
 
@@ -85,6 +114,21 @@ public interface UserService {
      * @return 用户列表
      */
     List<User> subordinateList(String orgId);
+
+    /**
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 用户列表
+     */
+    Page<User> subordinateList(String orgId,
+                               Integer pageNumber,
+                               Integer pageSize,
+                               Map<String, List<String>> filter,
+                               Map<String, String> sort);
+
 
     /**
      * @param userId 用户ID
@@ -100,29 +144,42 @@ public interface UserService {
 
     /**
      * @param user 用户
-     * @return
+     * @return 更新后的用户
      */
     User informationUpdate(User user);
 
     /**
-     * @param userId
-     * @return
+     * @param userId 用户ID
+     * @return 页数
      */
     List<User> informationHistory(String userId);
 
     /**
-     * @param userId
-     * @param version
-     * @return
+     * @param userId     用户ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 用户信息历史记录
+     */
+    Page<User> informationHistory(String userId,
+                                  Integer pageNumber,
+                                  Integer pageSize,
+                                  Map<String, List<String>> filter,
+                                  Map<String, String> sort);
+
+    /**
+     * @param userId  用户ID
+     * @param version 版本
+     * @return 是否回滚成功
      */
     boolean informationRollback(String userId, String version);
 
     /**
-     * @param orgId
-     * @param username
-     * @return
+     * @param orgId    机构ID
+     * @param username 用户名
+     * @return 用户
      */
     User findByUsername(String orgId, String username);
-
 
 }

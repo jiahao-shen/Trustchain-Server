@@ -86,13 +86,20 @@ public class OrganizationController {
 
     @PostMapping("/register/apply/list")
     @ResponseBody
-    public BaseResponse<List<OrganizationRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
+    public BaseResponse<Page<OrganizationRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
 
-        List<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds);
+        Page<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs));
+                new Page(OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs.getRecords()),
+                        orgRegs.getPageNumber(), orgRegs.getPageSize(), orgRegs.getTotalRow()));
     }
 
     @PostMapping("/register/apply/detail")
@@ -158,9 +165,12 @@ public class OrganizationController {
             throw new NoPermissionException("非管理员无法进行机构审批");
         }
 
-        boolean success = orgService.registerReply(applyId, reply, reason);
-
-        return new BaseResponse(StatusCode.SUCCESS, "", success);
+        try {
+            orgService.registerReply(applyId, reply, reason);
+            return new BaseResponse(StatusCode.SUCCESS, "", true);
+        } catch (RuntimeException e) {
+            return new BaseResponse(StatusCode.SUCCESS, e.getMessage(), false);
+        }
     }
 
     @PostMapping("/information/detail")

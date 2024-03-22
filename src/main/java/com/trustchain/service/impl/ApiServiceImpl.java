@@ -2,6 +2,7 @@ package com.trustchain.service.impl;
 
 import com.ibm.cloud.sdk.core.http.InputStreamRequestBody;
 import com.mybatisflex.core.keygen.KeyGenerators;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
@@ -29,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.KeyGenerator;
 import java.io.File;
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.trustchain.model.entity.table.ApiInvokeApplyTableDef.API_INVOKE_APPLY;
@@ -77,7 +80,31 @@ public class ApiServiceImpl implements ApiService {
                 .where(ApiRegister::getUserId).eq(userId);
 
         RelationManager.setMaxDepth(1);
-        return apiRegMapper.selectListByQuery(query);
+
+        return apiRegMapper.selectListWithRelationsByQuery(query);
+    }
+
+    @Override
+    public Page<ApiRegister> registerApplyList(String userId,
+                                               Integer pageNumber,
+                                               Integer pageSize,
+                                               Map<String, List<String>> filter,
+                                               Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(ApiRegister.class)
+                .where(ApiRegister::getUserId).eq(userId);
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        RelationManager.setMaxDepth(1);
+
+        return apiRegMapper.paginateWithRelations(pageNumber, pageSize, query);
     }
 
     @Override
@@ -88,16 +115,43 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public List<ApiRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
+                .select(API_REGISTER.ALL_COLUMNS)
                 .from(API_REGISTER)
                 .leftJoin(USER)
                 .on(USER.ID.eq(API_REGISTER.USER_ID)
                         .and(USER.ORGANIZATION_ID.eq(orgId)));
 
         RelationManager.setMaxDepth(1);
-        List<ApiRegister> apiRegs = apiRegMapper.selectListWithRelationsByQuery(query);
-        apiRegs.forEach(item -> {
-            item.setUrl(null);
+
+        return apiRegMapper.selectListWithRelationsByQuery(query);
+    }
+
+    @Override
+    public Page<ApiRegister> registerApprovalList(String orgId,
+                                                  Integer pageNumber,
+                                                  Integer pageSize,
+                                                  Map<String, List<String>> filter,
+                                                  Map<String, String> sort) {
+
+        QueryWrapper query = QueryWrapper.create()
+                .select(API_REGISTER.ALL_COLUMNS)
+                .from(API_REGISTER)
+                .leftJoin(USER)
+                .on(USER.ID.eq(API_REGISTER.USER_ID)
+                        .and(USER.ORGANIZATION_ID.eq(orgId)));
+
+        filter.forEach((key, value) -> {
+
         });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        RelationManager.setMaxDepth(1);
+
+        Page<ApiRegister> apiRegs = apiRegMapper.paginateWithRelations(pageNumber, pageSize, query);
+
         return apiRegs;
     }
 
@@ -112,39 +166,31 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public boolean registerReply(String applyId, ApplyStatus reply, String reason) {
+    @Transactional
+    public void registerReply(String applyId, ApplyStatus reply, String reason) {
         ApiRegister apiReg = apiRegMapper.selectOneById(applyId);
 
         if (apiReg == null) {
-            return false;
+            throw new RuntimeException("API注册申请不存在");
         }
 
         if (reply == ApplyStatus.ALLOW) {
             Api api = ApiConvert.INSTANCE.toApi(apiReg);
+            apiMapper.insert(api);
 
-            int count = apiMapper.insert(api);
+            // TODO: 对接长安链
+            apiReg.setId(api.getId());
+            apiReg.setApplyStatus(ApplyStatus.ALLOW);
+            apiReg.setReplyTime(new Date());
+            apiRegMapper.update(apiReg);
 
-            if (count != 0) {
-                // TODO: 对接长安链
-                apiReg.setId(api.getId());
-                apiReg.setApplyStatus(ApplyStatus.ALLOW);
-                apiReg.setReplyTime(new Date());
-
-                apiRegMapper.update(apiReg);
-
-                return true;
-            }
         } else if (reply == ApplyStatus.REJECT) {
             apiReg.setApplyStatus(ApplyStatus.REJECT);
             apiReg.setReplyTime(new Date());
             apiReg.setReplyReason(reason);
 
             apiRegMapper.update(apiReg);
-
-            return true;
         }
-
-        return false;
     }
 
     @Override
@@ -157,6 +203,28 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    public Page<Api> myApiList(User user,
+                               Integer pageNumber,
+                               Integer pageSize,
+                               Map<String, List<String>> filter,
+                               Map<String, String> sort) {
+
+        QueryWrapper query = QueryWrapper.create()
+                .from(Api.class)
+                .where(Api::getUserId).eq(user.getId());
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        return apiMapper.paginate(pageNumber, pageSize, query);
+    }
+
+    @Override
     public List<Api> allApiList(User user) {
         QueryWrapper query = QueryWrapper.create()
                 .from(API)
@@ -166,12 +234,47 @@ public class ApiServiceImpl implements ApiService {
                 .or(API.VISIBLE.eq(ApiVisible.PRIVATE).and(USER.ORGANIZATION_ID.eq(user.getOrganizationId())));
 
         RelationManager.setMaxDepth(2);
+
         List<Api> apis = apiMapper.selectListWithRelationsByQuery(query);
+
         apis.forEach(item -> {
             if (!item.getUserId().equals(user.getId())) {
                 item.setUrl(null);
             }
         });
+        return apis;
+    }
+
+    @Override
+    public Page<Api> allApiList(User user,
+                                Integer pageNumber,
+                                Integer pageSize,
+                                Map<String, List<String>> filter,
+                                Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(API)
+                .leftJoin(USER)
+                .on(USER.ID.eq(API.USER_ID))
+                .where(API.VISIBLE.eq(ApiVisible.PUBLIC))
+                .or(API.VISIBLE.eq(ApiVisible.PRIVATE).and(USER.ORGANIZATION_ID.eq(user.getOrganizationId())));
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach(((key, value) -> {
+
+        }));
+
+        RelationManager.setMaxDepth(2);
+
+        Page<Api> apis = apiMapper.paginateWithRelations(pageNumber, pageSize, query);
+
+//        apis.forEach(item -> {
+//            if (!item.getUserId().equals(user.getId())) {
+//                item.setUrl(null);
+//            }
+//        });
 
         return apis;
     }
@@ -212,6 +315,11 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    public Page<Api> informationHistory(String apiId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
+        return null;
+    }
+
+    @Override
     public boolean informationRollback(String apiId, String version) {
         if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
             throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
@@ -238,6 +346,36 @@ public class ApiServiceImpl implements ApiService {
         List<ApiInvokeApply> apiInvokeApplyList = apiInvokeApplyMapper.selectListWithRelationsByQuery(query);
 
         apiInvokeApplyList.forEach(item -> {
+            item.getInvokeStatus();
+            apiInvokeApplyMapper.update(item);
+        });
+
+        return apiInvokeApplyList;
+    }
+
+    @Override
+    public Page<ApiInvokeApply> invokeApplyList(String userId,
+                                                Integer pageNumber,
+                                                Integer pageSize,
+                                                Map<String, List<String>> filter,
+                                                Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(ApiInvokeApply.class)
+                .where(ApiInvokeApply::getUserId).eq(userId);
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        RelationManager.setMaxDepth(1);
+
+        Page<ApiInvokeApply> apiInvokeApplyList = apiInvokeApplyMapper.paginate(pageNumber, pageSize, query);
+
+        apiInvokeApplyList.getRecords().forEach(item -> {
             item.getInvokeStatus();
             apiInvokeApplyMapper.update(item);
         });
@@ -276,6 +414,37 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    public Page<ApiInvokeApply> invokeApprovalList(String userId,
+                                                   Integer pageNumber,
+                                                   Integer pageSize,
+                                                   Map<String, List<String>> filter,
+                                                   Map<String, String> sort) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(API_INVOKE_APPLY)
+                .leftJoin(API).on(API_INVOKE_APPLY.API_ID.eq(API.ID))
+                .and(API.USER_ID.eq(userId));
+
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        RelationManager.setMaxDepth(2);
+
+        Page<ApiInvokeApply> apiInvokeAppovalList = apiInvokeApplyMapper.paginateWithRelations(pageNumber, pageSize, query);
+
+        apiInvokeAppovalList.getRecords().forEach(item -> {
+            item.setAppKey(null);
+            item.setSecretKey(null);
+        });
+
+        return apiInvokeAppovalList;
+    }
+
+    @Override
     public ApiInvokeApply invokeApprovalDetail(String applyId) {
         RelationManager.setMaxDepth(3);
         ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
@@ -294,9 +463,14 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public boolean invokeReply(String applyId, ApplyStatus reply, String reason) {
+    @Transactional
+    public void invokeReply(String applyId, ApplyStatus reply, String reason) {
         RelationManager.setMaxDepth(3);
         ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
+
+        if (apiInvokeApply == null) {
+            throw new RuntimeException("API调用申请不存在");
+        }
 
         if (!AuthUtil.getUser().getId().equals(apiInvokeApply.getApi().getUserId())) {
             throw new NoPermissionException("非本API的所有者无法进行API调用审批");
@@ -313,9 +487,7 @@ public class ApiServiceImpl implements ApiService {
         }
         apiInvokeApply.getInvokeStatus();
 
-        int count = apiInvokeApplyMapper.update(apiInvokeApply);
-
-        return count != 0;
+        apiInvokeApplyMapper.update(apiInvokeApply);
     }
 
     @Override

@@ -44,10 +44,31 @@ public interface OrganizationService {
     List<OrganizationRegister> registerApplyList(List<String> applyIds);
 
     /**
+     * @param applyIds   注册申请号列表
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return
+     */
+    Page<OrganizationRegister> registerApplyList(List<String> applyIds,
+                                                 Integer pageNumber,
+                                                 Integer pageSize,
+                                                 Map<String, List<String>> filter,
+                                                 Map<String, String> sort);
+
+    /**
      * @param applyId 注册申请号
      * @return 注册申请详情
      */
     OrganizationRegister registerApplyDetail(String applyId);
+
+
+    /**
+     * @param orgId 机构ID
+     * @return 注册审批详情
+     */
+    List<OrganizationRegister> registerApprovalList(String orgId);
 
     /**
      * 获取注册申请列表
@@ -77,9 +98,8 @@ public interface OrganizationService {
      * @param applyId 注册申请号
      * @param reply   回复类型
      * @param reason  回复理由
-     * @return 成功与否
      */
-    boolean registerReply(String applyId, ApplyStatus reply, String reason);
+    void registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * 机构注册
@@ -100,7 +120,7 @@ public interface OrganizationService {
 
     /**
      * @param organization 机构
-     * @return
+     * @return 更新后的机构
      */
     Organization informationUpdate(Organization organization);
 
@@ -113,6 +133,20 @@ public interface OrganizationService {
     List<Organization> informationHistory(String orgId);
 
     /**
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
+     * @return 机构信息历史记录
+     */
+    Page<Organization> informationHistory(String orgId,
+                                          Integer pageNumber,
+                                          Integer pageSize,
+                                          Map<String, List<String>> filter,
+                                          Map<String, String> sort);
+
+    /**
      * 机构信息回滚
      *
      * @param orgId   机构ID
@@ -120,6 +154,12 @@ public interface OrganizationService {
      * @return 是否回滚成功
      */
     boolean informationRollback(String orgId, String version);
+
+    /**
+     * @param orgId 机构ID
+     * @return 下级机构列表
+     */
+    List<Organization> subordinateList(String orgId);
 
     /**
      * 获取机构的下级机构列表

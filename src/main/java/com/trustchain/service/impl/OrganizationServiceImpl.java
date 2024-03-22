@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -78,9 +79,38 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    public Page<OrganizationRegister> registerApplyList(List<String> applyIds,
+                                                        Integer pageNumber,
+                                                        Integer pageSize,
+                                                        Map<String, List<String>> filter,
+                                                        Map<String, String> sort) {
+
+        // TODO:
+        filter.forEach((key, value) -> {
+
+        });
+
+        sort.forEach((key, value) -> {
+
+        });
+
+        return null;
+    }
+
+    @Override
     public OrganizationRegister registerApplyDetail(String applyId) {
         RelationManager.setMaxDepth(1);
         return orgRegMapper.selectOneById(applyId);
+    }
+
+    @Override
+    public List<OrganizationRegister> registerApprovalList(String orgId) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(OrganizationRegister.class)
+                .where(OrganizationRegister::getSuperiorId).eq(orgId)
+                .orderBy(OrganizationRegister::getApplyTime, false);
+
+        return orgRegMapper.selectListByQuery(query);
     }
 
     @Override
@@ -127,10 +157,11 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public boolean registerReply(String applyId, ApplyStatus reply, String reason) {
+    @Transactional
+    public void registerReply(String applyId, ApplyStatus reply, String reason) {
         OrganizationRegister orgReg = orgRegMapper.selectOneById(applyId);
         if (orgReg == null) {
-            return false;
+            throw new RuntimeException("机构注册申请不存在");
         }
         if (reply == ApplyStatus.ALLOW) {
             // 复制Logo
@@ -147,23 +178,18 @@ public class OrganizationServiceImpl implements OrganizationService {
             Organization org = OrganizationConvert.INSTANCE.toOrganization(orgReg);
             org.setLogo(newLogoPath);
             org.setFile(newFilePath);
-            int count = orgMapper.insert(org);
-            if (count != 0) {
-                // TODO: 写入长安链
+            orgMapper.insert(org);
+            // TODO: 写入长安链
 
-                // 更新注册表状态
-                orgReg.setId(org.getId());
-                orgReg.setApplyStatus(ApplyStatus.ALLOW);
-                orgReg.setReplyTime(new Date());
+            // 更新注册表状态
+            orgReg.setId(org.getId());
+            orgReg.setApplyStatus(ApplyStatus.ALLOW);
+            orgReg.setReplyTime(new Date());
+            orgRegMapper.update(orgReg);
 
-                orgRegMapper.update(orgReg);
-
-                emailSerivce.send(org.getEmail(), "数据资源可信共享平台 注册成功",
-                        "您的机构注册申请已通过, 请点击以下链接注册管理员账号。<br>" +
-                                "<a>http://localhost:5173/registerApplySearch</a>");
-                return true;
-            }
-            return false;
+            emailSerivce.send(org.getEmail(), "数据资源可信共享平台 注册成功",
+                    "您的机构注册申请已通过, 请点击以下链接注册管理员账号。<br>" +
+                            "<a>http://localhost:5173/registerApplySearch</a>");
         } else if (reply == ApplyStatus.REJECT) {
             // 更新注册表状态
             orgReg.setApplyStatus(ApplyStatus.REJECT);
@@ -175,9 +201,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             emailSerivce.send(orgReg.getEmail(), "数据资源可信共享平台 注册失败",
                     "您的机构注册申请未通过, 请点击以下链接查看详情。<br>" +
                             "<a>http://localhost:5173/registerApplySearch</a>");
-            return true;
         }
-        return false;
     }
 
     @Override
@@ -226,9 +250,24 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    public Page<Organization> informationHistory(String orgId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
+        return null;
+    }
+
+    @Override
     public boolean informationRollback(String orgId, String version) {
         // TODO: 对接长安链
         return false;
+    }
+
+    @Override
+    public List<Organization> subordinateList(String orgId) {
+        QueryWrapper query = QueryWrapper.create()
+                .from(Organization.class)
+                .where(Organization::getSuperiorId).eq(orgId)
+                .orderBy(Organization::getRegistrationTime, false);
+
+        return orgMapper.selectListByQuery(query);
     }
 
     @Override
