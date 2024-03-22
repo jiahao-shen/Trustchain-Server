@@ -108,7 +108,7 @@ public class OrganizationController {
 
     @PostMapping("/register/approval/list")
     @ResponseBody
-    public BaseResponse<List<OrganizationRegisterVO>> registerList(@RequestBody JSONObject request) {
+    public BaseResponse<Page<OrganizationRegisterVO>> registerList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
@@ -240,19 +240,27 @@ public class OrganizationController {
         return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
-    @GetMapping("/subordinate/list")
+    @PostMapping("/subordinate/list")
     @ResponseBody
-    public BaseResponse<List<OrganizationVO>> subordinateList() {
+    public BaseResponse<Page<OrganizationVO>> subordinateList(@RequestBody JSONObject request) {
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
+
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员无法查看下级机构列表");
         }
 
-        List<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId());
+        Page<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
-        return new BaseResponse<>(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs));
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                new Page(OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs.getRecords()),
+                        subOrgs.getPageNumber(), subOrgs.getPageSize(), subOrgs.getTotalRow()));
     }
 
     @PostMapping("/subordinate/detail")

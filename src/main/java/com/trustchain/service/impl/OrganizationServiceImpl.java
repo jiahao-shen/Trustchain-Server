@@ -232,12 +232,40 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public List<Organization> subordinateList(String orgId) {
+    public Page<Organization> subordinateList(String orgId,
+                                              Integer pageNumber,
+                                              Integer pageSize,
+                                              Map<String, List<String>> filter,
+                                              Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
                 .from(Organization.class)
-                .where(Organization::getSuperiorId).eq(orgId);
+                .where(Organization::getSuperiorId).eq(orgId)
+                .orderBy(Organization::getRegistrationTime, false);
 
-        return orgMapper.selectListByQuery(query);
+        filter.forEach((key, value) -> {
+            switch (key) {
+                case "type": {
+                    query.where(Organization::getType)
+                            .in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList()));
+                    break;
+                }
+            }
+        });
+
+        sort.forEach((key, value) -> {
+            switch (key) {
+                case "creationTime": {
+                    query.orderBy(Organization::getCreationTime, "ascending".equals(value));
+                    break;
+                }
+                case "registrationTime": {
+                    query.orderBy(Organization::getRegistrationTime, "ascending".equals(value));
+                    break;
+                }
+            }
+        });
+
+        return orgMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override

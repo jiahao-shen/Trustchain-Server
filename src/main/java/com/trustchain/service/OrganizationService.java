@@ -124,10 +124,18 @@ public interface OrganizationService {
     /**
      * 获取机构的下级机构列表
      *
-     * @param orgId 机构ID
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
      * @return 下级机构列表
      */
-    List<Organization> subordinateList(String orgId);
+    Page<Organization> subordinateList(String orgId,
+                                       Integer pageNumber,
+                                       Integer pageSize,
+                                       Map<String, List<String>> filter,
+                                       Map<String, String> sort);
 
     /**
      * 获取下级机构详情
