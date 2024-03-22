@@ -1,5 +1,6 @@
 package com.trustchain.service.impl;
 
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.model.convert.OrganizationConvert;
@@ -8,6 +9,7 @@ import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
+import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -80,12 +84,41 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public List<OrganizationRegister> registerApprovalList(String orgId) {
+    public Page<OrganizationRegister> registerApprovalList(String orgId,
+                                                           Integer pageNumber,
+                                                           Integer pageSize,
+                                                           Map<String, List<String>> filter,
+                                                           Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
                 .from(OrganizationRegister.class)
-                .where(OrganizationRegister::getSuperiorId).eq(orgId);
+                .where(OrganizationRegister::getSuperiorId).eq(orgId)
+                .orderBy(OrganizationRegister::getApplyTime, false);
 
-        return orgRegMapper.selectListByQuery(query);
+        filter.forEach((key, value) -> {
+            switch (key) {
+                case "type": {
+                    query.where(OrganizationRegister::getType)
+                            .in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList()));
+                    break;
+                }
+                case "applyStatus": {
+                    query.where(OrganizationRegister::getApplyStatus)
+                            .in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList()));
+                    break;
+                }
+            }
+        });
+
+        sort.forEach((key, value) -> {
+            switch (key) {
+                case "applyTime": {
+                    query.orderBy(OrganizationRegister::getApplyTime, "ascending".equals(value));
+                    break;
+                }
+            }
+        });
+
+        return orgRegMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override

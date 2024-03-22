@@ -1,7 +1,9 @@
 package com.trustchain.service;
 
 import java.util.List;
+import java.util.Map;
 
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
@@ -43,17 +45,25 @@ public interface OrganizationService {
 
     /**
      * @param applyId 注册申请号
-     * @return  注册申请详情
+     * @return 注册申请详情
      */
     OrganizationRegister registerApplyDetail(String applyId);
 
     /**
      * 获取注册申请列表
      *
-     * @param orgId 机构ID
+     * @param orgId      机构ID
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤
+     * @param sort       排序
      * @return 注册申请列表
      */
-    List<OrganizationRegister> registerApprovalList(String orgId);
+    Page<OrganizationRegister> registerApprovalList(String orgId,
+                                                    Integer pageNumber,
+                                                    Integer pageSize,
+                                                    Map<String, List<String>> filter,
+                                                    Map<String, String> sort);
 
     /**
      * @param applyId 注册申请号

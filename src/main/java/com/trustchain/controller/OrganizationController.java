@@ -1,6 +1,8 @@
 package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.OrganizationConvert;
 import com.trustchain.model.entity.User;
@@ -15,6 +17,7 @@ import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.util.AuthUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/organization")
@@ -100,19 +106,27 @@ public class OrganizationController {
                 OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
     }
 
-    @GetMapping("/register/approval/list")
+    @PostMapping("/register/approval/list")
     @ResponseBody
-    public BaseResponse<List<OrganizationRegisterVO>> registerList() {
+    public BaseResponse<List<OrganizationRegisterVO>> registerList(@RequestBody JSONObject request) {
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
+
         User user = AuthUtil.getUser();
 
         if (!user.isAdmin()) {
             throw new NoPermissionException("非管理员无法获取机构注册审批列表");
         }
 
-        List<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId());
+        Page<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs));
+                new Page(OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs.getRecords()),
+                        orgRegs.getPageNumber(), orgRegs.getPageSize(), orgRegs.getTotalRow()));
     }
 
     @PostMapping("/register/approval/detail")
