@@ -87,6 +87,7 @@ public class OrganizationController {
     @PostMapping("/register/apply/list")
     @ResponseBody
     public BaseResponse<Page<OrganizationRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
+        logger.info(request);
         List<String> applyIds = request.getList("applyIds", String.class);
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");

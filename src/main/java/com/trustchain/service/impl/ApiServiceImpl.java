@@ -1,5 +1,7 @@
 package com.trustchain.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.ibm.cloud.sdk.core.http.InputStreamRequestBody;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.mybatisflex.core.paginate.Page;
@@ -11,13 +13,8 @@ import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.ApiRegisterMapper;
 import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.dto.*;
-import com.trustchain.model.entity.Api;
-import com.trustchain.model.entity.ApiInvokeApply;
-import com.trustchain.model.entity.ApiRegister;
-import com.trustchain.model.entity.User;
-import com.trustchain.model.enums.ApiInvokeStatus;
-import com.trustchain.model.enums.ApiVisible;
-import com.trustchain.model.enums.ApplyStatus;
+import com.trustchain.model.entity.*;
+import com.trustchain.model.enums.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.util.AuthUtil;
@@ -40,9 +37,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.ApiInvokeApplyTableDef.API_INVOKE_APPLY;
 import static com.trustchain.model.entity.table.ApiTableDef.API;
+import static com.trustchain.model.entity.table.OrganizationTableDef.ORGANIZATION;
 import static com.trustchain.model.entity.table.UserTableDef.USER;
 import static com.trustchain.model.entity.table.ApiRegisterTableDef.API_REGISTER;
 
@@ -76,12 +75,16 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public List<ApiRegister> registerApplyList(String userId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(ApiRegister.class)
-                .where(ApiRegister::getUserId).eq(userId);
+                .select(API_REGISTER.APPLY_ID,
+                        API_REGISTER.NAME,
+                        API_REGISTER.VISIBLE,
+                        API_REGISTER.METHOD,
+                        API_REGISTER.APPLY_STATUS,
+                        API_REGISTER.APPLY_TIME)
+                .from(API_REGISTER)
+                .where(API_REGISTER.USER_ID.eq(userId));
 
-        RelationManager.setMaxDepth(1);
-
-        return apiRegMapper.selectListWithRelationsByQuery(query);
+        return apiRegMapper.selectListByQuery(query);
     }
 
     @Override
@@ -91,31 +94,63 @@ public class ApiServiceImpl implements ApiService {
                                                Map<String, List<String>> filter,
                                                Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .from(ApiRegister.class)
-                .where(ApiRegister::getUserId).eq(userId);
+                .select(API_REGISTER.APPLY_ID,
+                        API_REGISTER.NAME,
+                        API_REGISTER.VISIBLE,
+                        API_REGISTER.METHOD,
+                        API_REGISTER.APPLY_STATUS,
+                        API_REGISTER.APPLY_TIME)
+                .from(API_REGISTER)
+                .where(API_REGISTER.USER_ID.eq(userId));
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "method": {
+                    query.where(API_REGISTER.METHOD.in(value.stream().map(HttpMethod::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "applyStatus": {
+                    query.where(API_REGISTER.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "visible": {
+                    query.where(API_REGISTER.VISIBLE.in(value.stream().map(ApiVisible::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(API_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(API_REGISTER.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
-        });
-
-        RelationManager.setMaxDepth(1);
-
-        return apiRegMapper.paginateWithRelations(pageNumber, pageSize, query);
+        return apiRegMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
     public ApiRegister registerApplyDetail(String applyId) {
-        return apiRegMapper.selectOneWithRelationsById(applyId);
+        return apiRegMapper.selectOneById(applyId);
     }
 
     @Override
     public List<ApiRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .select(API_REGISTER.ALL_COLUMNS)
+                .select(API_REGISTER.APPLY_ID,
+                        API_REGISTER.NAME,
+                        API_REGISTER.METHOD,
+                        USER.USERNAME,
+                        API_REGISTER.VISIBLE,
+                        API_REGISTER.APPLY_STATUS,
+                        API_REGISTER.APPLY_TIME)
                 .from(API_REGISTER)
                 .leftJoin(USER)
                 .on(USER.ID.eq(API_REGISTER.USER_ID)
@@ -134,25 +169,49 @@ public class ApiServiceImpl implements ApiService {
                                                   Map<String, String> sort) {
 
         QueryWrapper query = QueryWrapper.create()
-                .select(API_REGISTER.ALL_COLUMNS)
+                .select(API_REGISTER.APPLY_ID,
+                        API_REGISTER.NAME,
+                        API_REGISTER.METHOD,
+                        USER.USERNAME,
+                        API_REGISTER.VISIBLE,
+                        API_REGISTER.APPLY_STATUS,
+                        API_REGISTER.APPLY_TIME)
                 .from(API_REGISTER)
                 .leftJoin(USER)
-                .on(USER.ID.eq(API_REGISTER.USER_ID)
-                        .and(USER.ORGANIZATION_ID.eq(orgId)));
+                .on(USER.ID.eq(API_REGISTER.USER_ID))
+                .and(USER.ORGANIZATION_ID.eq(orgId));
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "method": {
+                    query.where(API_REGISTER.METHOD.in(value.stream().map(HttpMethod::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "applyStatus": {
+                    query.where(API_REGISTER.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "visible": {
+                    query.where(API_REGISTER.VISIBLE.in(value.stream().map(ApiVisible::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(API_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(API_REGISTER.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
-        });
-
-        RelationManager.setMaxDepth(1);
-
-        Page<ApiRegister> apiRegs = apiRegMapper.paginateWithRelations(pageNumber, pageSize, query);
-
-        return apiRegs;
+        return apiRegMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
@@ -160,6 +219,7 @@ public class ApiServiceImpl implements ApiService {
         RelationManager.setMaxDepth(1);
 
         ApiRegister apiReg = apiRegMapper.selectOneWithRelationsById(applyId);
+
         apiReg.setUrl(null);
 
         return apiReg;
@@ -196,8 +256,14 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public List<Api> myApiList(User user) {
         QueryWrapper query = QueryWrapper.create()
-                .from(Api.class)
-                .where(Api::getUserId).eq(user.getId());
+                .select(API.ID,
+                        API.NAME,
+                        API.METHOD,
+                        API.VISIBLE,
+                        API.REGISTRATION_TIME,
+                        API.LAST_MODIFIED)
+                .from(API)
+                .where(API.USER_ID.eq(user.getId()));
 
         return apiMapper.selectListByQuery(query);
     }
@@ -210,16 +276,44 @@ public class ApiServiceImpl implements ApiService {
                                Map<String, String> sort) {
 
         QueryWrapper query = QueryWrapper.create()
-                .from(Api.class)
-                .where(Api::getUserId).eq(user.getId());
+                .select(API.ID,
+                        API.NAME,
+                        API.METHOD,
+                        API.VISIBLE,
+                        API.REGISTRATION_TIME,
+                        API.LAST_MODIFIED)
+                .from(API)
+                .where(API.USER_ID.eq(user.getId()));
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "method": {
+                    query.where(API.METHOD.in(value.stream().map(HttpMethod::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "visible": {
+                    query.where(API.VISIBLE.in(value.stream().map(ApiVisible::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
-
-        });
+        if (sort.isEmpty()) {
+            query.orderBy(API.REGISTRATION_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "registrationTime": {
+                        query.orderBy(API.REGISTRATION_TIME, "ascending".equals(value));
+                        break;
+                    }
+                    case "lastModified": {
+                        query.orderBy(API.LAST_MODIFIED, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
         return apiMapper.paginate(pageNumber, pageSize, query);
     }
@@ -227,56 +321,80 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public List<Api> allApiList(User user) {
         QueryWrapper query = QueryWrapper.create()
+                .select(API.ID,
+                        API.NAME,
+                        API.METHOD,
+                        API.REGISTRATION_TIME,
+                        USER.USERNAME,
+                        ORGANIZATION.NAME,
+                        ORGANIZATION.TYPE
+                )
                 .from(API)
                 .leftJoin(USER)
                 .on(USER.ID.eq(API.USER_ID))
+                .leftJoin(ORGANIZATION)
+                .on(ORGANIZATION.ID.eq(USER.ORGANIZATION_ID))
                 .where(API.VISIBLE.eq(ApiVisible.PUBLIC))
                 .or(API.VISIBLE.eq(ApiVisible.PRIVATE).and(USER.ORGANIZATION_ID.eq(user.getOrganizationId())));
 
-        RelationManager.setMaxDepth(2);
-
-        List<Api> apis = apiMapper.selectListWithRelationsByQuery(query);
-
-        apis.forEach(item -> {
-            if (!item.getUserId().equals(user.getId())) {
-                item.setUrl(null);
-            }
-        });
-        return apis;
+        return apiMapper.selectListByQuery(query);
     }
 
     @Override
     public Page<Api> allApiList(User user,
+                                String search,
                                 Integer pageNumber,
                                 Integer pageSize,
                                 Map<String, List<String>> filter,
                                 Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
+                .select(API.ID,
+                        API.NAME,
+                        API.METHOD,
+                        API.REGISTRATION_TIME,
+                        USER.USERNAME,
+                        ORGANIZATION.NAME,
+                        ORGANIZATION.TYPE
+                )
                 .from(API)
                 .leftJoin(USER)
                 .on(USER.ID.eq(API.USER_ID))
-                .where(API.VISIBLE.eq(ApiVisible.PUBLIC))
-                .or(API.VISIBLE.eq(ApiVisible.PRIVATE).and(USER.ORGANIZATION_ID.eq(user.getOrganizationId())));
+                .leftJoin(ORGANIZATION)
+                .on(ORGANIZATION.ID.eq(USER.ORGANIZATION_ID))
+                .where(API.VISIBLE.eq(ApiVisible.PUBLIC).or(API.VISIBLE.eq(ApiVisible.PRIVATE).and(USER.ORGANIZATION_ID.eq(user.getOrganizationId()))));
+
+        if (!search.isEmpty()) {
+            String match = "%" + search.replaceAll("(?<=.)(?=.)", "%") + "%";
+            query.where(API.NAME.like(match).or(ORGANIZATION.NAME.like(match)));
+        }
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "method": {
+                    query.where(API.METHOD.in(value.stream().map(HttpMethod::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "orgType": {
+                    query.where(ORGANIZATION.TYPE.in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach(((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(API.REGISTRATION_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "registrationTime": {
+                        query.orderBy(API.REGISTRATION_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
-        }));
-
-        RelationManager.setMaxDepth(2);
-
-        Page<Api> apis = apiMapper.paginateWithRelations(pageNumber, pageSize, query);
-
-//        apis.forEach(item -> {
-//            if (!item.getUserId().equals(user.getId())) {
-//                item.setUrl(null);
-//            }
-//        });
-
-        return apis;
+        return apiMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
@@ -338,19 +456,18 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public List<ApiInvokeApply> invokeApplyList(String userId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(ApiInvokeApply.class)
-                .where(ApiInvokeApply::getUserId).eq(userId);
+                .select(API_INVOKE_APPLY.APPLY_ID,
+                        API_INVOKE_APPLY.APPLY_STATUS,
+                        API_INVOKE_APPLY.INVOKE_STATUS,
+                        API_INVOKE_APPLY.APPLY_TIME,
+                        API.NAME
+                )
+                .from(API_INVOKE_APPLY)
+                .where(API_INVOKE_APPLY.USER_ID.eq(userId))
+                .leftJoin(API).on(API.ID.eq(API_INVOKE_APPLY.API_ID))
+                .orderBy(API_INVOKE_APPLY.APPLY_TIME, false);
 
-        RelationManager.setMaxDepth(1);
-
-        List<ApiInvokeApply> apiInvokeApplyList = apiInvokeApplyMapper.selectListWithRelationsByQuery(query);
-
-        apiInvokeApplyList.forEach(item -> {
-            item.getInvokeStatus();
-            apiInvokeApplyMapper.update(item);
-        });
-
-        return apiInvokeApplyList;
+        return apiInvokeApplyMapper.selectListByQuery(query);
     }
 
     @Override
@@ -359,39 +476,51 @@ public class ApiServiceImpl implements ApiService {
                                                 Integer pageSize,
                                                 Map<String, List<String>> filter,
                                                 Map<String, String> sort) {
+
         QueryWrapper query = QueryWrapper.create()
-                .from(ApiInvokeApply.class)
-                .where(ApiInvokeApply::getUserId).eq(userId);
+                .select(API_INVOKE_APPLY.APPLY_ID,
+                        API_INVOKE_APPLY.APPLY_STATUS,
+                        API_INVOKE_APPLY.INVOKE_STATUS,
+                        API_INVOKE_APPLY.APPLY_TIME,
+                        API.NAME)
+                .from(API_INVOKE_APPLY)
+                .where(API_INVOKE_APPLY.USER_ID.eq(userId))
+                .leftJoin(API).on(API.ID.eq(API_INVOKE_APPLY.API_ID));
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "applyStatus": {
+                    query.where(API_INVOKE_APPLY.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+                case "invokeStatus": {
+                    query.where(API_INVOKE_APPLY.INVOKE_STATUS.in(value.stream().map(ApiInvokeStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(API_INVOKE_APPLY.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(API_INVOKE_APPLY.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
-        });
-
-        RelationManager.setMaxDepth(1);
-
-        Page<ApiInvokeApply> apiInvokeApplyList = apiInvokeApplyMapper.paginate(pageNumber, pageSize, query);
-
-        apiInvokeApplyList.getRecords().forEach(item -> {
-            item.getInvokeStatus();
-            apiInvokeApplyMapper.update(item);
-        });
-
-        return apiInvokeApplyList;
+        return apiInvokeApplyMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
     public ApiInvokeApply invokeApplyDetail(String applyId) {
         RelationManager.setMaxDepth(3);
 
-        ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
-        apiInvokeApply.getInvokeStatus();
-        apiInvokeApplyMapper.update(apiInvokeApply);
-
-        return apiInvokeApply;
+        return apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
     }
 
     @Override
@@ -419,29 +548,57 @@ public class ApiServiceImpl implements ApiService {
                                                    Integer pageSize,
                                                    Map<String, List<String>> filter,
                                                    Map<String, String> sort) {
+
         QueryWrapper query = QueryWrapper.create()
-                .from(API_INVOKE_APPLY)
-                .leftJoin(API).on(API_INVOKE_APPLY.API_ID.eq(API.ID))
-                .and(API.USER_ID.eq(userId));
+                .select(API_INVOKE_APPLY.APPLY_ID,
+                        API_INVOKE_APPLY.APPLY_STATUS,
+                        API_INVOKE_APPLY.APPLY_TIME,
+                        API_INVOKE_APPLY.API_ID,
+                        API_INVOKE_APPLY.USER_ID)
+                .from(API_INVOKE_APPLY);
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "applyStatus": {
+                    query.where(API_INVOKE_APPLY.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(API_INVOKE_APPLY.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(API_INVOKE_APPLY.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
-        });
-
-        RelationManager.setMaxDepth(2);
-
-        Page<ApiInvokeApply> apiInvokeAppovalList = apiInvokeApplyMapper.paginateWithRelations(pageNumber, pageSize, query);
-
-        apiInvokeAppovalList.getRecords().forEach(item -> {
-            item.setAppKey(null);
-            item.setSecretKey(null);
-        });
-
-        return apiInvokeAppovalList;
+        return apiInvokeApplyMapper.paginate(new Page(pageNumber, pageSize), query,
+                fieldQueryBuilder -> fieldQueryBuilder
+                        .field(ApiInvokeApply::getApi)
+                        .queryWrapper(apiInvokeApply -> QueryWrapper.create()
+                                .select(API.NAME)
+                                .from(API)
+                                .where(API.ID.eq(apiInvokeApply.getApiId()))),
+                fieldQueryBuilder -> fieldQueryBuilder
+                        .field(ApiInvokeApply::getUser)
+                        .queryWrapper(apiInvokeApply -> QueryWrapper.create()
+                                .select(USER.ID, USER.USERNAME, USER.ORGANIZATION_ID)
+                                .from(USER)
+                                .where(USER.ID.eq(apiInvokeApply.getUserId()))),
+                fieldQueryBuilder -> fieldQueryBuilder
+                        .nestedField(User::getOrganization)
+                        .queryWrapper(user -> QueryWrapper.create()
+                                .select(ORGANIZATION.ID, ORGANIZATION.NAME)
+                                .from(ORGANIZATION)
+                                .where(ORGANIZATION.ID.eq(user.getOrganizationId())))
+        );
     }
 
     @Override
@@ -452,9 +609,6 @@ public class ApiServiceImpl implements ApiService {
         if (!AuthUtil.getUser().getId().equals(apiInvokeApply.getApi().getUserId())) {
             throw new NoPermissionException("非本API的所有者无法查看API调用审批详情");
         }
-
-        apiInvokeApply.getInvokeStatus();
-        apiInvokeApplyMapper.update(apiInvokeApply);
 
         apiInvokeApply.setAppKey(null);
         apiInvokeApply.setSecretKey(null);

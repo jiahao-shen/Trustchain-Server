@@ -1,17 +1,23 @@
 package com.trustchain.model.entity;
 
 import com.mybatisflex.annotation.*;
+import com.mybatisflex.core.activerecord.Model;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.model.enums.WalletState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(value = "wallet")
-public class Wallet {
+//@Data(staticConstructor = "create")
+//@NoArgsConstructor
+//@AllArgsConstructor
+//@Accessors(chain = true)
+//@Table(value = "wallet")
+@Table("tb_account")
+@Accessors(chain = true)
+@Data(staticConstructor = "create")
+public class Wallet extends Model<Wallet> {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("id")
     private String id;  // 钱包ID

@@ -17,5 +17,11 @@ class SpringbootApplicationTests {
         logger.info(new Date());
         logger.info(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(100)));
     }
+
+    @Test
+    void testReg() {
+        String temp = "百行";
+        logger.info(temp.replaceAll("(?<=.)(?=.)", "%"));
+    }
 }
 

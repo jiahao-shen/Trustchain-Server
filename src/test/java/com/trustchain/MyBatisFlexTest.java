@@ -3,11 +3,14 @@ package com.trustchain;
 import com.mybatisflex.core.mask.MaskManager;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.UserMapper;
+import com.trustchain.model.entity.Api;
 import com.trustchain.model.entity.ApiRegister;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.User;
+import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.OrganizationType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,12 +22,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.trustchain.model.entity.table.ApiTableDef.API;
+import static com.trustchain.model.entity.table.OrganizationTableDef.ORGANIZATION;
+import static com.trustchain.model.entity.table.UserTableDef.USER;
+
 @SpringBootTest
 public class MyBatisFlexTest {
     @Autowired
     private OrganizationMapper orgMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private ApiMapper apiMapper;
     private static final Logger logger = LogManager.getLogger(MyBatisFlexTest.class);
 
     @Test
@@ -74,5 +83,35 @@ public class MyBatisFlexTest {
         });
 
         logger.info(MaskManager.mask("url", apiReg));
+    }
+
+    @Test
+    void testRelation() {
+        QueryWrapper query = QueryWrapper.create()
+                .select(USER.ALL_COLUMNS)
+                .select(ORGANIZATION.NAME)
+                .from(USER);
+        userMapper.selectListWithRelationsByQuery(query);
+    }
+
+    @Test
+    void testColumnAlias() {
+        QueryWrapper query = QueryWrapper.create()
+                .select(API.ID,
+                        API.NAME,
+                        API.METHOD,
+                        API.REGISTRATION_TIME,
+                        USER.USERNAME,
+                        ORGANIZATION.NAME,
+                        ORGANIZATION.TYPE
+                )
+                .from(API)
+                .leftJoin(USER)
+                .on(USER.ID.eq(API.USER_ID))
+                .leftJoin(ORGANIZATION)
+                .on(ORGANIZATION.ID.eq(USER.ORGANIZATION_ID)).limit(10);
+
+        List<Api> apis = apiMapper.selectListByQuery(query);
+        apis.forEach(logger::info);
     }
 }

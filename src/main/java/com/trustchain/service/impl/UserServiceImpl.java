@@ -4,12 +4,14 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
+import com.trustchain.model.entity.Organization;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
 import com.trustchain.mapper.UserRegisterMapper;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
+import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.vo.UserLogin;
 import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.FabricService;
@@ -27,6 +29,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
+import static com.trustchain.model.entity.table.OrganizationTableDef.ORGANIZATION;
+import static com.trustchain.model.entity.table.UserRegisterTableDef.USER_REGISTER;
+import static com.trustchain.model.entity.table.UserTableDef.USER;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -86,15 +94,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserRegister> registerApplyList(List<String> applyIds) {
+        QueryWrapper query = QueryWrapper.create()
+                .select(USER_REGISTER.APPLY_ID,
+                        USER_REGISTER.USERNAME,
+                        ORGANIZATION.NAME,
+                        USER_REGISTER.APPLY_STATUS,
+                        USER_REGISTER.APPLY_TIME,
+                        USER_REGISTER.REPLY_TIME)
+                .from(USER_REGISTER)
+                .leftJoin(ORGANIZATION).on(ORGANIZATION.ID.eq(USER_REGISTER.ORGANIZATION_ID))
+                .where(USER_REGISTER.APPLY_ID.in(applyIds));
 
-        List<UserRegister> userRegs = new ArrayList<UserRegister>();
-        applyIds.forEach(applyId -> {
-            userRegs.add(userRegMapper.selectOneWithRelationsById(applyId));
-        });
-
-        logger.info(userRegs);
-
-        return userRegs;
+        return userRegMapper.selectListByQuery(query);
     }
 
     @Override
@@ -104,22 +115,28 @@ public class UserServiceImpl implements UserService {
                                                 Map<String, List<String>> filter,
                                                 Map<String, String> sort) {
 
-        List<UserRegister> userRegs = new ArrayList<UserRegister>();
-        applyIds.forEach(applyId -> {
-            userRegs.add(userRegMapper.selectOneWithRelationsById(applyId));
-        });
+        QueryWrapper query = QueryWrapper.create()
+                .select(USER_REGISTER.APPLY_ID,
+                        USER_REGISTER.USERNAME,
+                        ORGANIZATION.NAME,
+                        USER_REGISTER.APPLY_STATUS,
+                        USER_REGISTER.APPLY_TIME,
+                        USER_REGISTER.REPLY_TIME)
+                .from(USER_REGISTER)
+                .leftJoin(ORGANIZATION).on(ORGANIZATION.ID.eq(USER_REGISTER.ORGANIZATION_ID))
+                .where(USER_REGISTER.APPLY_ID.in(applyIds));
 
         filter.forEach((key, value) -> {
-
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(USER_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+            });
+        }
 
-        });
-
-        logger.info(userRegs);
-
-        return null;
+        return userRegMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
@@ -175,8 +192,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(UserRegister.class)
-                .where(UserRegister::getOrganizationId).eq(orgId);
+                .select(USER_REGISTER.APPLY_ID,
+                        USER_REGISTER.USERNAME,
+                        USER_REGISTER.EMAIL,
+                        USER_REGISTER.APPLY_STATUS,
+                        USER_REGISTER.APPLY_TIME)
+                .from(USER_REGISTER)
+                .orderBy(USER_REGISTER.APPLY_TIME, false);
 
         return userRegMapper.selectListByQuery(query);
     }
@@ -188,16 +210,34 @@ public class UserServiceImpl implements UserService {
                                                    Map<String, List<String>> filter,
                                                    Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .from(UserRegister.class)
-                .where(UserRegister::getOrganizationId).eq(orgId);
+                .select(USER_REGISTER.APPLY_ID,
+                        USER_REGISTER.USERNAME,
+                        USER_REGISTER.EMAIL,
+                        USER_REGISTER.APPLY_STATUS,
+                        USER_REGISTER.APPLY_TIME)
+                .from(USER_REGISTER);
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "applyStatus": {
+                    query.where(USER_REGISTER.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
-
-        });
+        if (sort.isEmpty()) {
+            query.orderBy(USER_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(USER_REGISTER.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
+                }
+            });
+        }
 
         return userRegMapper.paginate(pageNumber, pageSize, query);
     }
@@ -212,10 +252,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean exist(String orgId, String username, String userId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(orgId)
-                .and(User::getUsername).eq(username)
-                .and(User::getId).ne(userId);
+                .from(USER)
+                .where(USER.ORGANIZATION_ID.eq(orgId))
+                .and(USER.USERNAME.eq(username))
+                .and(USER.ID.eq(userId));
 
         User user = userMapper.selectOneByQuery(query);
 
@@ -225,8 +265,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> subordinateList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(orgId);
+                .select(USER.ID,
+                        USER.USERNAME,
+                        USER.EMAIL,
+                        USER.ROLE,
+                        USER.REGISTRATION_TIME)
+                .from(USER)
+                .where(USER.ORGANIZATION_ID.eq(orgId))
+                .orderBy(USER.REGISTRATION_TIME, false);
 
         return userMapper.selectListByQuery(query);
     }
@@ -238,17 +284,34 @@ public class UserServiceImpl implements UserService {
                                       Map<String, List<String>> filter,
                                       Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(orgId);
+                .select(USER.ID,
+                        USER.USERNAME,
+                        USER.EMAIL,
+                        USER.ROLE,
+                        USER.REGISTRATION_TIME)
+                .from(USER)
+                .where(USER.ORGANIZATION_ID.eq(orgId));
 
         filter.forEach((key, value) -> {
-
+            switch (key) {
+                case "role": {
+                    query.where(USER.ROLE.in(value.stream().map(UserRole::valueOf).collect(Collectors.toList())));
+                    break;
+                }
+            }
         });
 
-        sort.forEach((key, value) -> {
-
-        });
-
+        if (sort.isEmpty()) {
+            query.orderBy(USER.REGISTRATION_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "registrationTime": {
+                        query.orderBy(USER.REGISTRATION_TIME, "ascending".equals(value));
+                    }
+                }
+            });
+        }
         return userMapper.paginate(pageNumber, pageSize, query);
     }
 
@@ -300,9 +363,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUsername(String orgId, String username) {
         QueryWrapper query = QueryWrapper.create()
-                .from(User.class)
-                .where(User::getOrganizationId).eq(orgId)
-                .and(User::getUsername).eq(username);
+                .from(USER)
+                .where(USER.ORGANIZATION_ID.eq(orgId))
+                .and(USER.USERNAME.eq(username));
 
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsByQuery(query);

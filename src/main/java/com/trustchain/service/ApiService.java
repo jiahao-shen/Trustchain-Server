@@ -118,6 +118,7 @@ public interface ApiService {
      * @return 所有API列表
      */
     Page<Api> allApiList(User user,
+                         String search,
                          Integer pageNumber,
                          Integer pageSize,
                          Map<String, List<String>> filter,

@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
+import static com.trustchain.model.entity.table.OrganizationTableDef.ORGANIZATION;
+
 
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
@@ -41,8 +44,9 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public List<Organization> selectList() {
         QueryWrapper query = QueryWrapper.create()
-                .from(Organization.class)
-                .select(Organization::getId, Organization::getName);
+                .select(ORGANIZATION.ID, ORGANIZATION.NAME)
+                .from(ORGANIZATION)
+                .orderBy(ORGANIZATION.NAME, true);
 
         return orgMapper.selectListByQuery(query);
     }
@@ -50,9 +54,9 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public boolean exist(String orgName, String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(Organization.class)
-                .where(Organization::getName).eq(orgName)
-                .and(Organization::getId).ne(orgId);
+                .from(ORGANIZATION)
+                .where(ORGANIZATION.NAME.eq(orgName))
+                .and(ORGANIZATION.ID.eq(orgId));
 
         Organization org = orgMapper.selectOneByQuery(query);
 
@@ -75,7 +79,18 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public List<OrganizationRegister> registerApplyList(List<String> applyIds) {
-        return orgRegMapper.selectListByIds(applyIds);
+        QueryWrapper query = QueryWrapper.create()
+                .select(ORGANIZATION_REGISTER.APPLY_ID,
+                        ORGANIZATION_REGISTER.NAME,
+                        ORGANIZATION_REGISTER.TYPE,
+                        ORGANIZATION_REGISTER.APPLY_STATUS,
+                        ORGANIZATION_REGISTER.APPLY_TIME,
+                        ORGANIZATION_REGISTER.REPLY_TIME)
+                .from(ORGANIZATION_REGISTER)
+                .where(ORGANIZATION_REGISTER.APPLY_ID.in(applyIds))
+                .orderBy(ORGANIZATION_REGISTER.APPLY_TIME, false);
+
+        return orgRegMapper.selectListByQuery(query);
     }
 
     @Override
@@ -85,16 +100,27 @@ public class OrganizationServiceImpl implements OrganizationService {
                                                         Map<String, List<String>> filter,
                                                         Map<String, String> sort) {
 
-        // TODO:
+        QueryWrapper query = QueryWrapper.create()
+                .select(ORGANIZATION_REGISTER.APPLY_ID,
+                        ORGANIZATION_REGISTER.NAME,
+                        ORGANIZATION_REGISTER.TYPE,
+                        ORGANIZATION_REGISTER.APPLY_STATUS,
+                        ORGANIZATION_REGISTER.APPLY_TIME,
+                        ORGANIZATION_REGISTER.REPLY_TIME)
+                .from(ORGANIZATION_REGISTER)
+                .where(ORGANIZATION_REGISTER.APPLY_ID.in(applyIds));
+
         filter.forEach((key, value) -> {
-
         });
 
-        sort.forEach((key, value) -> {
+        if (sort.isEmpty()) {
+            query.orderBy(ORGANIZATION_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+            });
+        }
 
-        });
-
-        return null;
+        return orgRegMapper.paginate(pageNumber, pageSize, query);
     }
 
     @Override
@@ -106,9 +132,14 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public List<OrganizationRegister> registerApprovalList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(OrganizationRegister.class)
-                .where(OrganizationRegister::getSuperiorId).eq(orgId)
-                .orderBy(OrganizationRegister::getApplyTime, false);
+                .select(ORGANIZATION_REGISTER.APPLY_ID,
+                        ORGANIZATION_REGISTER.NAME,
+                        ORGANIZATION_REGISTER.TYPE,
+                        ORGANIZATION_REGISTER.APPLY_STATUS,
+                        ORGANIZATION_REGISTER.APPLY_TIME)
+                .from(ORGANIZATION_REGISTER)
+                .where(ORGANIZATION_REGISTER.SUPERIOR_ID.eq(orgId))
+                .orderBy(ORGANIZATION_REGISTER.APPLY_TIME, false);
 
         return orgRegMapper.selectListByQuery(query);
     }
@@ -120,33 +151,39 @@ public class OrganizationServiceImpl implements OrganizationService {
                                                            Map<String, List<String>> filter,
                                                            Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .from(OrganizationRegister.class)
-                .where(OrganizationRegister::getSuperiorId).eq(orgId)
-                .orderBy(OrganizationRegister::getApplyTime, false);
+                .select(ORGANIZATION_REGISTER.APPLY_ID,
+                        ORGANIZATION_REGISTER.NAME,
+                        ORGANIZATION_REGISTER.TYPE,
+                        ORGANIZATION_REGISTER.APPLY_STATUS,
+                        ORGANIZATION_REGISTER.APPLY_TIME)
+                .from(ORGANIZATION_REGISTER)
+                .where(ORGANIZATION_REGISTER.SUPERIOR_ID.eq(orgId));
 
         filter.forEach((key, value) -> {
             switch (key) {
                 case "type": {
-                    query.where(OrganizationRegister::getType)
-                            .in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList()));
+                    query.where(ORGANIZATION_REGISTER.TYPE.in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList())));
                     break;
                 }
                 case "applyStatus": {
-                    query.where(OrganizationRegister::getApplyStatus)
-                            .in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList()));
+                    query.where(ORGANIZATION_REGISTER.APPLY_STATUS.in(value.stream().map(ApplyStatus::valueOf).collect(Collectors.toList())));
                     break;
                 }
             }
         });
 
-        sort.forEach((key, value) -> {
-            switch (key) {
-                case "applyTime": {
-                    query.orderBy(OrganizationRegister::getApplyTime, "ascending".equals(value));
-                    break;
+        if (sort.isEmpty()) {
+            query.orderBy(ORGANIZATION_REGISTER.APPLY_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "applyTime": {
+                        query.orderBy(ORGANIZATION_REGISTER.APPLY_TIME, "ascending".equals(value));
+                        break;
+                    }
                 }
-            }
-        });
+            });
+        }
 
         return orgRegMapper.paginate(pageNumber, pageSize, query);
     }
@@ -263,9 +300,14 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public List<Organization> subordinateList(String orgId) {
         QueryWrapper query = QueryWrapper.create()
-                .from(Organization.class)
-                .where(Organization::getSuperiorId).eq(orgId)
-                .orderBy(Organization::getRegistrationTime, false);
+                .select(ORGANIZATION.ID,
+                        ORGANIZATION.NAME,
+                        ORGANIZATION.TYPE,
+                        ORGANIZATION.CREATION_TIME,
+                        ORGANIZATION.REGISTRATION_TIME)
+                .from(ORGANIZATION)
+                .where(ORGANIZATION.SUPERIOR_ID.eq(orgId))
+                .orderBy(ORGANIZATION.REGISTRATION_TIME, false);
 
         return orgMapper.selectListByQuery(query);
     }
@@ -277,32 +319,39 @@ public class OrganizationServiceImpl implements OrganizationService {
                                               Map<String, List<String>> filter,
                                               Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .from(Organization.class)
-                .where(Organization::getSuperiorId).eq(orgId)
-                .orderBy(Organization::getRegistrationTime, false);
+                .select(ORGANIZATION.ID,
+                        ORGANIZATION.NAME,
+                        ORGANIZATION.TYPE,
+                        ORGANIZATION.CREATION_TIME,
+                        ORGANIZATION.REGISTRATION_TIME)
+                .from(ORGANIZATION)
+                .where(ORGANIZATION.SUPERIOR_ID.eq(orgId));
 
         filter.forEach((key, value) -> {
             switch (key) {
                 case "type": {
-                    query.where(Organization::getType)
-                            .in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList()));
+                    query.where(ORGANIZATION.TYPE.in(value.stream().map(OrganizationType::valueOf).collect(Collectors.toList())));
                     break;
                 }
             }
         });
 
-        sort.forEach((key, value) -> {
-            switch (key) {
-                case "creationTime": {
-                    query.orderBy(Organization::getCreationTime, "ascending".equals(value));
-                    break;
+        if (sort.isEmpty()) {
+            query.orderBy(ORGANIZATION.REGISTRATION_TIME, false);
+        } else {
+            sort.forEach((key, value) -> {
+                switch (key) {
+                    case "creationTime": {
+                        query.orderBy(ORGANIZATION.CREATION_TIME, "ascending".equals(value));
+                        break;
+                    }
+                    case "registrationTime": {
+                        query.orderBy(ORGANIZATION.REGISTRATION_TIME, "ascending".equals(value));
+                        break;
+                    }
                 }
-                case "registrationTime": {
-                    query.orderBy(Organization::getRegistrationTime, "ascending".equals(value));
-                    break;
-                }
-            }
-        });
+            });
+        }
 
         return orgMapper.paginate(pageNumber, pageSize, query);
     }

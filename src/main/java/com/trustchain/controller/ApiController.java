@@ -1,6 +1,8 @@
 package com.trustchain.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.fastjson2.TypeReference;
 import com.alibaba.fastjson2.filter.SimplePropertyPreFilter;
 import com.mybatisflex.core.paginate.Page;
@@ -178,6 +180,7 @@ public class ApiController {
     @PostMapping("/list/all")
     @ResponseBody
     public BaseResponse<Page<ApiVO>> allApiList(@RequestBody JSONObject request) {
+        String search = request.getString("search");
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
@@ -187,7 +190,7 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<Api> apis = apiService.allApiList(user, pageNumebr, pageSize, filter, sort);
+        Page<Api> apis = apiService.allApiList(user, search, pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
                 new Page(ApiConvert.INSTANCE.toApiVOList(apis.getRecords()),

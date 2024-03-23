@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @EnableAsync
+@EnableScheduling
 @SpringBootApplication
 @MapperScan("com.trustchain.mapper")
 public class SpringbootApplication extends WebMvcConfigurationSupport {
@@ -128,12 +130,12 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                         "/user/exist",
                         "/user/register",
                         "/user/register/apply",
-                        "/user/register/apply/search",
+                        "/user/register/apply/list",
                         "/user/forgetPassword",
                         "/organization/selectList",
                         "/organization/exist",
                         "/organization/register/apply",
-                        "/organization/register/apply/search"
+                        "/organization/register/apply/list"
                 )
                 .order(0);//执行顺序
         super.addInterceptors(registry);
