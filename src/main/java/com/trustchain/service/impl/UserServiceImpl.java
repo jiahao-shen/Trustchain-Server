@@ -25,10 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
@@ -86,6 +83,15 @@ public class UserServiceImpl implements UserService {
             emailSerivce.send(userReg.getEmail(),
                     "数据资源可信共享平台 注册申请",
                     "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" + "<h3>" + userReg.getApplyId() + "</h3>");
+
+            // 将Logo移至新目录
+            String oldLogoPath = userReg.getLogo();
+            String newLogoPath = "user_register/" + userReg.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
+            minioService.copy(oldLogoPath, newLogoPath);
+
+            userReg.setLogo(newLogoPath);
+            userRegMapper.update(userReg, true);
+
             return userReg.getApplyId();
         } else {
             return null;
@@ -153,13 +159,18 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户注册申请不存在");
         }
         if (reply == ApplyStatus.ALLOW) {
+            User user = UserConvert.INSTANCE.toUser(userReg);
+            user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+
+            // 移动Logo
             String oldLogoPath = userReg.getLogo();
-            String newLogoPath = "user/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
+            String newLogoPath = "user/" + user.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
             minioService.copy(oldLogoPath, newLogoPath);
 
-            User user = UserConvert.INSTANCE.toUser(userReg);
             user.setLogo(newLogoPath);
+
             userMapper.insert(user);
+
             userReg.setId(user.getId());
             userReg.setApplyStatus(ApplyStatus.ALLOW);
             userReg.setReplyTime(new Date());
@@ -255,9 +266,10 @@ public class UserServiceImpl implements UserService {
                 .from(USER)
                 .where(USER.ORGANIZATION_ID.eq(orgId))
                 .and(USER.USERNAME.eq(username))
-                .and(USER.ID.eq(userId));
+                .and(USER.ID.ne(userId));
 
         User user = userMapper.selectOneByQuery(query);
+        logger.info(user);
 
         return user != null;
     }
@@ -331,7 +343,7 @@ public class UserServiceImpl implements UserService {
         // TODO: 对接长安链
         String logo = user.getLogo();
         if (!minioService.isUrl(logo)) {
-            String newLogoPath = "user/" + logo.substring(logo.lastIndexOf("/") + 1);
+            String newLogoPath = "user/" + user.getId() + "/" + logo.substring(logo.lastIndexOf("/") + 1);
             minioService.copy(logo, newLogoPath);
             user.setLogo(newLogoPath);
         } else {

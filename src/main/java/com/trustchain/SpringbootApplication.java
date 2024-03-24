@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -72,7 +73,8 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         );
         fastConverter.setFastJsonConfig(fastJsonConfig);
 
-        converters.add(0, fastConverter);
+        converters.add(new ResourceHttpMessageConverter());
+        converters.add(fastConverter);
     }
 
     @Override

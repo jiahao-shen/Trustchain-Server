@@ -1,7 +1,7 @@
 package com.trustchain;
 
 import com.alibaba.fastjson2.JSON;
-import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiRequestBody;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ public class FastJson2Test {
     @Test
     void testFastJson2() {
         String requestBody = "{\"type\":\"FORM_DATA\",\"formDataBody\":[{\"key\":\"age\",\"type\":\"Int\",\"required\":true,\"description\":\"年龄\"}],\"xwwwFormUrlEncodedBody\":[],\"rawBody\":{\"type\":\"JSON\",\"body\":\"\"},\"binaryBody\":\"\",\"graphQLBody\":\"\"}";
-        ApiBody body = JSON.parseObject(requestBody, ApiBody.class);
+        ApiRequestBody body = JSON.parseObject(requestBody, ApiRequestBody.class);
         logger.info(body);
 //        UserRegisterVO user = new UserRegisterVO();
 //        logger.info(JSON.toJSONString(user));

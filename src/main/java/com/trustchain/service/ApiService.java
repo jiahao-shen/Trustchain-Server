@@ -1,7 +1,7 @@
 package com.trustchain.service;
 
 import com.mybatisflex.core.paginate.Page;
-import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiRequestBody;
 import com.trustchain.model.dto.ApiHeaderItem;
 import com.trustchain.model.dto.ApiParamItem;
 import com.trustchain.model.dto.ApiQueryItem;
@@ -243,5 +243,5 @@ public interface ApiService {
      * @param header  请求标头
      * @param body    请求体
      */
-    void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) throws IOException;
+    void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
 }

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
@@ -56,7 +57,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         QueryWrapper query = QueryWrapper.create()
                 .from(ORGANIZATION)
                 .where(ORGANIZATION.NAME.eq(orgName))
-                .and(ORGANIZATION.ID.eq(orgId));
+                .and(ORGANIZATION.ID.ne(orgId));
 
         Organization org = orgMapper.selectOneByQuery(query);
 
@@ -71,6 +72,20 @@ public class OrganizationServiceImpl implements OrganizationService {
             emailSerivce.send(orgReg.getEmail(), "数据资源可信共享平台 注册申请",
                     "欢迎您注册数据资源可信共享平台, 您的注册申请号如下。<br>" +
                             "<h3>" + orgReg.getApplyId() + "</h3>");
+            // 将Logo移动至新目录
+            String oldLogoPath = orgReg.getLogo();
+            String newLogoPath = "organization_register/" + orgReg.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
+            minioService.copy(oldLogoPath, newLogoPath);
+
+            // 将File移动至新目录
+            String oldFilePath = orgReg.getFile();
+            String newFilePath = "organization_register/" + orgReg.getId() + "/" + oldFilePath.substring(oldFilePath.lastIndexOf("/") + 1);
+            minioService.copy(oldFilePath, newFilePath);
+
+            orgReg.setLogo(newLogoPath);
+            orgReg.setFile(newFilePath);
+            orgRegMapper.update(orgReg, true);
+
             return orgReg.getApplyId();
         } else {
             return null;
@@ -201,20 +216,23 @@ public class OrganizationServiceImpl implements OrganizationService {
             throw new RuntimeException("机构注册申请不存在");
         }
         if (reply == ApplyStatus.ALLOW) {
+            // 创建新机构
+            Organization org = OrganizationConvert.INSTANCE.toOrganization(orgReg);
+            org.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+
             // 复制Logo
             String oldLogoPath = orgReg.getLogo();
-            String newLogoPath = "organization/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
+            String newLogoPath = "organization/" + org.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
             minioService.copy(oldLogoPath, newLogoPath);
 
             // 复制文件
             String oldFilePath = orgReg.getFile();
-            String newFilePath = "organization/" + oldFilePath.substring(oldFilePath.lastIndexOf("/") + 1);
+            String newFilePath = "organization/" + org.getId() + "/" + oldFilePath.substring(oldFilePath.lastIndexOf("/") + 1);
             minioService.copy(oldFilePath, newFilePath);
 
-            // 插入新机构
-            Organization org = OrganizationConvert.INSTANCE.toOrganization(orgReg);
             org.setLogo(newLogoPath);
             org.setFile(newFilePath);
+
             orgMapper.insert(org);
             // TODO: 写入长安链
 
@@ -222,7 +240,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             orgReg.setId(org.getId());
             orgReg.setApplyStatus(ApplyStatus.ALLOW);
             orgReg.setReplyTime(new Date());
-            orgRegMapper.update(orgReg);
+            orgRegMapper.update(orgReg, true);
 
             emailSerivce.send(org.getEmail(), "数据资源可信共享平台 注册成功",
                     "您的机构注册申请已通过, 请点击以下链接注册管理员账号。<br>" +
@@ -260,7 +278,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         // TODO: 对接长安链
         String logo = org.getLogo();
         if (!minioService.isUrl(logo)) {
-            String newLogoPath = "user/" + logo.substring(logo.lastIndexOf("/") + 1);
+            String newLogoPath = "organization/" + org.getId() + "/" + logo.substring(logo.lastIndexOf("/") + 1);
             minioService.copy(logo, newLogoPath);
             org.setLogo(newLogoPath);
         } else {
@@ -268,7 +286,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
         String file = org.getFile();
         if (!minioService.isUrl(file)) {
-            String newFilePath = "organization/" + file.substring(file.lastIndexOf("/") + 1);
+            String newFilePath = "organization/" + org.getId() + "/" + file.substring(file.lastIndexOf("/") + 1);
             minioService.copy(file, newFilePath);
             org.setFile(newFilePath);
         } else {

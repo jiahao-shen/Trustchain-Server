@@ -2,13 +2,12 @@ package com.trustchain.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
-import com.ibm.cloud.sdk.core.http.InputStreamRequestBody;
-import com.mybatisflex.core.keygen.KeyGenerators;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.ApiInvokeApplyMapper;
+import com.trustchain.mapper.ApiInvokeLogMapper;
 import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.ApiRegisterMapper;
 import com.trustchain.model.convert.ApiConvert;
@@ -19,8 +18,6 @@ import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
-import okio.Buffer;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,14 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.KeyGenerator;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.ApiInvokeApplyTableDef.API_INVOKE_APPLY;
@@ -53,6 +46,8 @@ public class ApiServiceImpl implements ApiService {
     private ApiRegisterMapper apiRegMapper;
     @Autowired
     private ApiInvokeApplyMapper apiInvokeApplyMapper;
+    @Autowired
+    private ApiInvokeLogMapper apiInvokeLogMapper;
     @Autowired
     private MinioService minioService;
 
@@ -482,6 +477,7 @@ public class ApiServiceImpl implements ApiService {
                         API_INVOKE_APPLY.APPLY_STATUS,
                         API_INVOKE_APPLY.INVOKE_STATUS,
                         API_INVOKE_APPLY.APPLY_TIME,
+                        API.ID,
                         API.NAME)
                 .from(API_INVOKE_APPLY)
                 .where(API_INVOKE_APPLY.USER_ID.eq(userId))
@@ -656,7 +652,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiBody body) throws IOException {
+    public void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException {
         RelationManager.setMaxDepth(1);
         ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
 
@@ -665,11 +661,31 @@ public class ApiServiceImpl implements ApiService {
             return;
         }
 
-        Api api = apiInvokeApply.getApi();
 
+        Api api = apiInvokeApply.getApi();
+        // 处理Param和Query
+        HttpUrl requestUrl = handleParamAndQuery(api.getProtocol(), api.getUrl(), param, query);
+        // 处理Header
+        Request.Builder requestBuilder = handleRequestHeader(requestUrl, header);
+        // 处理RequestBody
+        RequestBody requestBody = handleRequestBody(body);
+        // 处理调用
+        Response response = handleMethodAndExcute(api.getMethod(), requestBuilder, requestBody);
+
+        handleReponse(applyId, api, param, query, header, body, response);
+
+    }
+
+    /**
+     * @param protocol
+     * @param url
+     * @param param
+     * @param query
+     * @return
+     */
+    private HttpUrl handleParamAndQuery(InternetProtocol protocol, String url, List<ApiParamItem> param, List<ApiQueryItem> query) {
         // 拼接协议和url
-        String baseUrl = api.getProtocol().toString().toLowerCase() + "://" + api.getUrl();
-        logger.info("initial url:" + baseUrl);
+        String baseUrl = protocol.toString().toLowerCase() + "://" + url;
 
         // 处理param
         for (ApiParamItem item : param) {
@@ -684,17 +700,33 @@ public class ApiServiceImpl implements ApiService {
         }
 
         HttpUrl requestUrl = urlBuilder.build();
-        logger.info(requestUrl.url());
 
-        // 处理requestHeader
-        Request.Builder requestBuilder = new Request.Builder().url(requestUrl);
+        return requestUrl;
+    }
+
+    /**
+     * @param url
+     * @param header
+     * @return
+     */
+    private Request.Builder handleRequestHeader(HttpUrl url, List<ApiHeaderItem> header) {
+        Request.Builder requestBuilder = new Request.Builder().url(url);
         for (ApiHeaderItem item : header) {
             requestBuilder.addHeader(item.getKey(), item.getValue());
         }
 
-        // TODO: 处理requestBody
+        return requestBuilder;
+    }
+
+    /**
+     * @param body
+     * @return
+     * @throws IOException
+     */
+    private RequestBody handleRequestBody(ApiRequestBody body) throws IOException {
         RequestBody requestBody = null;
-        switch (api.getRequestBody().getType()) {
+
+        switch (body.getType()) {
             case NONE:
                 break;
             case FORM_DATA: {
@@ -702,12 +734,11 @@ public class ApiServiceImpl implements ApiService {
                 for (ApiFormDataItem item : body.getFormDataBody()) {
                     if (item.getType().equals("File")) {    // 单独处理文件
                         String path = item.getValue();
-                        InputStream io = minioService.get(path);
-                        byte[] fileArray = IOUtils.toByteArray(io);
-                        MediaType mediaType = MediaType.parse(new Tika().detect(fileArray));
+                        byte[] bytes = minioService.get(path).readAllBytes();
+                        MediaType mediaType = MediaType.parse(new Tika().detect(bytes));
                         String fileName = path.substring(path.lastIndexOf("/") + 1);
                         formBodyBuilder.addFormDataPart(item.getKey(), fileName,
-                                RequestBody.create(fileArray, mediaType));
+                                RequestBody.create(bytes, mediaType));
                     } else {
                         formBodyBuilder.addFormDataPart(item.getKey(), item.getValue());
                     }
@@ -725,7 +756,7 @@ public class ApiServiceImpl implements ApiService {
             }
             case RAW: {
                 MediaType mediaType = null;
-                switch (api.getRequestBody().getRawBody().getType()) {
+                switch (body.getRawBody().getType()) {
                     case TEXT: {
                         mediaType = MediaType.parse("text/plain");
                         break;
@@ -744,6 +775,7 @@ public class ApiServiceImpl implements ApiService {
                     }
                     case JAVASCRIPT: {
                         // TODO:
+                        mediaType = MediaType.parse("text/javascript");
                         break;
                     }
                 }
@@ -753,18 +785,24 @@ public class ApiServiceImpl implements ApiService {
             case BINARY: {
                 String path = body.getBinaryBody();
                 InputStream io = minioService.get(path);
-                byte[] fileArray = new byte[0];
-                fileArray = IOUtils.toByteArray(io);
+                byte[] fileArray = IOUtils.toByteArray(io);
                 MediaType mediaType = MediaType.parse(new Tika().detect(fileArray));
                 requestBody = RequestBody.create(fileArray, mediaType);
                 break;
             }
-            case GRAPHQL:
+            case GRAPHQL: {
+                MediaType mediaType = MediaType.parse("application/graphql");
+                requestBody = RequestBody.create(body.getRawBody().getBody(), mediaType);
                 break;
-        }
+            }
 
+        }
+        return requestBody;
+    }
+
+    private Response handleMethodAndExcute(HttpMethod method, Request.Builder requestBuilder, RequestBody requestBody) throws IOException {
         Request request = null;
-        switch (api.getMethod()) {
+        switch (method) {
             case GET: {
                 request = requestBuilder.get().build();
                 break;
@@ -774,11 +812,11 @@ public class ApiServiceImpl implements ApiService {
                 break;
             }
             case PUT: {
-                request = requestBuilder.put(null).build();
+                request = requestBuilder.put(requestBody).build();
                 break;
             }
             case DELETE: {
-                request = requestBuilder.delete(null).build();
+                request = requestBuilder.delete(requestBody).build();
                 break;
             }
             case HEAD: {
@@ -786,7 +824,7 @@ public class ApiServiceImpl implements ApiService {
                 break;
             }
             case PATCH: {
-                request = requestBuilder.patch(null).build();
+                request = requestBuilder.patch(requestBody).build();
                 break;
             }
             case TRACE: {
@@ -804,17 +842,93 @@ public class ApiServiceImpl implements ApiService {
         }
 
         OkHttpClient client = new OkHttpClient();
-
         Response response = client.newCall(request).execute();
-        logger.info("request headers: " + request.headers());
-        if (request.body() != null) {
-            logger.info("request body: " + request.body().toString());
-        }
-        logger.info("response headers: " + response.headers());
-        if (response.body() != null) {
-            logger.info("response body: " + response.body().toString());
-        }
 
+        return response;
     }
 
+    /**
+     * 处理响应
+     *
+     * @param applyId
+     * @param param
+     * @param query
+     * @param header
+     * @param body
+     * @param response
+     * @throws IOException
+     */
+    private void handleReponse(String applyId, Api api, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body, Response response) throws IOException {
+        // 创建调用日志
+        ApiInvokeLog apiInvokeLog = new ApiInvokeLog();
+        apiInvokeLog.setLogId(UUID.randomUUID().toString().replaceAll("-", ""));
+        apiInvokeLog.setApplyId(applyId);
+        apiInvokeLog.setInvokeUserId(AuthUtil.getUser().getId());
+
+        if (response.isSuccessful()) {
+            apiInvokeLog.setResult(ApiInvokeResult.SUCCESS);
+            apiInvokeLog.setParam(param);
+            apiInvokeLog.setQuery(query);
+            apiInvokeLog.setRequestHeader(header);
+            if (body.getFormDataBody() != null) {
+                body.getFormDataBody().forEach(item -> {
+                    if (item.getType().equals("File")) {
+                        String oldPath = item.getValue();
+                        String newPath = "api/invoke/log/" + apiInvokeLog.getLogId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
+                        minioService.copy(oldPath, newPath);
+                        item.setValue(newPath);
+                    }
+                });
+            }
+            if (body.getBinaryBody() != null) {
+                String oldPath = body.getBinaryBody();
+                String newPath = "api/invoke/log/" + apiInvokeLog.getLogId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
+                minioService.copy(oldPath, newPath);
+                body.setBinaryBody(newPath);
+            }
+            apiInvokeLog.setRequestBody(body);
+
+            List<ApiHeaderItem> responseHeader = api.getResponseHeader();
+            // 遍历响应标头
+            response.headers().forEach(item -> {
+                ApiHeaderItem headerItem = responseHeader.stream().filter(h -> h.getKey().equals(item.getFirst())).findFirst().orElse(null);
+                if (headerItem == null) {
+                    responseHeader.add(new ApiHeaderItem(item.getFirst(), item.getSecond(), "String", false, ""));
+                } else {
+                    headerItem.setValue(item.getSecond());
+                }
+            });
+            apiInvokeLog.setResponseHeader(responseHeader);
+
+            // 处理响应体
+            ApiResponseBody responseBody = api.getResponseBody();
+            switch (responseBody.getType()) {
+                case NONE:
+                    break;
+                case RAW: {
+                    String result = response.body().string();
+                    responseBody.getRawBody().setBody(result);
+                    break;
+                }
+                case BINARY: {
+                    InputStream is = response.body().byteStream();
+                    String path = minioService.upload(is, "api/invoke/log/" + apiInvokeLog.getLogId() + "/");
+                    responseBody.setBinaryBody(path);
+                    break;
+                }
+                case GRAPHQL: {
+                    responseBody.setGraphQLBody(response.body().string());
+                    break;
+                }
+            }
+
+            apiInvokeLog.setResponseBody(responseBody);
+            logger.info(JSON.toJSONString(apiInvokeLog, JSONWriter.Feature.PrettyFormat));
+
+        } else {
+            apiInvokeLog.setResult(ApiInvokeResult.FAILED);
+        }
+
+        apiInvokeLogMapper.insert(apiInvokeLog);
+    }
 }

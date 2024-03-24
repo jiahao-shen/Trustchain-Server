@@ -1,8 +1,9 @@
 package com.trustchain;
 
 import com.trustchain.mapper.*;
-import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiRequestBody;
 import com.trustchain.model.dto.ApiRawBody;
+import com.trustchain.model.dto.ApiResponseBody;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.util.PasswordUtil;
@@ -130,9 +131,9 @@ public class MockDataTest {
             apiReg.setQuery(new ArrayList());
             apiReg.setParam(new ArrayList());
             apiReg.setRequestHeader(new ArrayList());
-            apiReg.setRequestBody(new ApiBody(HttpBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
+            apiReg.setRequestBody(new ApiRequestBody(HttpRequestBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
             apiReg.setResponseHeader(new ArrayList());
-            apiReg.setResponseBody(new ApiBody(HttpBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
+            apiReg.setResponseBody(new ApiResponseBody(HttpResponseBodyType.NONE, new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
 
             apiRegMapper.insert(apiReg);
         }
@@ -140,8 +141,10 @@ public class MockDataTest {
 
     @Test
     void addApi() {
-        for (int i = 100; i < 110; i++) {
+        for (int i = 0; i < 1; i++) {
             Api api = new Api();
+            api.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+            logger.info(api.getId());
             api.setUrl("127.0.0.1");
 //            api.setUserId("3759462c2a7449068052e77c3c014f6a");
             api.setUserId("852cceb530414f4685685066093defe5");
@@ -155,9 +158,9 @@ public class MockDataTest {
             api.setQuery(new ArrayList());
             api.setParam(new ArrayList());
             api.setRequestHeader(new ArrayList());
-            api.setRequestBody(new ApiBody(HttpBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
+            api.setRequestBody(new ApiRequestBody(HttpRequestBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
             api.setResponseHeader(new ArrayList());
-            api.setResponseBody(new ApiBody(HttpBodyType.NONE, new ArrayList(), new ArrayList(), new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
+            api.setResponseBody(new ApiResponseBody(HttpResponseBodyType.NONE, new ApiRawBody(HttpBodyRawType.JSON, ""), "", ""));
 
             apiMapper.insert(api);
         }

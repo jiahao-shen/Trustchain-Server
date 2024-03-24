@@ -3,10 +3,7 @@ package com.trustchain.model.entity;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.handler.Fastjson2TypeHandler;
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.trustchain.model.dto.ApiBody;
-import com.trustchain.model.dto.ApiHeaderItem;
-import com.trustchain.model.dto.ApiParamItem;
-import com.trustchain.model.dto.ApiQueryItem;
+import com.trustchain.model.dto.*;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
@@ -76,7 +73,7 @@ public class Api {
 
     @Column(value = "request_body", typeHandler = Fastjson2TypeHandler.class)
     @ColumnAlias("api_request_body")
-    private ApiBody requestBody; // 请求体
+    private ApiRequestBody requestBody; // 请求体
 
     @Column(value = "response_header", typeHandler = Fastjson2TypeHandler.class)
     @ColumnAlias("api_response_header")
@@ -84,7 +81,7 @@ public class Api {
 
     @Column(value = "response_body", typeHandler = Fastjson2TypeHandler.class)
     @ColumnAlias("api_response_body")
-    private ApiBody responseBody;    // 返回体
+    private ApiResponseBody responseBody;    // 返回体
 
     @Column("version")
     @ColumnAlias("api_version")

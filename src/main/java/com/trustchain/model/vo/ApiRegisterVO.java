@@ -1,7 +1,7 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.trustchain.model.dto.ApiBody;
+import com.trustchain.model.dto.ApiRequestBody;
 import com.trustchain.model.dto.ApiHeaderItem;
 import com.trustchain.model.dto.ApiParamItem;
 import com.trustchain.model.dto.ApiQueryItem;
@@ -56,9 +56,9 @@ public class ApiRegisterVO {
 
     private List<ApiHeaderItem> requestHeader;   // 请求头
 
-    private ApiBody requestBody; // 请求体
+    private ApiRequestBody requestBody; // 请求体
 
     private List<ApiHeaderItem> responseHeader;  // 返回头
 
-    private ApiBody responseBody;    // 返回体
+    private ApiRequestBody responseBody;    // 返回体
 }

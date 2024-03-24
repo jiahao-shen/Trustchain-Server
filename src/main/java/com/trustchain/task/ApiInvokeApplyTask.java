@@ -34,7 +34,6 @@ public class ApiInvokeApplyTask {
                 .and(API_INVOKE_APPLY.END_TIME.ge(new Date()));
 
         logger.info("Pending Applys");
-        logger.info(query1.toSQL());
 
         List<ApiInvokeApply> pendingApplys = apiInvokeApplyMapper.selectListByQuery(query1);
         pendingApplys.forEach(item -> {
@@ -50,7 +49,6 @@ public class ApiInvokeApplyTask {
                 .and(API_INVOKE_APPLY.START_TIME.gt(new Date()).or(API_INVOKE_APPLY.END_TIME.lt(new Date())));
 
         logger.info("Valid Applys");
-        logger.info(query2.toSQL());
 
         List<ApiInvokeApply> validApplys = apiInvokeApplyMapper.selectListByQuery(query2);
         validApplys.forEach(item -> {

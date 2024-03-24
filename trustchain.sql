@@ -198,3 +198,24 @@ CREATE TABLE `api_invoke_apply`
   DEFAULT CHARSET = utf8mb4;
 
 
+DROP TABLE IF EXISTS `api_invoke_log`;
+CREATE TABLE `api_invoke_log`
+(
+    `log_id`          varchar(32) NOT NULL,
+    `apply_id`        varchar(32) NOT NULL,
+    `result`          tinyint(4)  NOT NULL,
+    `invoke_user_id`  varchar(32) NOT NULL,
+    `param`           JSON DEFAULT NULL,
+    `query`           JSON DEFAULT NULL,
+    `request_header`  JSON DEFAULT NULL,
+    `request_body`    JSON DEFAULT NULL,
+    `response_header` JSON DEFAULT NULL,
+    `response_body`   JSON DEFAULT NULL,
+    `time`            datetime    NOT NULL,
+    PRIMARY KEY (`log_id`),
+    KEY `apply_id` (`apply_id`),
+    KEY `invoke_user_id` (`invoke_user_id`),
+    CONSTRAINT `api_invoke_log_ibfk_1` FOREIGN KEY (`apply_id`) REFERENCES `api_invoke_apply` (`apply_id`),
+    CONSTRAINT `api_invoke_log_ibfk_2` FOREIGN KEY (`invoke_user_id`) REFERENCES `user` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;

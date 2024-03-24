@@ -6,10 +6,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum HttpBodyType {
+public enum HttpResponseBodyType {
     NONE(1),
-    FORM_DATA(2),
-    X_WWW_FORM_URLENCODED(3),
+//    FORM_DATA(2),
+//    X_WWW_FORM_URLENCODED(3),
     RAW(4),
     BINARY(5),
     GRAPHQL(6);

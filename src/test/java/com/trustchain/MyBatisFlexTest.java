@@ -114,4 +114,5 @@ public class MyBatisFlexTest {
         List<Api> apis = apiMapper.selectListByQuery(query);
         apis.forEach(logger::info);
     }
+
 }

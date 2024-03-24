@@ -1,17 +1,11 @@
 package com.trustchain.controller;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.fastjson2.TypeReference;
-import com.alibaba.fastjson2.filter.SimplePropertyPreFilter;
 import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.ApiConvert;
-import com.trustchain.model.dto.ApiBody;
-import com.trustchain.model.dto.ApiHeaderItem;
-import com.trustchain.model.dto.ApiParamItem;
-import com.trustchain.model.dto.ApiQueryItem;
+import com.trustchain.model.dto.*;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.model.vo.ApiInvokeApplyVO;
@@ -24,8 +18,6 @@ import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -59,9 +51,9 @@ public class ApiController {
         apiReg.setParam(request.getList("param", ApiParamItem.class));
         apiReg.setQuery(request.getList("query", ApiQueryItem.class));
         apiReg.setRequestHeader(request.getList("requestHeader", ApiHeaderItem.class));
-        apiReg.setRequestBody(request.getObject("requestBody", ApiBody.class));
+        apiReg.setRequestBody(request.getObject("requestBody", ApiRequestBody.class));
         apiReg.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
-        apiReg.setResponseBody(request.getObject("responseBody", ApiBody.class));
+        apiReg.setResponseBody(request.getObject("responseBody", ApiResponseBody.class));
         apiReg.setApplyStatus(ApplyStatus.PENDING);
 
         boolean success = apiService.registerApply(apiReg);
@@ -228,9 +220,9 @@ public class ApiController {
         api.setParam(request.getList("param", ApiParamItem.class));
         api.setQuery(request.getList("query", ApiQueryItem.class));
         api.setRequestHeader(request.getList("requestHeader", ApiHeaderItem.class));
-        api.setRequestBody(request.getObject("requestBody", ApiBody.class));
+        api.setRequestBody(request.getObject("requestBody", ApiRequestBody.class));
         api.setResponseHeader(request.getList("responseHeader", ApiHeaderItem.class));
-        api.setResponseBody(request.getObject("responseBody", ApiBody.class));
+        api.setResponseBody(request.getObject("responseBody", ApiResponseBody.class));
 
         captchaService.verify(user.getEmail(), request.getString("code"));
 
@@ -373,7 +365,7 @@ public class ApiController {
         List<ApiParamItem> param = request.getList("param", ApiParamItem.class);
         List<ApiQueryItem> query = request.getList("query", ApiQueryItem.class);
         List<ApiHeaderItem> requestHeader = request.getList("requestHeader", ApiHeaderItem.class);
-        ApiBody requestBody = request.getObject("requestBody", ApiBody.class);
+        ApiRequestBody requestBody = request.getObject("requestBody", ApiRequestBody.class);
 
         apiService.invokeWeb(applyId, param, query, requestHeader, requestBody);
 

@@ -14,6 +14,26 @@ public interface MinioService {
     String upload(MultipartFile file);
 
     /**
+     * @param file
+     * @param path
+     * @return
+     */
+    String upload(MultipartFile file, String path);
+
+    /**
+     * @param is: 输入流
+     * @return
+     */
+    String upload(InputStream is);
+
+    /**
+     * @param is
+     * @param path
+     * @return
+     */
+    String upload(InputStream is, String path);
+
+    /**
      * @param oldPath 文件旧路径(相对路径)
      * @param newPath 文件新路径(相对路径)
      * @return 是否成功
@@ -26,6 +46,12 @@ public interface MinioService {
      * @return 是否成功
      */
     boolean move(String oldPath, String newPath);
+
+    /**
+     * @param path
+     * @return
+     */
+    boolean remove(String path);
 
     /**
      * @param file 文件路径(相对路径)

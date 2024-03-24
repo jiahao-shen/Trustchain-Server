@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -41,13 +42,18 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public String upload(MultipartFile file) {
+        return this.upload(file, "tmp/");
+    }
+
+    @Override
+    public String upload(MultipartFile file, String path) {
         try {
             // 分析文件类型
             MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(file.getBytes()));
             // 获取文件后缀
             String extension = mediaType.getExtension();
             // 获取文件MD5值解决重复上传问题
-            String fileName = "tmp/" + DigestUtils.md5Hex(file.getInputStream()) + extension;
+            String fileName = path + DigestUtils.md5Hex(file.getInputStream()) + extension;
             client.putObject(PutObjectArgs.builder()
                     .bucket(config.getBucket())
                     .object(fileName)
@@ -55,6 +61,39 @@ public class MinioServiceImpl implements MinioService {
                     .contentType(file.getContentType())
                     .build());
 
+            if (this.presignedUrl(fileName) != null) {
+                return fileName;
+            } else {
+                return null;
+            }
+        } catch (IOException | MimeTypeException | ErrorResponseException | InsufficientDataException |
+                 InternalException | InvalidKeyException | InvalidResponseException | NoSuchAlgorithmException |
+                 ServerException | XmlParserException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public String upload(InputStream is) {
+        return this.upload(is, "tmp/");
+    }
+
+    @Override
+    public String upload(InputStream is, String path) {
+        try {
+
+            byte[] bytes = is.readAllBytes();
+            MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(bytes));
+            String extension = mediaType.getExtension();
+            String fileName = path + DigestUtils.md5Hex(bytes) + extension;
+
+            client.putObject(PutObjectArgs.builder()
+                    .bucket(config.getBucket())
+                    .object(fileName)
+                    .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
+                    .contentType(mediaType.getName())
+                    .build()
+            );
             if (this.presignedUrl(fileName) != null) {
                 return fileName;
             } else {
@@ -85,7 +124,27 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public boolean move(String oldPath, String newPath) {
-        return false;
+        if (copy(oldPath, newPath)) {
+            remove(oldPath);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean remove(String path) {
+        try {
+            client.removeObject(RemoveObjectArgs.builder()
+                    .bucket(config.getBucket())
+                    .object(path)
+                    .build());
+            return true;
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            return false;
+        }
     }
 
     @Override
