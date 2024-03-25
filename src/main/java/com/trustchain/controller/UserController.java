@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -124,6 +125,7 @@ public class UserController {
         captchaService.verify(user.getEmail(), request.getString("code"));
 
         // 注册新用户
+        logger.info(user);
         boolean success = userService.register(user);
 
         return new BaseResponse<>(StatusCode.SUCCESS, "", success);

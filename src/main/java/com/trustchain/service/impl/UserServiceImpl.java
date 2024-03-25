@@ -4,6 +4,8 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
+import com.trustchain.mapper.OrganizationMapper;
+import com.trustchain.model.entity.Organization;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
@@ -37,6 +39,8 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
     @Autowired
     private UserRegisterMapper userRegMapper;
+    @Autowired
+    private OrganizationMapper orgMapper;
     @Autowired
     private MinioService minioService;
     @Autowired
@@ -193,9 +197,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean register(User user) {
-        int count = userMapper.insert(user);
+        user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        Organization org = orgMapper.selectOneById(user.getOrganizationId());
+        String oldLogoPath = org.getLogo();
+        String newLogoPath = "user/" + user.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
+        minioService.copy(oldLogoPath, newLogoPath);
+        user.setLogo(newLogoPath);
 
-        return count != 0;
+        return userMapper.insert(user) != 0;
     }
 
     @Override
@@ -224,7 +233,8 @@ public class UserServiceImpl implements UserService {
                         USER_REGISTER.EMAIL,
                         USER_REGISTER.APPLY_STATUS,
                         USER_REGISTER.APPLY_TIME)
-                .from(USER_REGISTER);
+                .from(USER_REGISTER)
+                .where(USER_REGISTER.ORGANIZATION_ID.eq(orgId));
 
         filter.forEach((key, value) -> {
             switch (key) {

@@ -117,7 +117,10 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         QueryWrapper query = QueryWrapper.create()
                 .select(ORGANIZATION_REGISTER.APPLY_ID,
+                        ORGANIZATION_REGISTER.ID,
                         ORGANIZATION_REGISTER.NAME,
+                        ORGANIZATION_REGISTER.TELEPHONE,
+                        ORGANIZATION_REGISTER.EMAIL,
                         ORGANIZATION_REGISTER.TYPE,
                         ORGANIZATION_REGISTER.APPLY_STATUS,
                         ORGANIZATION_REGISTER.APPLY_TIME,
