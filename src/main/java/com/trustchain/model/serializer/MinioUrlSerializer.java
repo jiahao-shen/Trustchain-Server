@@ -11,12 +11,12 @@ import java.lang.reflect.Type;
 
 @Component
 @NoArgsConstructor
-public class MinioURLSerializer implements ObjectWriter {
+public class MinioUrlSerializer implements ObjectWriter {
     private static MinioService minioService;
 
     @Autowired
-    public MinioURLSerializer(MinioService service) {
-        MinioURLSerializer.minioService = service;
+    public MinioUrlSerializer(MinioService service) {
+        MinioUrlSerializer.minioService = service;
     }
 
     @Override

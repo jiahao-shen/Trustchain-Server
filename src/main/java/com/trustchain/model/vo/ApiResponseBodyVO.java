@@ -1,8 +1,8 @@
-package com.trustchain.model.dto;
+package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.HttpResponseBodyType;
-import com.trustchain.model.serializer.MinioURLSerializer;
+import com.trustchain.model.serializer.MinioUrlSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiResponseBody {
+public class ApiResponseBodyVO {
     private HttpResponseBodyType type;
 
-    private ApiRawBody rawBody;
+    private ApiRawBodyVO rawBody;
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String binaryBody;
 
     private String graphQLBody;

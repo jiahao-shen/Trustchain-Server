@@ -2,8 +2,7 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.UserRole;
-import com.trustchain.model.entity.Organization;
-import com.trustchain.model.serializer.MinioURLSerializer;
+import com.trustchain.model.serializer.MinioUrlSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +31,7 @@ public class UserVO {
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date lastModified;  // 最后修改时间
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String logo; // 用户Logo
 
     private String version; // 版本号

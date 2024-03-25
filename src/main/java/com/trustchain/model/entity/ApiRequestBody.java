@@ -1,8 +1,6 @@
-package com.trustchain.model.dto;
+package com.trustchain.model.entity;
 
-import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.HttpRequestBodyType;
-import com.trustchain.model.serializer.MinioURLSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +19,6 @@ public class ApiRequestBody {
 
     private ApiRawBody rawBody;
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
     private String binaryBody;
 
     private String graphQLBody;

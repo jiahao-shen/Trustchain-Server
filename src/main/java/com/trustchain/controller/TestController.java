@@ -8,6 +8,7 @@ import com.trustchain.service.MinioService;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.NullValueInNestedPathException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
@@ -48,13 +49,18 @@ public class TestController {
 
     @PostMapping("/post/x-www-form-urlencoded")
     public ResponseEntity<Object> testPostXwwwFormUrlencoded(@RequestParam String username,
-                                                             @RequestParam String password) {
+                                                             @RequestParam String password,
+                                                             HttpServletResponse response) {
 
         logger.info("testPostXWWWFormUrlEncoded");
         logger.info(username);
         logger.info(password);
 
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        if (username.equals("plus")) {
+            return ResponseEntity.status(HttpStatus.OK).body("12345");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new NullPointerException("fdsahjfhsdajklfhklsda"));
+        }
     }
 
     @PostMapping("/post/raw/json")
@@ -87,8 +93,7 @@ public class TestController {
     }
 
     @PostMapping("/post/binary")
-    public ResponseEntity<InputStreamResource> testPostBinary(HttpServletRequest request,
-                                                              HttpServletResponse response) throws IOException {
+    public ResponseEntity<InputStreamResource> testPostBinary(HttpServletRequest request) throws IOException {
         ServletInputStream io = request.getInputStream();
 
         byte[] file = IOUtils.toByteArray(io);

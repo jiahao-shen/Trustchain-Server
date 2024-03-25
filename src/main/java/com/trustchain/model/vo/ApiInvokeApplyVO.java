@@ -1,16 +1,12 @@
 package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.mybatisflex.annotation.Column;
-import com.trustchain.model.entity.Api;
-import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.ApiInvokeRange;
 import com.trustchain.model.enums.ApiInvokeStatus;
 import com.trustchain.model.enums.ApplyStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.Date;
 
@@ -34,9 +30,9 @@ public class ApiInvokeApplyVO {
 
     private ApiInvokeStatus invokeStatus = ApiInvokeStatus.PENDING;   // 调用状态
 
-    private Api api;    // 申请的API
+    private ApiVO api;    // 申请的API
 
-    private User user;  // 申请用户
+    private UserVO user;  // 申请用户
 
     private ApiInvokeRange range;   // 申请范围
 

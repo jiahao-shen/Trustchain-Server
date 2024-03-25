@@ -1,4 +1,4 @@
-package com.trustchain.model.dto;
+package com.trustchain.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

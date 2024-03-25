@@ -3,7 +3,7 @@ package com.trustchain.model.vo;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.model.enums.ApplyStatus;
-import com.trustchain.model.serializer.MinioURLSerializer;
+import com.trustchain.model.serializer.MinioUrlSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,9 +47,9 @@ public class OrganizationRegisterVO {
     @JSONField(format = "yyyy-MM-dd")
     private Date creationTime;   // 创建时间
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String logo; // 机构Logo
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String file;    // 机构文件
 }

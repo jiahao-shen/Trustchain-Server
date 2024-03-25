@@ -1,6 +1,5 @@
-package com.trustchain.model.dto;
+package com.trustchain.model.entity;
 
-import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiFormDataItem {
+public class ApiXwwwFormUrlEncodedItem {
     private String key;
     private String type;
     private String value;

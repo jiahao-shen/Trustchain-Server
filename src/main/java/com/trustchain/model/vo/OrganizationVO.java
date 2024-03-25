@@ -3,8 +3,7 @@ package com.trustchain.model.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.OrganizationType;
-import com.trustchain.model.serializer.MinioURLSerializer;
-import com.alibaba.fastjson2.JSONWriter.Feature;
+import com.trustchain.model.serializer.MinioUrlSerializer;
 import lombok.*;
 
 import java.util.Date;
@@ -45,9 +44,9 @@ public class OrganizationVO {
 
     private Boolean latest = true; // 是否为最新
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String logo; // 机构Logo
 
-    @JSONField(serializeUsing = MinioURLSerializer.class)
+    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String file;    // 机构文件
 }

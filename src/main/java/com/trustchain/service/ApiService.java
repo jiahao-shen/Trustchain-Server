@@ -1,14 +1,11 @@
 package com.trustchain.service;
 
 import com.mybatisflex.core.paginate.Page;
-import com.trustchain.model.dto.ApiRequestBody;
-import com.trustchain.model.dto.ApiHeaderItem;
-import com.trustchain.model.dto.ApiParamItem;
-import com.trustchain.model.dto.ApiQueryItem;
-import com.trustchain.model.entity.Api;
-import com.trustchain.model.entity.ApiInvokeApply;
-import com.trustchain.model.entity.ApiRegister;
-import com.trustchain.model.entity.User;
+import com.trustchain.model.entity.ApiRequestBody;
+import com.trustchain.model.entity.ApiHeaderItem;
+import com.trustchain.model.entity.ApiParamItem;
+import com.trustchain.model.entity.ApiQueryItem;
+import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.ApplyStatus;
 
 import java.io.IOException;
@@ -243,5 +240,36 @@ public interface ApiService {
      * @param header  请求标头
      * @param body    请求体
      */
-    void invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
+    Boolean invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
+
+    /**
+     * @param userId  用户ID
+     * @param applyId 调用申请号
+     * @return 调用日志列表
+     */
+    List<ApiInvokeLog> invokeLogList(String userId,
+                                     String applyId);
+
+    /**
+     * @param userId     用户ID
+     * @param applyId    调用申请号
+     * @param pageNumber 页数
+     * @param pageSize   页大小
+     * @param filter     过滤器
+     * @param sort       排序
+     * @return 调用日志列表
+     */
+    Page<ApiInvokeLog> invokeLogList(String userId,
+                                     String applyId,
+                                     String search,
+                                     Integer pageNumber,
+                                     Integer pageSize,
+                                     Map<String, List<String>> filter,
+                                     Map<String, String> sort);
+
+    /**
+     * @param logId 日志ID
+     * @return Api调用日志
+     */
+    ApiInvokeLog invokeLogDetail(String logId);
 }

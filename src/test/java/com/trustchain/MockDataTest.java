@@ -1,9 +1,9 @@
 package com.trustchain;
 
 import com.trustchain.mapper.*;
-import com.trustchain.model.dto.ApiRequestBody;
-import com.trustchain.model.dto.ApiRawBody;
-import com.trustchain.model.dto.ApiResponseBody;
+import com.trustchain.model.entity.ApiRequestBody;
+import com.trustchain.model.entity.ApiRawBody;
+import com.trustchain.model.entity.ApiResponseBody;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.util.PasswordUtil;

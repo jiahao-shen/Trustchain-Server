@@ -1,11 +1,7 @@
 package com.trustchain.model.convert;
 
-import com.trustchain.model.entity.Api;
-import com.trustchain.model.entity.ApiInvokeApply;
-import com.trustchain.model.entity.ApiRegister;
-import com.trustchain.model.vo.ApiInvokeApplyVO;
-import com.trustchain.model.vo.ApiRegisterVO;
-import com.trustchain.model.vo.ApiVO;
+import com.trustchain.model.entity.*;
+import com.trustchain.model.vo.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -28,4 +24,34 @@ public interface ApiConvert {
     ApiInvokeApplyVO toApiInvokeApplyVO(ApiInvokeApply apiInvokeApply);
 
     List<ApiInvokeApplyVO> toApiInvokeApplyVOList(List<ApiInvokeApply> apiInvokeApplyList);
+
+    ApiInvokeLogVO toApiInvokeLogVO(ApiInvokeLog apiInvokeLog);
+
+    List<ApiInvokeLogVO> toApiInvokeLogVOList(List<ApiInvokeLog> apiInvokeLogList);
+
+    ApiParamItemVO toApiParamItemVO(ApiParamItem apiParamItem);
+
+    List<ApiParamItemVO> toApiParamItemVOList(List<ApiParamItem> apiParamItemList);
+
+    ApiQueryItemVO toApiQueryItemVO(ApiQueryItem apiQueryItem);
+
+    List<ApiQueryItemVO> toApiQueryItemVOList(List<ApiQueryItem> apiQueryItemList);
+
+    ApiHeaderItemVO toApiHeaderItemVO(ApiHeaderItem apiHeaderItem);
+
+    List<ApiHeaderItemVO> toApiHeaderItemVOList(List<ApiHeaderItem> apiHeaderItemList);
+
+    ApiRequestBodyVO toApiRequestBodyVO(ApiRequestBody apiRequestBody);
+
+    ApiResponseBodyVO toApiResponseBodyVO(ApiResponseBody apiResponseBody);
+
+    ApiFormDataItemVO toApiFormDataItemVO(ApiFormDataItem apiFormDataItem);
+
+    List<ApiFormDataItemVO> toApiFormDataItemVOList(List<ApiFormDataItem> apiFormDataItemList);
+
+    ApiXwwwFormUrlEncodedItemVO toApiXwwwFormUrlEncodedItemVO(ApiXwwwFormUrlEncodedItem apiXwwwFormUrlEncodedItem);
+
+    List<ApiXwwwFormUrlEncodedItemVO> toApiXwwwFormUrlEncodedItemVOList(List<ApiXwwwFormUrlEncodedItem> apiXwwwFormUrlEncodedItemList);
+
+    ApiRawBodyVO toApiRawBodyVO(ApiRawBody apiRawBody);
 }

@@ -5,13 +5,9 @@ import com.alibaba.fastjson2.TypeReference;
 import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.ApiConvert;
-import com.trustchain.model.dto.*;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
-import com.trustchain.model.vo.ApiInvokeApplyVO;
-import com.trustchain.model.vo.ApiRegisterVO;
-import com.trustchain.model.vo.ApiVO;
-import com.trustchain.model.vo.BaseResponse;
+import com.trustchain.model.vo.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.util.AuthUtil;
@@ -359,23 +355,46 @@ public class ApiController {
     @PostMapping("/invoke/web")
     @ResponseBody
     public BaseResponse<?> invokeWeb(@RequestBody JSONObject request) throws IOException {
-        logger.info(request);
-
         String applyId = request.getString("applyId");
         List<ApiParamItem> param = request.getList("param", ApiParamItem.class);
         List<ApiQueryItem> query = request.getList("query", ApiQueryItem.class);
         List<ApiHeaderItem> requestHeader = request.getList("requestHeader", ApiHeaderItem.class);
         ApiRequestBody requestBody = request.getObject("requestBody", ApiRequestBody.class);
 
-        apiService.invokeWeb(applyId, param, query, requestHeader, requestBody);
+        boolean success = apiService.invokeWeb(applyId, param, query, requestHeader, requestBody);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", null);
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
     @PostMapping("/invoke/log/list")
     @ResponseBody
-    public BaseResponse<?> invokeLogList(@RequestBody JSONObject request) {
-        return new BaseResponse<>(StatusCode.SUCCESS, "", null);
+    public BaseResponse<List<ApiInvokeLogVO>> invokeLogList(@RequestBody JSONObject request) {
+        String applyId = request.getString("applyId");
+        String search = request.getString("search");
+        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageSize = request.getInteger("pageSize");
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        });
+        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        });
+
+        User user = AuthUtil.getUser();
+
+        Page<ApiInvokeLog> apiInvokeLogList = apiService.invokeLogList(user.getId(), applyId, search, pageNumebr, pageSize, filter, sort);
+
+        return new BaseResponse(StatusCode.SUCCESS, "",
+                new Page(ApiConvert.INSTANCE.toApiInvokeLogVOList(apiInvokeLogList.getRecords()),
+                        apiInvokeLogList.getPageNumber(), apiInvokeLogList.getPageSize(), apiInvokeLogList.getTotalRow()));
+    }
+
+    @PostMapping("/invoke/log/detail")
+    @ResponseBody
+    public BaseResponse<ApiInvokeLog> invokeLogDetail(@RequestBody JSONObject request) {
+        String logId = request.getString("logId");
+
+        ApiInvokeLog apiInvokeLog = apiService.invokeLogDetail(logId);
+
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiInvokeLogVO(apiInvokeLog));
     }
 
 }

@@ -1,9 +1,5 @@
 package com.trustchain.model.vo;
 
-import com.trustchain.model.dto.ApiRequestBody;
-import com.trustchain.model.dto.ApiHeaderItem;
-import com.trustchain.model.dto.ApiParamItem;
-import com.trustchain.model.dto.ApiQueryItem;
 import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.alibaba.fastjson2.annotation.JSONField;
@@ -37,17 +33,17 @@ public class ApiVO {
 
     private ApiVisible visible; // API可见性
 
-    private List<ApiParamItem> param;   // param参数
+    private List<ApiParamItemVO> param;   // param参数
 
-    private List<ApiQueryItem> query;   // Query参数
+    private List<ApiQueryItemVO> query;   // Query参数
 
-    private List<ApiHeaderItem> requestHeader;   // 请求头
+    private List<ApiHeaderItemVO> requestHeader;   // 请求头
 
-    private ApiRequestBody requestBody; // 请求体
+    private ApiRequestBodyVO requestBody; // 请求体
 
-    private List<ApiHeaderItem> responseHeader;  // 返回头
+    private List<ApiHeaderItemVO> responseHeader;  // 返回头
 
-    private ApiRequestBody responseBody;    // 返回体
+    private ApiRequestBodyVO responseBody;    // 返回体
 
     private String version; // 版本号
 
