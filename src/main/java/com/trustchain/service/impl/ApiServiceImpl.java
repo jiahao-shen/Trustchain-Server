@@ -630,7 +630,6 @@ public class ApiServiceImpl implements ApiService {
         } else if (reply == ApplyStatus.REJECT) {
             apiInvokeApply.setReplyReason(reason);
         }
-        apiInvokeApply.getInvokeStatus();
 
         apiInvokeApplyMapper.update(apiInvokeApply);
     }
@@ -680,7 +679,7 @@ public class ApiServiceImpl implements ApiService {
         }
 
         if (search != null && !search.isEmpty()) {
-            query.where(API_INVOKE_LOG.LOG_ID.eq(search).or(API_INVOKE_APPLY.APPLY_ID.eq(search)));
+            query.where(API_INVOKE_LOG.LOG_ID.eq(search));
         }
 
         filter.forEach((key, value) -> {

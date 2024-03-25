@@ -4,7 +4,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.model.entity.Organization;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
 import com.trustchain.mapper.UserMapper;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
 import static com.trustchain.model.entity.table.OrganizationTableDef.ORGANIZATION;
 import static com.trustchain.model.entity.table.UserRegisterTableDef.USER_REGISTER;
 import static com.trustchain.model.entity.table.UserTableDef.USER;
