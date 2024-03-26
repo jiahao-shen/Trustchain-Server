@@ -361,9 +361,9 @@ public class ApiController {
         List<ApiHeaderItem> requestHeader = request.getList("requestHeader", ApiHeaderItem.class);
         ApiRequestBody requestBody = request.getObject("requestBody", ApiRequestBody.class);
 
-        boolean success = apiService.invokeWeb(applyId, param, query, requestHeader, requestBody);
+        apiService.invokeWeb(applyId, AuthUtil.getUser().getId(), param, query, requestHeader, requestBody);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", success);
+        return new BaseResponse(StatusCode.SUCCESS, "", null);
     }
 
     @PostMapping("/invoke/log/list")
@@ -390,9 +390,9 @@ public class ApiController {
     @PostMapping("/invoke/log/detail")
     @ResponseBody
     public BaseResponse<ApiInvokeLog> invokeLogDetail(@RequestBody JSONObject request) {
-        String logId = request.getString("logId");
+        String id = request.getString("id");
 
-        ApiInvokeLog apiInvokeLog = apiService.invokeLogDetail(logId);
+        ApiInvokeLog apiInvokeLog = apiService.invokeLogDetail(id);
 
         return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiInvokeLogVO(apiInvokeLog));
     }

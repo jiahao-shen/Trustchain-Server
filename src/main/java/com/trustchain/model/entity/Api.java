@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table("api")
 public class Api {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)

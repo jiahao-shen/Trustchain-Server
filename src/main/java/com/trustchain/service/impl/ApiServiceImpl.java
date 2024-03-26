@@ -4,15 +4,13 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
-import com.trustchain.mapper.ApiInvokeApplyMapper;
-import com.trustchain.mapper.ApiInvokeLogMapper;
-import com.trustchain.mapper.ApiMapper;
-import com.trustchain.mapper.ApiRegisterMapper;
+import com.trustchain.mapper.*;
 import com.trustchain.model.convert.ApiConvert;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
+import com.trustchain.service.WalletService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
@@ -25,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.rmi.RemoteException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +36,10 @@ import static com.trustchain.model.entity.table.ApiRegisterTableDef.API_REGISTER
 
 @Service
 public class ApiServiceImpl implements ApiService {
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private WalletService walletService;
     @Autowired
     private ApiMapper apiMapper;
     @Autowired
@@ -659,7 +662,7 @@ public class ApiServiceImpl implements ApiService {
                                             Map<String, List<String>> filter,
                                             Map<String, String> sort) {
         QueryWrapper query = QueryWrapper.create()
-                .select(API_INVOKE_LOG.LOG_ID,
+                .select(API_INVOKE_LOG.ID,
                         API_INVOKE_LOG.APPLY_ID,
                         API_INVOKE_LOG.INVOKE_USER_ID,
                         API_INVOKE_LOG.TIME,
@@ -679,7 +682,7 @@ public class ApiServiceImpl implements ApiService {
         }
 
         if (search != null && !search.isEmpty()) {
-            query.where(API_INVOKE_LOG.LOG_ID.eq(search));
+            query.where(API_INVOKE_LOG.ID.eq(search));
         }
 
         filter.forEach((key, value) -> {
@@ -715,24 +718,33 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public ApiInvokeLog invokeLogDetail(String logId) {
+    public ApiInvokeLog invokeLogDetail(String id) {
         RelationManager.setMaxDepth(2);
 
-        return apiInvokeLogMapper.selectOneWithRelationsById(logId);
+        return apiInvokeLogMapper.selectOneWithRelationsById(id);
     }
 
 
     @Override
-    public Boolean invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException {
-        RelationManager.setMaxDepth(1);
+    public void invokeWeb(String applyId, String invokeUserId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException {
+        RelationManager.setMaxDepth(3);
         ApiInvokeApply apiInvokeApply = apiInvokeApplyMapper.selectOneWithRelationsById(applyId);
 
         if (apiInvokeApply.getInvokeStatus() != ApiInvokeStatus.VALID) {
             // TODO: 不在有效期内就抛出异常
-            return false;
+            throw new RuntimeException("调用申请不在有效期内");
         }
-
+        // 获取调用申请Api
         Api api = apiInvokeApply.getApi();
+
+        RelationManager.setMaxDepth(2);
+        User invokeUser = userMapper.selectOneWithRelationsById(invokeUserId);
+        // 获取调用者的钱包
+        Wallet invokeUserWallet = invokeUser.getWallet();
+        // 检查用户余额
+        if (invokeUserWallet.getBalance() < api.getPrice()) {
+            throw new RuntimeException("您的余额不足");
+        }
         // 处理Param和Query
         HttpUrl requestUrl = handleParamAndQuery(api.getProtocol(), api.getUrl(), param, query);
         // 处理Header
@@ -742,9 +754,7 @@ public class ApiServiceImpl implements ApiService {
         // 处理调用
         Response response = handleMethodAndExcute(api.getMethod(), requestBuilder, requestBody);
         // 处理响应并写入日志
-        handleReponse(applyId, ApiInvokeMethod.WEB, api, param, query, header, body, response);
-
-        return true;
+        handleReponse(apiInvokeApply, invokeUser, ApiInvokeMethod.WEB, param, query, header, body, response);
     }
 
     /**
@@ -934,42 +944,48 @@ public class ApiServiceImpl implements ApiService {
      * @param response 响应体
      * @throws IOException
      */
-    private void handleReponse(String applyId,
-                               ApiInvokeMethod invokeMethod,
-                               Api api,
-                               List<ApiParamItem> param,
-                               List<ApiQueryItem> query,
-                               List<ApiHeaderItem> header,
-                               ApiRequestBody body,
-                               Response response) throws IOException {
+    @Transactional
+    public void handleReponse(ApiInvokeApply apiInvokeApply,
+                              User invokeUser,
+                              ApiInvokeMethod invokeMethod,
+                              List<ApiParamItem> param,
+                              List<ApiQueryItem> query,
+                              List<ApiHeaderItem> header,
+                              ApiRequestBody body,
+                              Response response) throws IOException {
         // 创建调用日志
         ApiInvokeLog apiInvokeLog = new ApiInvokeLog();
-        apiInvokeLog.setLogId(UUID.randomUUID().toString().replaceAll("-", ""));
-        apiInvokeLog.setApplyId(applyId);
-        apiInvokeLog.setInvokeUserId(AuthUtil.getUser().getId());
+        apiInvokeLog.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        apiInvokeLog.setApplyId(apiInvokeApply.getApplyId());
+        apiInvokeLog.setInvokeUserId(invokeUser.getId());
         apiInvokeLog.setInvokeMethod(invokeMethod);
         apiInvokeLog.setStatusCode(response.code());
         apiInvokeLog.setParam(param);
         apiInvokeLog.setQuery(query);
         apiInvokeLog.setRequestHeader(header);
 
+        // 移动临时文件
         if (body.getFormDataBody() != null) {
             body.getFormDataBody().forEach(item -> {
                 if (item.getType().equals("File")) {
                     String oldPath = item.getValue();
-                    String newPath = "api/invoke/log/" + apiInvokeLog.getLogId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
+                    String newPath = "api/invoke/log/" + apiInvokeLog.getId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
                     minioService.copy(oldPath, newPath);
                     item.setValue(newPath);
                 }
             });
         }
+        // 移动临时文件
         if (body.getBinaryBody() != null) {
             String oldPath = body.getBinaryBody();
-            String newPath = "api/invoke/log/" + apiInvokeLog.getLogId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
+            String newPath = "api/invoke/log/" + apiInvokeLog.getId() + "/" + oldPath.substring(oldPath.lastIndexOf("/") + 1);
             minioService.copy(oldPath, newPath);
             body.setBinaryBody(newPath);
         }
         apiInvokeLog.setRequestBody(body);
+
+        // 获取对应的API
+        Api api = apiInvokeApply.getApi();
 
         List<ApiHeaderItem> responseHeader = api.getResponseHeader();
         // 处理响应标头
@@ -996,7 +1012,7 @@ public class ApiServiceImpl implements ApiService {
                 }
                 case BINARY: {
                     InputStream is = response.body().byteStream();
-                    String path = minioService.upload(is, "api/invoke/log/" + apiInvokeLog.getLogId() + "/");
+                    String path = minioService.upload(is, "api/invoke/log/" + apiInvokeLog.getId() + "/");
                     responseBody.setBinaryBody(path);
                     break;
                 }
@@ -1006,13 +1022,19 @@ public class ApiServiceImpl implements ApiService {
                 }
             }
             apiInvokeLog.setResponseBody(responseBody);
+            apiInvokeLogMapper.insert(apiInvokeLog);
+
+            // 处理调用人交易
+            walletService.purchase(invokeUser.getId(), api.getPrice(), TransactionChannel.API_INVOKE, apiInvokeLog.getId());
+            // 处理所有者交易
+            walletService.sale(api.getUserId(), api.getPrice(), TransactionChannel.API_INVOKE, apiInvokeLog.getId());
         } else {
             // 处理错误消息
             logger.info(response.message());
             apiInvokeLog.setErrorMessage(response.body().string());
+            apiInvokeLogMapper.insert(apiInvokeLog);
         }
 
-        apiInvokeLogMapper.insert(apiInvokeLog);
         response.close();
     }
 }

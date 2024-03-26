@@ -6,18 +6,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TransactionMethod {
-    TOPUP(1),   // 充值
-
-    WITHDRAW(2),    // 提现
-
-    TRANSFER(3),    // 转账
-
-    REFUND(4),      // 退款
-
-    PURCHASE(5),    // 购买
-
-    SALE(6);    // 销售
+public enum TransactionChannel {
+    ALIPAY(1),  // 支付宝
+    WECHAT(2),  // 微信
+    API_INVOKE(3); // API调用
 
     @EnumValue
     private final int code;

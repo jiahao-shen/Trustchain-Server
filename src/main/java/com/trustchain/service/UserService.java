@@ -1,9 +1,12 @@
 package com.trustchain.service;
 
 import com.mybatisflex.core.paginate.Page;
+import com.trustchain.model.entity.Transaction;
+import com.trustchain.model.entity.Wallet;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
+import com.trustchain.model.enums.TransactionMethod;
 import com.trustchain.model.vo.UserLogin;
 
 import java.util.List;

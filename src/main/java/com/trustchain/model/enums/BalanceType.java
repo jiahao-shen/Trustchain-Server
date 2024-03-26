@@ -6,11 +6,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TransactionType {
-    TOPUP(1),       // 充值
-    WITHDRAW(2),    // 提现
-    INCOME(3),      // 收入
-    EXPENSE(4);     // 支出
+public enum BalanceType {
+    INCOME(1),      // 收入
+    EXPENSE(2);     // 支出
 
     @EnumValue
     private final int code;

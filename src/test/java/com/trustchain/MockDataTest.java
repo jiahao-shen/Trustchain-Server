@@ -1,5 +1,6 @@
 package com.trustchain;
 
+import com.mybatisflex.core.paginate.Page;
 import com.trustchain.mapper.*;
 import com.trustchain.model.entity.ApiRequestBody;
 import com.trustchain.model.entity.ApiRawBody;
@@ -15,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static com.trustchain.model.entity.table.WalletTableDef.WALLET;
 
 @SpringBootTest
 public class MockDataTest {
@@ -32,6 +35,8 @@ public class MockDataTest {
     ApiMapper apiMapper;
     @Autowired
     ApiInvokeApplyMapper apiInvokeApplyMapper;
+    @Autowired
+    WalletMapper walletMapper;
 
     private static final Logger logger = LogManager.getLogger(MockDataTest.class);
 
@@ -182,5 +187,16 @@ public class MockDataTest {
 
             apiInvokeApplyMapper.insert(apiInvokeApply);
         }
+    }
+
+    @Test
+    void addUserWallet() {
+        List<User> users = userMapper.selectAll();
+
+        users.forEach(u -> {
+            Wallet wallet = new Wallet();
+            wallet.setUserId(u.getId());
+            walletMapper.insert(wallet);
+        });
     }
 }

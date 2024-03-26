@@ -234,13 +234,14 @@ public interface ApiService {
     ApiInvokeApply invokeInitialize(String applyId);
 
     /**
-     * @param applyId 调用申请号
-     * @param param   请求路径参数
-     * @param query   请求参数
-     * @param header  请求标头
-     * @param body    请求体
+     * @param applyId      调用申请号
+     * @param invokeUserId 调用人ID
+     * @param param        请求路径参数
+     * @param query        请求参数
+     * @param header       请求标头
+     * @param body         请求体
      */
-    Boolean invokeWeb(String applyId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
+    void invokeWeb(String applyId, String invokeUserId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
 
     /**
      * @param userId  用户ID
@@ -268,8 +269,8 @@ public interface ApiService {
                                      Map<String, String> sort);
 
     /**
-     * @param logId 日志ID
+     * @param id 日志ID
      * @return Api调用日志
      */
-    ApiInvokeLog invokeLogDetail(String logId);
+    ApiInvokeLog invokeLogDetail(String id);
 }

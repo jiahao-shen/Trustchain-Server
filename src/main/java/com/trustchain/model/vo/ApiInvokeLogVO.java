@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiInvokeLogVO {
-    private String logId;   // 日志ID
+    private String id;   // 日志ID
 
     private String applyId; // 对应的调用申请号
 

@@ -8,12 +8,7 @@ import lombok.Data;
 
 import java.util.Date;
 
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table("organization_register")
 public class OrganizationRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)

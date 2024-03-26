@@ -6,18 +6,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TransactionMethod {
-    TOPUP(1),   // 充值
-
-    WITHDRAW(2),    // 提现
-
-    TRANSFER(3),    // 转账
-
-    REFUND(4),      // 退款
-
-    PURCHASE(5),    // 购买
-
-    SALE(6);    // 销售
+public enum DateRange {
+    LAST_WEEK(1), // 过去一周
+    LAST_MONTH(2),  // 过去一月
+    LAST_YEAR(3);   // 过去一年
 
     @EnumValue
     private final int code;

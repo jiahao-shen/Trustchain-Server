@@ -5,15 +5,11 @@ import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.UserRole;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 
 import java.util.Date;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table("user_register")
 public class UserRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)

@@ -4,16 +4,12 @@ import lombok.Data;
 
 import java.util.Date;
 
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.mybatisflex.annotation.*;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import com.trustchain.model.enums.UserRole;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(value = "user")
+@Table("user")
 public class User {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
     @Column("id")
@@ -66,6 +62,12 @@ public class User {
     @Column(value = "is_delete", isLogicDelete = true)
     @ColumnAlias("user_is_delete")
     private Boolean isDelete;   // 逻辑删除标志位
+
+    @Column("wallet_id")
+    private String walletId;    // 钱包ID
+
+    @RelationOneToOne(selfField = "walletId", targetField = "id")
+    private Wallet wallet;  // 钱包
 
     public Boolean isAdmin() {
         return role == UserRole.ADMIN;

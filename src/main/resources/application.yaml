@@ -47,6 +47,7 @@ server:
   servlet:
     session:
       timeout: 3600s
+  port: 8080
 
 minio:
   endpoint: http://8.130.150.176:9000
@@ -59,4 +60,3 @@ minio:
   #  MacbookPro
   #  accessKey: 3wIc88pusSVNraoT1qrV
   #  secretKey: jOc02HsuPdJsiFZGdhXx8gdROyN3dunF5zyBPPiV
-

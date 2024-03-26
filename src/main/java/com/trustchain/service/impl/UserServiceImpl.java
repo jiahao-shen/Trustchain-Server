@@ -4,14 +4,10 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.mapper.OrganizationMapper;
-import com.trustchain.model.entity.Organization;
+import com.trustchain.mapper.*;
+import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
-import com.trustchain.mapper.UserMapper;
-import com.trustchain.mapper.UserRegisterMapper;
-import com.trustchain.model.entity.User;
-import com.trustchain.model.entity.UserRegister;
 import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.vo.UserLogin;
 import com.trustchain.service.EmailSerivce;
@@ -42,9 +38,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private OrganizationMapper orgMapper;
     @Autowired
-    private MinioService minioService;
+    private WalletMapper walletMapper;
     @Autowired
-    private FabricService fabricService;
+    private MinioService minioService;
     @Autowired
     private EmailSerivce emailSerivce;
 
@@ -173,6 +169,11 @@ public class UserServiceImpl implements UserService {
 
             userMapper.insert(user);
 
+            // 创建钱包
+            Wallet wallet = new Wallet();
+            wallet.setUserId(user.getId());
+            walletMapper.insert(wallet);
+
             userReg.setId(user.getId());
             userReg.setApplyStatus(ApplyStatus.ALLOW);
             userReg.setReplyTime(new Date());
@@ -196,6 +197,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean register(User user) {
         user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
         Organization org = orgMapper.selectOneById(user.getOrganizationId());
@@ -203,6 +205,11 @@ public class UserServiceImpl implements UserService {
         String newLogoPath = "user/" + user.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
         minioService.copy(oldLogoPath, newLogoPath);
         user.setLogo(newLogoPath);
+
+        // 创建钱包
+        Wallet wallet = new Wallet();
+        wallet.setUserId(user.getId());
+        walletMapper.insert(wallet);
 
         return userMapper.insert(user) != 0;
     }
@@ -390,4 +397,6 @@ public class UserServiceImpl implements UserService {
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsByQuery(query);
     }
+
+
 }

@@ -24,4 +24,5 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.OK)
                 .body(new BaseResponse(StatusCode.CAPTCHA_ERROR, "验证码不正确或已失效", null));
     }
+
 }

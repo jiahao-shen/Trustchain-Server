@@ -17,9 +17,9 @@ import java.util.List;
 @Table("api_invoke_log")
 public class ApiInvokeLog {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
-    @Column("log_id")
-    @ColumnAlias("api_invoke_log_log_id")
-    private String logId;   // 日志ID
+    @Column("id")
+    @ColumnAlias("api_invoke_log_id")
+    private String id;   // 日志ID
 
     @Column("apply_id")
     @ColumnAlias("api_invoke_log_apply_id")

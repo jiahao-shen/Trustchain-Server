@@ -7,16 +7,12 @@ import com.trustchain.model.enums.ApiVisible;
 import com.trustchain.model.enums.HttpMethod;
 import com.trustchain.model.enums.InternetProtocol;
 import com.trustchain.model.enums.ApplyStatus;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table("api_register")
 public class ApiRegister {
     @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)

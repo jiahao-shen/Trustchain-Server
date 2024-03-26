@@ -3,6 +3,7 @@ package com.trustchain;
 import com.mybatisflex.core.mask.MaskManager;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.mapper.ApiMapper;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.UserMapper;
@@ -91,7 +92,9 @@ public class MyBatisFlexTest {
                 .select(USER.ALL_COLUMNS)
                 .select(ORGANIZATION.NAME)
                 .from(USER);
-        userMapper.selectListWithRelationsByQuery(query);
+        RelationManager.setMaxDepth(1);
+        RelationManager.addExtraConditionParam("organization.id", "a0c7b2b7e3564e70b6f4f80ef42b9b24");
+        logger.info(userMapper.selectListWithRelationsByQuery(query));
     }
 
     @Test
