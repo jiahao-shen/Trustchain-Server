@@ -157,9 +157,9 @@ public class UserController {
         List<String> applyIds = request.getList("applyIds", String.class);
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
 
@@ -187,9 +187,9 @@ public class UserController {
     public BaseResponse<Page<UserRegisterVO>> registerApprovalList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -242,9 +242,9 @@ public class UserController {
     public BaseResponse<Page<UserVO>> subordindateList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();

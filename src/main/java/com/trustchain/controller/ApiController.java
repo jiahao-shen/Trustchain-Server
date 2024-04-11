@@ -62,9 +62,9 @@ public class ApiController {
     public BaseResponse<Page<ApiRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String,List<String>>>(){
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -94,9 +94,9 @@ public class ApiController {
     public BaseResponse<Page<ApiRegisterVO>> registerApprovalList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -151,9 +151,9 @@ public class ApiController {
     public BaseResponse<Page<ApiVO>> myApiList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -171,9 +171,9 @@ public class ApiController {
         String search = request.getString("search");
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -254,9 +254,9 @@ public class ApiController {
     public BaseResponse<Page<ApiInvokeApplyVO>> invokeApplyList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -302,9 +302,9 @@ public class ApiController {
     public BaseResponse<Page<ApiInvokeApplyVO>> invokeApprovalList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -373,9 +373,9 @@ public class ApiController {
         String search = request.getString("search");
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();

@@ -1,6 +1,6 @@
 package com.trustchain.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import org.chainmaker.pb.common.ChainmakerTransaction;
 import org.chainmaker.pb.common.ContractOuterClass;
 import org.chainmaker.pb.common.ResultOuterClass;

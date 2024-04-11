@@ -91,9 +91,9 @@ public class OrganizationController {
         List<String> applyIds = request.getList("applyIds", String.class);
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         Page<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
@@ -119,9 +119,9 @@ public class OrganizationController {
     public BaseResponse<Page<OrganizationRegisterVO>> registerList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
@@ -256,9 +256,9 @@ public class OrganizationController {
     public BaseResponse<Page<OrganizationVO>> subordinateList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();

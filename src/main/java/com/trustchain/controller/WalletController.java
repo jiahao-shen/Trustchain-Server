@@ -78,9 +78,9 @@ public class WalletController {
     public BaseResponse<Page<TransactionVO>> transactionList(@RequestBody JSONObject request) {
         Integer pageNumebr = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<>() {
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
-        Map<String, String> sort = request.getObject("sort", new TypeReference<>() {
+        Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
