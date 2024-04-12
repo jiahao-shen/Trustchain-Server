@@ -1,4 +1,4 @@
-package com.trustchain.controller.chainmaker;
+package com.trustchain.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
@@ -12,8 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.trustchain.model.entity.Organization;
-import com.trustchain.mapper.OrganizationMapper;
+
 @CrossOrigin
 @RestController
 public class ChainCodeController {
@@ -89,29 +88,6 @@ public class ChainCodeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
         }
         return ResponseEntity.status(HttpStatus.OK).body(contractResult);
-    }
-
-
-    @PostMapping("/chaincode/test/save/{fileName}")
-    public ResponseEntity<Object> Save(@PathVariable String fileName, @RequestParam String fileHash, @RequestParam String time){
-        ResultOuterClass.TxResponse responseInfo;
-        try {
-            responseInfo = chaincodeService.invokeContractSave(fileName,fileHash,time);
-        } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
-    }
-
-    @PostMapping("/chaincode/test/findByFileHash/{fileHash}")
-    public ResponseEntity<Object> FindByFileHash(@PathVariable String fileHash){
-        ResultOuterClass.TxResponse responseInfo;
-        try {
-            responseInfo = chaincodeService.invokeContractFind(fileHash);
-        } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
     }
 
     @PostMapping("/chaincode/test/getChainConfig")
