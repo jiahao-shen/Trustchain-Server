@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.service.ChaincodeService;
+import com.trustchain.service.OrganizationService;
 import org.chainmaker.pb.common.ChainmakerTransaction;
 import org.chainmaker.pb.common.ContractOuterClass;
 import org.chainmaker.pb.common.ResultOuterClass;
@@ -18,6 +19,9 @@ import org.springframework.web.bind.annotation.*;
 public class ChainCodeController {
     @Autowired
     private ChaincodeService chaincodeService;
+
+    @Autowired
+    private OrganizationService organizationService;
 
     @Autowired
     private OrganizationMapper organizationMapper;

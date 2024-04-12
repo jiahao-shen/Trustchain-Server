@@ -6,6 +6,7 @@ import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
@@ -83,7 +84,7 @@ public class MinioServiceImpl implements MinioService {
         try {
 
 //            byte[] bytes = is.readAllBytes();
-            byte[] bytes = null;
+            byte[] bytes = IOUtils.toByteArray(is);
             MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(bytes));
             String extension = mediaType.getExtension();
             String fileName = path + DigestUtils.md5Hex(bytes) + extension;
