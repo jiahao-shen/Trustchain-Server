@@ -19,7 +19,7 @@ import java.util.List;
 public class InitClient {
     static String SDK_CONFIG = "sdk_config.yml";
     static String SDK_CONFIG_TEST = "sdk_config_test.yml";
-    static String ENV = "test";
+    static String ENV = "TEST";
     static ChainManager chainManager;
     static User user;
 
@@ -28,7 +28,7 @@ public class InitClient {
         ChainClient chainClient;
         Yaml yaml = new Yaml();
         InputStream in;
-        if (ENV.equals("test")){
+        if (GlobalVariable.ENV.equals("TEST") && ENV.equals("TEST")){
             in = InitClient.class.getClassLoader().getResourceAsStream(SDK_CONFIG_TEST);
         } else {
             in = InitClient.class.getClassLoader().getResourceAsStream(SDK_CONFIG);

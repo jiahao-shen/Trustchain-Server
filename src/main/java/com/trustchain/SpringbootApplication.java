@@ -4,6 +4,7 @@ package com.trustchain;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.fastjson2.support.config.FastJsonConfig;
+import com.trustchain.chainmaker.GlobalVariable;
 import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -105,13 +106,15 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                     @Override
                     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
                         logger.info(request.getRequestURI());
-//                        if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
-//                            return true;
-//                        } else {
-//                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-//                            return false;
-//                        }
-                        return true;
+                        if (GlobalVariable.ENV.equals("TEST")) {
+                            return true;
+                        }
+                        if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
+                            return true;
+                        } else {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            return false;
+                        }
                     }
 
                     @Override
