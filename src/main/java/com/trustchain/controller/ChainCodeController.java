@@ -105,18 +105,6 @@ public class ChainCodeController {
         return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
     }
 
-    //todo: conflict with fastJson version
-    @PostMapping("/chaincode/test/getContractList")
-    public ResponseEntity<Object> GetContractList(){
-        ContractOuterClass.Contract[] responseInfo;
-        try {
-            responseInfo = chaincodeService.getContractList();
-        } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
-    }
-
     @PostMapping("/chaincode/test/getContractByName/{contractName}")
     public ResponseEntity<Object> GetContractByName(@PathVariable String contractName){
         ContractOuterClass.Contract responseInfo;

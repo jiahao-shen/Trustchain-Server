@@ -93,16 +93,6 @@ public class ChaincodeServiceImpl implements ChaincodeService {
         return chainConfig;
     }
 
-    public ContractOuterClass.Contract[] getContractList() {
-        ContractOuterClass.Contract[] contractConfig = null;
-        try {
-            contractConfig = chainClient.getContractList(20000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return contractConfig;
-    }
-
     public ContractOuterClass.Contract getContractByName(String name) {
         ContractOuterClass.Contract contractConfig = null;
         try {

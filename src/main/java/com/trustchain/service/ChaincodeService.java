@@ -40,11 +40,6 @@ public interface ChaincodeService {
     ChainConfigOuterClass.ChainConfig getChainConfig();
 
     /**
-     * @return 所有部署在链上的合约信息
-     */
-    ContractOuterClass.Contract[] getContractList();
-
-    /**
      * @param name 合约名
      * @return 具体的合约信息
      */
