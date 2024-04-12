@@ -82,7 +82,8 @@ public class MinioServiceImpl implements MinioService {
     public String upload(InputStream is, String path) {
         try {
 
-            byte[] bytes = is.readAllBytes();
+//            byte[] bytes = is.readAllBytes();
+            byte[] bytes = null;
             MimeType mediaType = MimeTypes.getDefaultMimeTypes().forName(new Tika().detect(bytes));
             String extension = mediaType.getExtension();
             String fileName = path + DigestUtils.md5Hex(bytes) + extension;

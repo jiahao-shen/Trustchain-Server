@@ -21,7 +21,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import com.alibaba.fastjson2.support.spring6.http.converter.FastJsonHttpMessageConverter;
+//import com.alibaba.fastjson2.support.spring5.http.converter.FastJsonHttpMessageConverter;
+import com.alibaba.fastjson2.support.spring.http.converter.FastJsonHttpMessageConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,7 +46,7 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
 
         FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
 
-        List<MediaType> supportedMediaTypes = new ArrayList();
+        List<MediaType> supportedMediaTypes = new ArrayList<>();
         supportedMediaTypes.add(MediaType.MULTIPART_FORM_DATA);
         supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);
@@ -97,49 +98,49 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
         super.addResourceHandlers(registry);
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        // 注册自定义拦截器，添加拦截路径和排除拦截路径
-        registry.addInterceptor(new HandlerInterceptor() {
-                    @Override
-                    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-                        logger.info(request.getRequestURI());
-                        if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
-                            return true;
-                        } else {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            return false;
-                        }
-                    }
-
-                    @Override
-                    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-                        HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
-                    }
-
-                    @Override
-                    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-                        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
-                    }
-                }) // 添加拦截器
-                .addPathPatterns("/**") // 添加拦截路径
-                .excludePathPatterns(// 添加排除拦截路径
-                        "/test/**",
-                        "/captcha/send",
-                        "/file/exist",
-                        "/file/upload",
-                        "/user/login",
-                        "/user/exist",
-                        "/user/register",
-                        "/user/register/apply",
-                        "/user/register/apply/list",
-                        "/user/forgetPassword",
-                        "/organization/selectList",
-                        "/organization/exist",
-                        "/organization/register/apply",
-                        "/organization/register/apply/list"
-                )
-                .order(0);//执行顺序
-        super.addInterceptors(registry);
-    }
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        // 注册自定义拦截器，添加拦截路径和排除拦截路径
+//        registry.addInterceptor(new HandlerInterceptor() {
+//                    @Override
+//                    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+//                        logger.info(request.getRequestURI());
+//                        if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
+//                            return true;
+//                        } else {
+//                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+//                            return false;
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+//                        HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
+//                    }
+//
+//                    @Override
+//                    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+//                        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
+//                    }
+//                }) // 添加拦截器
+//                .addPathPatterns("/**") // 添加拦截路径
+//                .excludePathPatterns(// 添加排除拦截路径
+//                        "/test/**",
+//                        "/captcha/send",
+//                        "/file/exist",
+//                        "/file/upload",
+//                        "/user/login",
+//                        "/user/exist",
+//                        "/user/register",
+//                        "/user/register/apply",
+//                        "/user/register/apply/list",
+//                        "/user/forgetPassword",
+//                        "/organization/selectList",
+//                        "/organization/exist",
+//                        "/organization/register/apply",
+//                        "/organization/register/apply/list"
+//                )
+//                .order(0);//执行顺序
+//        super.addInterceptors(registry);
+//    }
 }

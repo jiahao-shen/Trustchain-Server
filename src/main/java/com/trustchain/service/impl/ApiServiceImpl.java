@@ -813,7 +813,8 @@ public class ApiServiceImpl implements ApiService {
                 for (ApiFormDataItem item : body.getFormDataBody()) {
                     if (item.getType().equals("File")) {    // 单独处理文件
                         String path = item.getValue();
-                        byte[] bytes = minioService.get(path).readAllBytes();
+//                        byte[] bytes = minioService.get(path).readAllBytes();
+                        byte[] bytes = null;
                         MediaType mediaType = MediaType.parse(new Tika().detect(bytes));
                         String fileName = path.substring(path.lastIndexOf("/") + 1);
                         formBodyBuilder.addFormDataPart(item.getKey(), fileName,

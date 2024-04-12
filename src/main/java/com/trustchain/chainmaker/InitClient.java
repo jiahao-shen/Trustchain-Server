@@ -57,8 +57,11 @@ public class InitClient {
         chainClient = chainManager.getChainClient(sdkConfig.getChainClient().getChainId());
 
         if (chainClient == null) {
-            System.out.println("create client");
+            System.out.println("%%%%%%%%%%%%%%%%%%try to create client%%%%%%%%%%%%%%%%%%");
             chainClient = chainManager.createChainClient(sdkConfig);
+            if (chainClient==null) {
+                System.out.println("%%%%%%%%%%%%%%%%%%create client failed%%%%%%%%%%%%%%%%%%");
+            }
         }
         return chainClient;
 //        user = new User(ORG_ID1, FileUtils.getResourceFileBytes(CLIENT1_KEY_PATH),

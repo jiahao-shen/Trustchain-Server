@@ -47,7 +47,7 @@ server:
   servlet:
     session:
       timeout: 3600s
-  port: 8080
+  port: 8081
 
 minio:
   endpoint: http://8.130.150.176:9000

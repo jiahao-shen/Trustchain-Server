@@ -29,10 +29,11 @@ public class ChainCodeController {
         ResultOuterClass.ContractResult responseInfo = null;
         String orgId = request.getString("orgId");
         String field = "organization";
-        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Organization::getId,orgId);
-        Organization organization = organizationMapper.selectOne(queryWrapper);
-        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(organization);
+//        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.eq(Organization::getId,orgId);
+//        Organization organization = organizationMapper.selectOne(queryWrapper);
+//        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(organization);
+        JSONObject jsonObject = null;
         try{
             responseInfo = chaincodeService.invokeContractUpload(orgId, field, jsonObject);
         }catch (Exception e){
@@ -163,6 +164,7 @@ public class ChainCodeController {
         ResultOuterClass.ContractResult state=null;
         try {
             state = chaincodeService.getState(key);
+            System.out.println(state.toString());
         } catch(Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
         }
