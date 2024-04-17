@@ -117,16 +117,18 @@ public class ChainCodeController {
         return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
     }
 
-//    @PostMapping("/chaincode/test/getTransactionById/{txid}")
-//    public ResponseEntity<Object> GetTransactionById(@PathVariable String txid){
-//        ChainmakerTransaction.TransactionInfo transactionInfo;
-//        try {
-//            transactionInfo = chaincodeService.getTxByTxId(txid);
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(transactionInfo);
-//    }
+    @PostMapping("/chaincode/test/getTransactionById/{txid}")
+    public ResponseEntity<Object> GetTransactionById(@PathVariable String txid){
+        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfo;
+        String writeSetInfo = null;
+        try {
+            transactionInfo = chaincodeService.getTxByTxId(txid);
+            writeSetInfo = transactionInfo.getRwSet().getTxWrites(0).getValue().toStringUtf8();
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(writeSetInfo);
+    }
 
     @GetMapping("/chaincode/test/getState/{key}")
     public ResponseEntity<Object> GetState(@PathVariable String key){
