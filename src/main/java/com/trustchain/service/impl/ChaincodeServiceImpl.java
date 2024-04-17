@@ -55,32 +55,35 @@ public class ChaincodeServiceImpl implements ChaincodeService {
     }
 
     //get the special version
-    public ChainmakerTransaction.TransactionInfo getTxByTxId(String TxId) {
-        ChainmakerTransaction.TransactionInfo transactionInfo = null;
+    public ChainmakerTransaction.TransactionInfoWithRWSet getTxByTxId(String TxId) {
+        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
         ResultOuterClass.ContractResult contractResult = null;
         try {
-            transactionInfo = chainClient.getTxByTxId(TxId, 20000);
+            transactionInfoWithRWSet = chainClient.getTxWithRWSetByTxId(TxId, 20000);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return transactionInfo;
+        return transactionInfoWithRWSet;
     }
 
     //get the current version(the newest one)
-    public ResultOuterClass.ContractResult getNewVersion(String key) {
+    public String getNewVersion(String key, String field) {
         ResultOuterClass.TxResponse responseInfo = null;
         ResultOuterClass.ContractResult contractRes = null;
+        String ret = null;
         Map<String, byte[]> params = new HashMap<>();
         params.put("key", key.getBytes());
+        params.put("field", field.getBytes());
         try {
             responseInfo = chainClient.invokeContract("testOrg1", "get_state",
                     null, params, 10000, 10000);
-            System.out.println(responseInfo);
+//            System.out.println(responseInfo);
             contractRes = responseInfo.getContractResult();
+            ret = contractRes.getResult().toStringUtf8();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return contractRes;
+        return ret;
     }
 
     public ChainConfigOuterClass.ChainConfig getChainConfig() {

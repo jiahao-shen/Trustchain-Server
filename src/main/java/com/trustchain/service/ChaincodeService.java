@@ -26,13 +26,13 @@ public interface ChaincodeService {
      * @param TxId 交易号
      * @return 具体的交易信息
      */
-    ChainmakerTransaction.TransactionInfo getTxByTxId(String TxId);
+    ChainmakerTransaction.TransactionInfoWithRWSet getTxByTxId(String TxId);
 
     /**
      * @param key 存入区块链账本的键
      * @return 关于键最新一次存入的值
      */
-    ResultOuterClass.ContractResult getNewVersion(String key);
+    String getNewVersion(String key, String field);
 
     /**
      * @return 区块链的信息

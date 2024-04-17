@@ -7,6 +7,7 @@ import com.trustchain.model.entity.ApiParamItem;
 import com.trustchain.model.entity.ApiQueryItem;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.ApplyStatus;
+import org.chainmaker.pb.common.ResultOuterClass;
 
 import java.io.IOException;
 import java.util.List;
@@ -82,7 +83,7 @@ public interface ApiService {
      * @param reply   回复类型
      * @param reason  回复理由
      */
-    void registerReply(String applyId, ApplyStatus reply, String reason);
+    ResultOuterClass.ContractResult registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param user 用户

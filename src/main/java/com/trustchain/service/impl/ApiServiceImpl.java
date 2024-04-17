@@ -1,8 +1,11 @@
 package com.trustchain.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
+import com.sun.xml.bind.v2.TODO;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.*;
 import com.trustchain.model.convert.ApiConvert;
@@ -11,12 +14,15 @@ import com.trustchain.model.enums.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.WalletService;
+import com.trustchain.service.ChaincodeService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
+import org.chainmaker.pb.common.ChainmakerTransaction;
+import org.chainmaker.pb.common.ResultOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +56,8 @@ public class ApiServiceImpl implements ApiService {
     private ApiInvokeLogMapper apiInvokeLogMapper;
     @Autowired
     private MinioService minioService;
+    @Autowired
+    private ChaincodeService chaincodeService;
 
     private static final Logger logger = LogManager.getLogger(ApiServiceImpl.class);
 
@@ -222,9 +230,9 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     @Transactional
-    public void registerReply(String applyId, ApplyStatus reply, String reason) {
+    public ResultOuterClass.ContractResult registerReply(String applyId, ApplyStatus reply, String reason) {
         ApiRegister apiReg = apiRegMapper.selectOneById(applyId);
-
+        ResultOuterClass.ContractResult contractResult = null;
         if (apiReg == null) {
             throw new RuntimeException("API注册申请不存在");
         }
@@ -233,7 +241,14 @@ public class ApiServiceImpl implements ApiService {
             Api api = ApiConvert.INSTANCE.toApi(apiReg);
             apiMapper.insert(api);
 
-            // TODO: 对接长安链
+            // 对接长安链
+            JSONObject jsonObject = JSONObject.from(api);
+            String field = "api";
+            try{
+                contractResult = chaincodeService.invokeContractUpload(api.getId(),field, jsonObject);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             apiReg.setId(api.getId());
             apiReg.setApplyStatus(ApplyStatus.ALLOW);
             apiReg.setReplyTime(new Date());
@@ -243,9 +258,9 @@ public class ApiServiceImpl implements ApiService {
             apiReg.setApplyStatus(ApplyStatus.REJECT);
             apiReg.setReplyTime(new Date());
             apiReg.setReplyReason(reason);
-
             apiRegMapper.update(apiReg);
         }
+        return contractResult;
     }
 
     @Override
@@ -397,6 +412,11 @@ public class ApiServiceImpl implements ApiService {
         // TODO: 对接长安链
         RelationManager.setMaxDepth(1);
         Api api = apiMapper.selectOneWithRelationsById(apiId);
+        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
+        try{
+            transactionInfoWithRWSet = chaincodeService.getTxByTxId(api.getId());
+
+        }
 
         if (!api.getUserId().equals(userId)) {
             // 如果不是自己的API则隐藏Url
@@ -412,9 +432,16 @@ public class ApiServiceImpl implements ApiService {
         if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneByEntityId(api).getUserId())) {
             throw new NoPermissionException("非API的所有者无法修改API信息");
         }
-
+        JSONObject jsonObject = JSONObject.from(api);
+        ResultOuterClass.ContractResult contractResult = null;
+        String field = "api";
+        try{
+            contractResult = chaincodeService.invokeContractUpload(api.getId(),field,jsonObject);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         int count = apiMapper.update(api, true);
-
         return count != 0;
     }
 
@@ -424,6 +451,15 @@ public class ApiServiceImpl implements ApiService {
             throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
         }
         // 对接长安链
+        ResultOuterClass.ContractResult contractResult = null;
+        JSONArray jsonArray = null;
+        String field = "api";
+        try{
+            contractResult = chaincodeService.getKeyHistory(apiId,field);
+            String res = contractResult.getResult().toStringUtf8();
+        }
+
+
         return null;
     }
 

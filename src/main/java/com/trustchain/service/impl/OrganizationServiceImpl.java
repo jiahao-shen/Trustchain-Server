@@ -1,5 +1,6 @@
 package com.trustchain.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
@@ -10,6 +11,7 @@ import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.enums.OrganizationType;
+import com.trustchain.service.ChaincodeService;
 import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
@@ -39,6 +41,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     private MinioService minioService;
     @Autowired
     private EmailSerivce emailSerivce;
+    @Autowired
+    private ChaincodeService chaincodeService;
 
     private static final Logger logger = LogManager.getLogger(OrganizationServiceImpl.class);
 
@@ -238,6 +242,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
             orgMapper.insert(org);
             // TODO: 写入长安链
+//            JSONObject jsonObject = (JSONObject) JSONObject.from(org);
+//            chaincodeService.invokeContractUpload();
 
             // 更新注册表状态
             orgReg.setId(org.getId());

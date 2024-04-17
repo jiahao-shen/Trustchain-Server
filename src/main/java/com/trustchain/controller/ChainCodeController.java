@@ -71,7 +71,7 @@ public class ChainCodeController {
     @PostMapping("/chaincode/getSpecialOrg")
     public ResponseEntity<Object> getSpecialOrg(@RequestBody JSONObject request){
         String txId = request.getString("txId");
-        ChainmakerTransaction.TransactionInfo transactionInfo = null;
+        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfo = null;
         try{
             transactionInfo = chaincodeService.getTxByTxId(txId);
         }catch (Exception e){
@@ -83,15 +83,16 @@ public class ChainCodeController {
 
     @PostMapping("/chaincode/getNewestOrg")
     public ResponseEntity<Object> getNewestOrg(@RequestBody JSONObject request){
-        ResultOuterClass.ContractResult contractResult = null;
-        String orgId = request.getString("orgId");
+            String res = null;
+            String orgId = request.getString("orgId");
+            String field = "organization";
         try{
-            contractResult = chaincodeService.getNewVersion(orgId);
+            res = chaincodeService.getNewVersion(orgId, field);
         }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(contractResult);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
     @PostMapping("/chaincode/test/getChainConfig")
