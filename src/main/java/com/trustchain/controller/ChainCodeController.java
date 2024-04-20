@@ -72,13 +72,15 @@ public class ChainCodeController {
     public ResponseEntity<Object> getSpecialOrg(@RequestBody JSONObject request){
         String txId = request.getString("txId");
         ChainmakerTransaction.TransactionInfoWithRWSet transactionInfo = null;
+        String writeSetInfo = null;
         try{
             transactionInfo = chaincodeService.getTxByTxId(txId);
+            writeSetInfo = transactionInfo.getRwSet().getTxWrites(0).getValue().toStringUtf8();
         }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(transactionInfo);
+        return ResponseEntity.status(HttpStatus.OK).body(writeSetInfo);
     }
 
     @PostMapping("/chaincode/getNewestOrg")

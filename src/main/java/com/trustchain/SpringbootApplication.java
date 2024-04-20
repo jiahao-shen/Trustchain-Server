@@ -102,13 +102,13 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册自定义拦截器，添加拦截路径和排除拦截路径
+        if (GlobalVariable.ENV.equals("TEST")) {
+            return;
+        }
         registry.addInterceptor(new HandlerInterceptor() {
                     @Override
                     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
                         logger.info(request.getRequestURI());
-                        if (GlobalVariable.ENV.equals("TEST")) {
-                            return true;
-                        }
                         if (StpUtil.isLogin() && AuthUtil.getUser() != null) {
                             return true;
                         } else {

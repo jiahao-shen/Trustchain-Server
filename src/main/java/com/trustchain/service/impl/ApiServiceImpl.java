@@ -1,5 +1,6 @@
 package com.trustchain.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.mybatisflex.core.paginate.Page;
@@ -413,17 +414,22 @@ public class ApiServiceImpl implements ApiService {
         RelationManager.setMaxDepth(1);
         Api api = apiMapper.selectOneWithRelationsById(apiId);
         ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
+        Api api1 = null;
         try{
             transactionInfoWithRWSet = chaincodeService.getTxByTxId(api.getId());
-
+            String apiInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
+            JSONObject jsonObject = JSON.parseObject(apiInfo);
+            api1 = jsonObject.toJavaObject(Api.class);
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
-
         if (!api.getUserId().equals(userId)) {
             // 如果不是自己的API则隐藏Url
             api.setUrl(null);
         }
 
-        return api;
+        return api1;
     }
 
     @Override
@@ -458,8 +464,9 @@ public class ApiServiceImpl implements ApiService {
             contractResult = chaincodeService.getKeyHistory(apiId,field);
             String res = contractResult.getResult().toStringUtf8();
         }
-
-
+        catch(Exception e){
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -973,7 +980,7 @@ public class ApiServiceImpl implements ApiService {
     /**
      * 处理响应
      *
-     * @param applyId  调用申请号
+     *  applyId  调用申请号
      * @param param    请求Param参数
      * @param query    请求Query参数
      * @param header   请求标头

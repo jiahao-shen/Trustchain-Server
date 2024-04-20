@@ -1,10 +1,13 @@
 package com.trustchain.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.model.convert.OrganizationConvert;
+import com.trustchain.model.entity.ChainTransactionHistory;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
@@ -17,14 +20,12 @@ import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.chainmaker.pb.common.ResultOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.OrganizationRegisterTableDef.ORGANIZATION_REGISTER;
@@ -242,8 +243,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
             orgMapper.insert(org);
             // TODO: 写入长安链
-//            JSONObject jsonObject = (JSONObject) JSONObject.from(org);
-//            chaincodeService.invokeContractUpload();
+            JSONObject jsonObject = (JSONObject) JSON.toJSON(org);
+            chaincodeService.invokeContractUpload(org.getId(),"organization",jsonObject);
 
             // 更新注册表状态
             orgReg.setId(org.getId());
@@ -278,13 +279,17 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public Organization informationDetail(String orgId, String version) {
         // TODO: 对接长安链
-        RelationManager.setMaxDepth(1);
-        return orgMapper.selectOneWithRelationsById(orgId);
+//        String res = chaincodeService.getNewVersion(orgId, "organization");
+        String res = chaincodeService.getTxByTxId(version).getRwSet().getTxWrites(0).getValue().toStringUtf8();
+        System.out.println(res);
+        Organization organization = JSON.parseObject(res, Organization.class);
+        return organization;
     }
 
     @Override
     public Organization informationUpdate(Organization org) {
         // TODO: 对接长安链
+        chaincodeService.invokeContractUpload(org.getId(), "organization", (JSONObject) JSON.toJSON(org));
         String logo = org.getLogo();
         if (!minioService.isUrl(logo)) {
             String newLogoPath = "organization/" + org.getId() + "/" + logo.substring(logo.lastIndexOf("/") + 1);
@@ -310,7 +315,23 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public List<Organization> informationHistory(String orgId) {
         // TODO: 对接长安链
-        return null;
+        ResultOuterClass.ContractResult contractResult = chaincodeService.getKeyHistory(orgId,"organization");
+        byte[] data = contractResult.toByteArray();
+        String res = new String(data);
+        String[] temp1 = res.split("\\[");
+        String[] temp2 = temp1[1].split("\\]");
+        String jsonMess = temp2[0];
+        String jsonStr = "["+jsonMess+"]";
+        JSONArray jsonArray = JSONArray.parseArray(jsonStr);
+        System.out.println(jsonArray.toString());
+        List<Organization> organizations = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject tmp = jsonArray.getJSONObject(i);
+            if (tmp.containsKey("value")) {
+                organizations.add(JSON.parseObject(tmp.getString("value"), Organization.class));
+            }
+        }
+        return organizations;
     }
 
     @Override

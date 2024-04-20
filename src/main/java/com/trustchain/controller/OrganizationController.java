@@ -177,9 +177,9 @@ public class OrganizationController {
     @PostMapping("/information/detail")
     @ResponseBody
     public BaseResponse<OrganizationVO> informationDetail(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
+//        String orgId = request.getString("orgId");
         String version = request.getString("version");
-
+        String orgId = null;
         Organization org = orgService.informationDetail(orgId, version);
         OrganizationVO orgInfo = OrganizationConvert.INSTANCE.toOrganizationVO(org);
         orgInfo.setLatest(true);
@@ -232,6 +232,14 @@ public class OrganizationController {
         List<Organization> orgs = orgService.informationHistory(orgId);
 
         return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVOList(orgs));
+    }
+
+    @PostMapping("/information/historytest")
+    @ResponseBody
+    public ResponseEntity<Object> informationHistoryTest(@RequestBody JSONObject request) {
+        String orgId = request.getString("orgId");
+        List<Organization> orgs = orgService.informationHistory(orgId);
+        return ResponseEntity.status(HttpStatus.OK).body(orgs);
     }
 
     @PostMapping("/information/rollback")
