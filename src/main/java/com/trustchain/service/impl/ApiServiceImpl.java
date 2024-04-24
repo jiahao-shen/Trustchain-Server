@@ -416,7 +416,7 @@ public class ApiServiceImpl implements ApiService {
         ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
         Api api1 = null;
         try{
-            transactionInfoWithRWSet = chaincodeService.getTxByTxId(api.getId());
+            transactionInfoWithRWSet = chaincodeService.getTxByTxId(version);
             String apiInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
             JSONObject jsonObject = JSON.parseObject(apiInfo);
             api1 = jsonObject.toJavaObject(Api.class);
@@ -460,14 +460,21 @@ public class ApiServiceImpl implements ApiService {
         ResultOuterClass.ContractResult contractResult = null;
         JSONArray jsonArray = null;
         String field = "api";
+        List<Api>  apiList = null;
         try{
             contractResult = chaincodeService.getKeyHistory(apiId,field);
-            String res = contractResult.getResult().toStringUtf8();
-        }
-        catch(Exception e){
+            byte[] data = contractResult.toByteArray();
+            String res = new String(data);
+            String[] temp1 = res.split("\\[");
+            String[] temp2 = temp1[1].split("\\]");
+            String jsonMess = temp2[0];
+            String jsonStr = "["+jsonMess+"]";
+            jsonArray = JSONArray.parseArray(jsonStr);
+            apiList = JSON.parseArray(jsonArray.toJSONString(),Api.class);
+        } catch(Exception e){
             e.printStackTrace();
         }
-        return null;
+        return apiList;
     }
 
     @Override
