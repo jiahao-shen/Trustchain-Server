@@ -39,7 +39,7 @@ public class EmailServiceImpl implements EmailSerivce {
 
             MimeMessageHelper helper = new MimeMessageHelper(message);
             helper.setFrom(config.getUsername());
-            helper.setTo("1843781563@qq.com");   // TODO: 开发调试用
+            helper.setTo(to);   // TODO: 开发调试用
 //            helper.setTo(to);
 
             helper.setSubject(subject);

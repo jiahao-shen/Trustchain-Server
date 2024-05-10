@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.mybatisflex.core.paginate.Page;
+import com.trustchain.model.dto.OrganizationDTO;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
@@ -116,7 +117,7 @@ public interface OrganizationService {
      * @param version 版本号
      * @return 机构信息
      */
-    Organization informationDetail(String orgId, String version);
+    OrganizationDTO informationDetail(String orgId, String version);
 
     /**
      * @param organization 机构
@@ -130,7 +131,7 @@ public interface OrganizationService {
      * @param orgId 机构ID
      * @return 机构信息历史记录
      */
-    List<Organization> informationHistory(String orgId);
+    List<OrganizationDTO> informationHistory(String orgId);
 
     /**
      * @param orgId      机构ID

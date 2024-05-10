@@ -1,17 +1,18 @@
-package com.trustchain.model.vo;
-
+package com.trustchain.model.dto;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.OrganizationType;
-import com.trustchain.model.serializer.MinioUrlSerializer;
-import lombok.*;
+import com.trustchain.model.vo.OrganizationVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationVO {
+public class OrganizationDTO {
 
     private String id;  // 机构ID
 
@@ -29,24 +30,21 @@ public class OrganizationVO {
 
     private String introduction;    // 机构介绍
 
-    private OrganizationVO superior; // 上级机构
+    private String superiorId;  // 上级机构ID
 
-    @JSONField(format = "yyyy-MM-dd")
+    private OrganizationDTO superior; // 上级机构
+
     private Date creationTime;   // 创建时间
 
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date registrationTime;   // 注册时间
 
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date lastModified;   // 最后修改时间
 
     private String version;  // 版本号
 
     private Boolean latest; // 是否为最新
 
-    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String logo; // 机构Logo
 
-    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String file;    // 机构文件
 }

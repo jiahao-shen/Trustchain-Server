@@ -20,10 +20,10 @@ public class MinioTest {
 
     @Test
     void testPresignedUrl() {
-        logger.info(minioService.presignedUrl("tmp/c1e21f5f3b414737bf0d088f676af8cf.jpg"));
-        logger.info(minioService.presignedUrl("organization/5e87c537c4b2403bb2247d8cac035bc9.jpg"));
-        logger.info(minioService.presignedUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854"));
-        logger.info(minioService.isUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854"));
+        logger.info(minioService.presignedUrl("tmp/687b0f3a31097ee3f70bd5935a68c37a.jpg"));
+//        logger.info(minioService.presignedUrl("organization/5e87c537c4b2403bb2247d8cac035bc9.jpg"));
+//        logger.info(minioService.presignedUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854"));
+//        logger.info(minioService.isUrl("http://127.0.0.1:9000/trustchain/user/a2ca69b817e341b78d975ba14f17242b.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cW3wffjaswmJBZEnBU2j%2F20240313%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240313T144641Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2f53843466a9775824ad6905e889fef4168d6e488b4cc4f91e3631a03689f854"));
     }
 
     @Test

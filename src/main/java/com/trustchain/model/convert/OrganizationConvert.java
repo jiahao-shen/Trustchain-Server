@@ -1,5 +1,6 @@
 package com.trustchain.model.convert;
 
+import com.trustchain.model.dto.OrganizationDTO;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.vo.OrganizationRegisterVO;
@@ -13,13 +14,19 @@ import java.util.List;
 public interface OrganizationConvert {
     OrganizationConvert INSTANCE = Mappers.getMapper(OrganizationConvert.class);
 
-    Organization toOrganization(OrganizationRegister organizationRegister);
+    Organization orgRegToOrg(OrganizationRegister organizationRegister);
 
-    OrganizationVO toOrganizationVO(Organization organization);
+    OrganizationDTO orgToOrgDTO(Organization org);
 
-    List<OrganizationVO> toOrganizationVOList(List<Organization> organizationList);
+    OrganizationVO orgToOrgVO(Organization organization);
 
-    OrganizationRegisterVO toOrganizationRegisterVO(OrganizationRegister organizationRegister);
+    OrganizationVO orgDTOToOrgVO(OrganizationDTO organizationDTO);
 
-    List<OrganizationRegisterVO> toOrganizationRegisterVOList(List<OrganizationRegister> organizationRegisterList);
+    List<OrganizationVO> orgListToOrgVOList(List<Organization> organizationList);
+
+    List<OrganizationVO> orgDTOListToOrgVOList(List<OrganizationDTO> organizationDTOList);
+
+    OrganizationRegisterVO orgRegToOrgRegVO(OrganizationRegister organizationRegister);
+
+    List<OrganizationRegisterVO> orgRegListToOrgRegVOList(List<OrganizationRegister> organizationRegisterList);
 }

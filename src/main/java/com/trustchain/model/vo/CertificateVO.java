@@ -1,5 +1,6 @@
 package com.trustchain.model.vo;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.CertificateStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,12 +20,14 @@ public class CertificateVO {
 
     private String productionUnit;
 
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date productionDate;
 
     private String checkStandard;
 
     private String checkUser;
 
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date checkDate;
 
     private CertificateStatus certificateStatus;

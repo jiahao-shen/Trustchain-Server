@@ -53,6 +53,12 @@ public class MyBatisFlexTest {
         logger.info(result.getTotalRow());
     }
 
+    @Test
+    void testOrgregister(){
+        Organization organization = new Organization();
+
+    }
+
 
     @Test
     void testLogicalDelete() {

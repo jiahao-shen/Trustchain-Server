@@ -35,7 +35,7 @@ public class CaptchaServiceImpl implements CaptchaService {
                 new CharacterRule(EnglishCharacterData.Alphabetical));
 
         // 5分钟后过期
-        redisTemplate.opsForValue().set("captcha:" + email, code, 5, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set("captcha:" + email, code, 500, TimeUnit.MINUTES);
 
         return emailSerivce.send(email, "数据资源可信共享平台 邮箱验证码",
                 "您的验证码如下, 有效期为5分钟。<br>" +
@@ -44,8 +44,9 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     @Override
     public void verify(String email, String code) {
-        // TODO: 开发调试用
+        // TODO: 开发调用
         email = "1843781563@qq.com";
+        // TODO: 开发调试用
         String value = redisTemplate.opsForValue().get("captcha:" + email);
 
         if (!code.equals(value)) {

@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private EmailSerivce emailSerivce;
     @Autowired
-    private ChaincodeService chaincodeService;
+    private ChainService chainService;
 
     private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
 
@@ -171,7 +171,14 @@ public class UserServiceImpl implements UserService {
 
             user.setLogo(newLogoPath);
 
+            // 设置版本
+            user.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+
+            // 插入新机构
             userMapper.insert(user);
+            user = userMapper.selectOneById(user.getId());
+            // 写入链
+            chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
 
             // 创建钱包
             Wallet wallet = new Wallet();
@@ -203,28 +210,27 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public boolean register(User user) {
-        user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        user.setId(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+        user.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+
+        // 将机构的Logo作为当前用户的Logo
         Organization org = orgMapper.selectOneById(user.getOrganizationId());
         String oldLogoPath = org.getLogo();
         String newLogoPath = "user/" + user.getId() + "/" + oldLogoPath.substring(oldLogoPath.lastIndexOf("/") + 1);
         minioService.copy(oldLogoPath, newLogoPath);
         user.setLogo(newLogoPath);
-        ResultOuterClass.ContractResult contractResult = null;
-        String field = "user";
-        JSONObject jsonObject = JSONObject.from(user);
-        try{
-            contractResult = chaincodeService.invokeContractUpload(user.getId(),field,jsonObject);
-        }catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
 
-        // 创建钱包
         Wallet wallet = new Wallet();
         wallet.setUserId(user.getId());
         walletMapper.insert(wallet);
 
-        return userMapper.insert(user) != 0;
+        // 插入新用户
+        userMapper.insert(user);
+        user = userMapper.selectOneById(user.getId());
+        // 写入链
+        chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
+
+        return true;
     }
 
     @Override
@@ -362,17 +368,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User informationDetail(String userId, String version) {
-        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
-        User user = null;
-        try{
-            transactionInfoWithRWSet = chaincodeService.getTxByTxId(version);
-            String userInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
-            JSONObject jsonObject = JSON.parseObject(userInfo);
-            user = jsonObject.toJavaObject(User.class);
-        }catch (Exception e){
-            e.printStackTrace();
+        User user;
+
+        if (version.equals("@latest")) {
+            // TODO: 链上版本和数据库对比
+            RelationManager.setMaxDepth(1);
+            user = userMapper.selectOneWithRelationsById(userId);
+        } else {
+            user = JSON.parseObject(chainService.getState(version), User.class);
         }
-        //return userMapper.selectOneById(userId);
         return user;
     }
 
@@ -386,41 +390,30 @@ public class UserServiceImpl implements UserService {
         } else {
             user.setLogo(null);
         }
+        user.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+
         userMapper.update(user, true);
-        JSONObject jsonObject = JSONObject.from(user);
-        ResultOuterClass.ContractResult contractResult = null;
-        String field = "user";
-        try{
-            contractResult = chaincodeService.invokeContractUpload(user.getId(),field,jsonObject);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        user = userMapper.selectOneById(user.getId());
+
+        chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
+
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsById(user.getId());
     }
 
     @Override
     public List<User> informationHistory(String userId) {
-        // TODO: 对接长安链
-        ResultOuterClass.ContractResult contractResult = null;
-        String field = "user";
-        List<User> userList = null;
-        JSONArray jsonArray = null;
-        try{
-            contractResult = chaincodeService.getKeyHistory(userId, field);
-            byte[] data = contractResult.toByteArray();
-            String res = new String(data);
-            String[] temp1 = res.split("\\[");
-            String[] temp2 = temp1[1].split("\\]");
-            String jsonMess = temp2[0];
-            String jsonStr = "["+jsonMess+"]";
-            jsonArray = JSONArray.parseArray(jsonStr);
-            userList = JSON.parseArray(jsonArray.toJSONString(),User.class);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        List<User> users = new ArrayList<>();
 
-        return userList;
+        JSONArray histories = JSON.parseArray(chainService.getHistory(userId, "user"));
+
+        histories.forEach(item -> {
+            JSONObject tmp = (JSONObject) item;
+            User user = JSON.parseObject(tmp.getString("value"), User.class);
+            users.add(user);
+        });
+
+        return users;
     }
 
     @Override

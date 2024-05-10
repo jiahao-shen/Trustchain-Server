@@ -7,20 +7,19 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.model.convert.OrganizationConvert;
-import com.trustchain.model.entity.ChainTransactionHistory;
+import com.trustchain.model.dto.OrganizationDTO;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.mapper.OrganizationMapper;
 import com.trustchain.mapper.OrganizationRegisterMapper;
 import com.trustchain.model.entity.Organization;
 import com.trustchain.model.entity.OrganizationRegister;
 import com.trustchain.model.enums.OrganizationType;
-import com.trustchain.service.ChaincodeService;
+import com.trustchain.service.ChainService;
 import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.chainmaker.pb.common.ResultOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +42,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Autowired
     private EmailSerivce emailSerivce;
     @Autowired
-    private ChaincodeService chaincodeService;
+    private ChainService chainService;
 
     private static final Logger logger = LogManager.getLogger(OrganizationServiceImpl.class);
 
@@ -225,7 +224,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
         if (reply == ApplyStatus.ALLOW) {
             // 创建新机构
-            Organization org = OrganizationConvert.INSTANCE.toOrganization(orgReg);
+            Organization org = OrganizationConvert.INSTANCE.orgRegToOrg(orgReg);
             org.setId(UUID.randomUUID().toString().replaceAll("-", ""));
 
             // 复制Logo
@@ -241,10 +240,14 @@ public class OrganizationServiceImpl implements OrganizationService {
             org.setLogo(newLogoPath);
             org.setFile(newFilePath);
 
+            // 设置版本
+            org.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+
+            // 插入新机构
             orgMapper.insert(org);
-            // TODO: 写入长安链
-            JSONObject jsonObject = (JSONObject) JSON.toJSON(org);
-            chaincodeService.invokeContractUpload(org.getId(),"organization",jsonObject);
+            org = orgMapper.selectOneById(org.getId());
+            // 写入链
+            chainService.putState(org.getId(), "organization", JSON.toJSONString(org), org.getVersion());
 
             // 更新注册表状态
             orgReg.setId(org.getId());
@@ -277,19 +280,32 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Organization informationDetail(String orgId, String version) {
-        // TODO: 对接长安链
-//        String res = chaincodeService.getNewVersion(orgId, "organization");
-        String res = chaincodeService.getTxByTxId(version).getRwSet().getTxWrites(0).getValue().toStringUtf8();
-        System.out.println(res);
-        Organization organization = JSON.parseObject(res, Organization.class);
-        return organization;
+    public OrganizationDTO informationDetail(String orgId, String version) {
+        OrganizationDTO organizationDTO;
+
+        RelationManager.setMaxDepth(1);
+        Organization latest = orgMapper.selectOneWithRelationsById(orgId);
+
+        if (version.equals("@latest")) {
+            // TODO: 链上版本和数据库对比
+            organizationDTO = OrganizationConvert.INSTANCE.orgToOrgDTO(latest);
+        } else {
+            organizationDTO = JSON.parseObject(chainService.getState(version), OrganizationDTO.class);
+            Organization superior = orgMapper.selectOneById(organizationDTO.getSuperiorId());
+            organizationDTO.setSuperior(OrganizationConvert.INSTANCE.orgToOrgDTO(superior));
+        }
+
+        if (organizationDTO.getVersion().equals(latest.getVersion())) {
+            organizationDTO.setLatest(true);
+        } else {
+            organizationDTO.setLatest(false);
+        }
+
+        return organizationDTO;
     }
 
     @Override
     public Organization informationUpdate(Organization org) {
-        // TODO: 对接长安链
-        chaincodeService.invokeContractUpload(org.getId(), "organization", (JSONObject) JSON.toJSON(org));
         String logo = org.getLogo();
         if (!minioService.isUrl(logo)) {
             String newLogoPath = "organization/" + org.getId() + "/" + logo.substring(logo.lastIndexOf("/") + 1);
@@ -306,31 +322,39 @@ public class OrganizationServiceImpl implements OrganizationService {
         } else {
             org.setFile(null);
         }
-        orgMapper.update(org, true);
+        org.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
 
+        orgMapper.update(org, true);
+        org = orgMapper.selectOneById(org.getId());
+
+        chainService.putState(org.getId(), "organization", JSON.toJSONString(org), org.getVersion());
+
+        // TODO:
         RelationManager.setMaxDepth(1);
         return orgMapper.selectOneWithRelationsById(org.getId());
     }
 
     @Override
-    public List<Organization> informationHistory(String orgId) {
-        // TODO: 对接长安链
-        ResultOuterClass.ContractResult contractResult = chaincodeService.getKeyHistory(orgId,"organization");
-        byte[] data = contractResult.toByteArray();
-        String res = new String(data);
-        String[] temp1 = res.split("\\[");
-        String[] temp2 = temp1[1].split("\\]");
-        String jsonMess = temp2[0];
-        String jsonStr = "["+jsonMess+"]";
-        JSONArray jsonArray = JSONArray.parseArray(jsonStr);
-        System.out.println(jsonArray.toString());
-        List<Organization> organizations = new ArrayList<>();
-        for (int i = 0; i < jsonArray.size(); i++) {
-            JSONObject tmp = jsonArray.getJSONObject(i);
-            if (tmp.containsKey("value")) {
-                organizations.add(JSON.parseObject(tmp.getString("value"), Organization.class));
+    public List<OrganizationDTO> informationHistory(String orgId) {
+        Organization latest = orgMapper.selectOneById(orgId);
+
+        List<OrganizationDTO> organizations = new ArrayList<>();
+
+        JSONArray histories = JSON.parseArray(chainService.getHistory(orgId, "organization"));
+
+        histories.forEach(item -> {
+            JSONObject tmp = (JSONObject) item;
+            OrganizationDTO org = JSON.parseObject(tmp.getString("value"), OrganizationDTO.class);
+            if (org.getVersion().equals(latest.getVersion())) {
+                org.setLatest(true);
+            } else {
+                org.setLatest(false);
             }
-        }
+            organizations.add(org);
+        });
+
+        organizations.sort(Comparator.comparing(OrganizationDTO::getLastModified).reversed());
+
         return organizations;
     }
 

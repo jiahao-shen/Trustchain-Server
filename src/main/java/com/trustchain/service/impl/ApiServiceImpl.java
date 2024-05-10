@@ -6,7 +6,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
-import com.sun.xml.bind.v2.TODO;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.*;
 import com.trustchain.model.convert.ApiConvert;
@@ -15,7 +14,7 @@ import com.trustchain.model.enums.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.WalletService;
-import com.trustchain.service.ChaincodeService;
+import com.trustchain.service.ChainService;
 import com.trustchain.util.AuthUtil;
 import okhttp3.*;
 import org.apache.commons.io.IOUtils;
@@ -30,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.rmi.RemoteException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,14 +56,13 @@ public class ApiServiceImpl implements ApiService {
     @Autowired
     private MinioService minioService;
     @Autowired
-    private ChaincodeService chaincodeService;
+    private ChainService chainService;
 
     private static final Logger logger = LogManager.getLogger(ApiServiceImpl.class);
 
     @Override
     public boolean register(Api api) {
         int count = apiMapper.insert(api);
-
         return count != 0;
     }
 
@@ -245,11 +242,11 @@ public class ApiServiceImpl implements ApiService {
             // 对接长安链
             JSONObject jsonObject = JSONObject.from(api);
             String field = "api";
-            try{
-                contractResult = chaincodeService.invokeContractUpload(api.getId(),field, jsonObject);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+//            try{
+//                contractResult = ChainService.invokeContractUpload(api.getId(),field, jsonObject);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
             apiReg.setId(api.getId());
             apiReg.setApplyStatus(ApplyStatus.ALLOW);
             apiReg.setReplyTime(new Date());
@@ -415,20 +412,29 @@ public class ApiServiceImpl implements ApiService {
         Api api = apiMapper.selectOneWithRelationsById(apiId);
         ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
         Api api1 = null;
-        try{
-            transactionInfoWithRWSet = chaincodeService.getTxByTxId(version);
-            String apiInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
-            JSONObject jsonObject = JSON.parseObject(apiInfo);
-            api1 = jsonObject.toJavaObject(Api.class);
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
-        }
-        if (!api.getUserId().equals(userId)) {
-            // 如果不是自己的API则隐藏Url
-            api.setUrl(null);
-        }
-
+        String res = "";
+//        try{
+//            if(version.equals("@latest")){
+//                res = ChainService.getNewVersion(apiId, "api");
+//            }else{
+//                res = ChainService.getTxByTxId(version).getRwSet().getTxWrites(0).getValue().toStringUtf8();
+//            }
+////            transactionInfoWithRWSet = ChainService.getTxByTxId(version);
+////            String apiInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
+//            //JSONObject jsonObject = JSON.parseObject(apiInfo);
+//            if(res.equals("")){
+//                api1 = apiMapper.selectOneById(apiId);
+//            }else{
+//                api1 = JSON.parseObject(res, Api.class);
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            return null;
+//        }
+//        if (!api.getUserId().equals(userId)) {
+//            // 如果不是自己的API则隐藏Url
+//            api.setUrl(null);
+//        }
         return api1;
     }
 
@@ -441,40 +447,46 @@ public class ApiServiceImpl implements ApiService {
         JSONObject jsonObject = JSONObject.from(api);
         ResultOuterClass.ContractResult contractResult = null;
         String field = "api";
-        try{
-            contractResult = chaincodeService.invokeContractUpload(api.getId(),field,jsonObject);
-        }catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+//        try{
+//            contractResult = ChainService.invokeContractUpload(api.getId(),field,jsonObject);
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
         int count = apiMapper.update(api, true);
         return count != 0;
     }
 
     @Override
     public List<Api> informationHistory(String apiId) {
-        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
-            throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
-        }
-        // 对接长安链
-        ResultOuterClass.ContractResult contractResult = null;
-        JSONArray jsonArray = null;
-        String field = "api";
-        List<Api>  apiList = null;
-        try{
-            contractResult = chaincodeService.getKeyHistory(apiId,field);
-            byte[] data = contractResult.toByteArray();
-            String res = new String(data);
-            String[] temp1 = res.split("\\[");
-            String[] temp2 = temp1[1].split("\\]");
-            String jsonMess = temp2[0];
-            String jsonStr = "["+jsonMess+"]";
-            jsonArray = JSONArray.parseArray(jsonStr);
-            apiList = JSON.parseArray(jsonArray.toJSONString(),Api.class);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        return apiList;
+//        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
+//            throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
+//        }
+//        // 对接长安链
+//        ResultOuterClass.ContractResult contractResult = null;
+//        JSONArray jsonArray = null;
+//        String field = "api";
+//        List<Api> apiList = new ArrayList<>();
+//        try{
+//            contractResult = ChainService.getKeyHistory(apiId,field);
+//            byte[] data = contractResult.toByteArray();
+//            String res = new String(data);
+//            String[] temp1 = res.split("\\[");
+//            if(temp1.length < 2){
+//                Api api = apiMapper.selectOneById(apiId);
+//                apiList.add(api);
+//            }else{
+//                String[] temp2 = temp1[1].split("\\]");
+//                String jsonMess = temp2[0];
+//                String jsonStr = "["+jsonMess+"]";
+//                jsonArray = JSONArray.parseArray(jsonStr);
+//                apiList = JSON.parseArray(jsonArray.toJSONString(),Api.class);
+//            }
+//        } catch(Exception e){
+//            e.printStackTrace();
+//        }
+//        return apiList;
+        return null;
     }
 
     @Override

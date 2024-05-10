@@ -78,5 +78,4 @@ public class Organization {
     @Column(value = "is_delete", isLogicDelete = true)
     @ColumnAlias("organization_is_delete")
     private Boolean isDelete;   // 逻辑删除标志位
-
 }

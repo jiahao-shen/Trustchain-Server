@@ -274,7 +274,6 @@ public class UserController {
     public BaseResponse<UserVO> informationDetail(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
         String version = request.getString("version");
-
         User user = userService.informationDetail(userId, version);
         UserVO userInfo = UserConvert.INSTANCE.toUserVO(user);
         userInfo.setLatest(true);
@@ -305,7 +304,9 @@ public class UserController {
     @ResponseBody
     public BaseResponse<List<UserVO>> informationHistory(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
-
+        System.out.println("inin");
+        System.out.println(AuthUtil.getUser().getId());
+        System.out.println(userId);
         if (!AuthUtil.getUser().getId().equals(userId)) {
             throw new NoPermissionException("非本用户无法查看用户信息历史记录");
         }

@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.OrganizationConvert;
+import com.trustchain.model.dto.OrganizationDTO;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.enums.OrganizationType;
 import com.trustchain.model.enums.ApplyStatus;
@@ -17,16 +18,11 @@ import com.trustchain.model.vo.OrganizationVO;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.service.OrganizationService;
 import com.trustchain.util.AuthUtil;
-import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +43,7 @@ public class OrganizationController {
         List<Organization> orgs = orgService.selectList();
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationVOList(orgs));
+                OrganizationConvert.INSTANCE.orgListToOrgVOList(orgs));
     }
 
     @PostMapping("/exist")
@@ -99,7 +95,7 @@ public class OrganizationController {
         Page<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs.getRecords()),
+                new Page(OrganizationConvert.INSTANCE.orgRegListToOrgRegVOList(orgRegs.getRecords()),
                         orgRegs.getPageNumber(), orgRegs.getPageSize(), orgRegs.getTotalRow()));
     }
 
@@ -111,7 +107,7 @@ public class OrganizationController {
         OrganizationRegister orgReg = orgService.registerApplyDetail(applyId);
 
         return new BaseResponse<>(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
+                OrganizationConvert.INSTANCE.orgRegToOrgRegVO(orgReg));
     }
 
     @PostMapping("/register/approval/list")
@@ -133,7 +129,7 @@ public class OrganizationController {
         Page<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(OrganizationConvert.INSTANCE.toOrganizationRegisterVOList(orgRegs.getRecords()),
+                new Page(OrganizationConvert.INSTANCE.orgRegListToOrgRegVOList(orgRegs.getRecords()),
                         orgRegs.getPageNumber(), orgRegs.getPageSize(), orgRegs.getTotalRow()));
     }
 
@@ -151,7 +147,7 @@ public class OrganizationController {
         OrganizationRegister orgReg = orgService.registerApprovalDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationRegisterVO(orgReg));
+                OrganizationConvert.INSTANCE.orgRegToOrgRegVO(orgReg));
     }
 
     @PostMapping("/register/reply")
@@ -177,14 +173,11 @@ public class OrganizationController {
     @PostMapping("/information/detail")
     @ResponseBody
     public BaseResponse<OrganizationVO> informationDetail(@RequestBody JSONObject request) {
-//        String orgId = request.getString("orgId");
+        String orgId = request.getString("orgId");
         String version = request.getString("version");
-        String orgId = null;
-        Organization org = orgService.informationDetail(orgId, version);
-        OrganizationVO orgInfo = OrganizationConvert.INSTANCE.toOrganizationVO(org);
-        orgInfo.setLatest(true);
+        OrganizationDTO orgDTO = orgService.informationDetail(orgId, version);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", orgInfo);
+        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.orgDTOToOrgVO(orgDTO));
     }
 
     @PutMapping("/information/update")
@@ -215,7 +208,7 @@ public class OrganizationController {
 
         Organization updateOrg = orgService.informationUpdate(org);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVO(updateOrg));
+        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.orgToOrgVO(updateOrg));
     }
 
     @PostMapping("/information/history")
@@ -229,17 +222,9 @@ public class OrganizationController {
 
         String orgId = request.getString("orgId");
 
-        List<Organization> orgs = orgService.informationHistory(orgId);
+        List<OrganizationDTO> orgDTOList = orgService.informationHistory(orgId);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.toOrganizationVOList(orgs));
-    }
-
-    @PostMapping("/information/historytest")
-    @ResponseBody
-    public ResponseEntity<Object> informationHistoryTest(@RequestBody JSONObject request) {
-        String orgId = request.getString("orgId");
-        List<Organization> orgs = orgService.informationHistory(orgId);
-        return ResponseEntity.status(HttpStatus.OK).body(orgs);
+        return new BaseResponse(StatusCode.SUCCESS, "", OrganizationConvert.INSTANCE.orgDTOListToOrgVOList(orgDTOList));
     }
 
     @PostMapping("/information/rollback")
@@ -278,7 +263,7 @@ public class OrganizationController {
         Page<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(OrganizationConvert.INSTANCE.toOrganizationVOList(subOrgs.getRecords()),
+                new Page(OrganizationConvert.INSTANCE.orgListToOrgVOList(subOrgs.getRecords()),
                         subOrgs.getPageNumber(), subOrgs.getPageSize(), subOrgs.getTotalRow()));
     }
 
@@ -290,7 +275,7 @@ public class OrganizationController {
         Organization org = orgService.subordinateDetail(orgId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                OrganizationConvert.INSTANCE.toOrganizationVO(org));
+                OrganizationConvert.INSTANCE.orgToOrgVO(org));
     }
 
 }

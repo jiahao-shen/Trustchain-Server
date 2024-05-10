@@ -23,7 +23,8 @@ public class ApiInvokeApplyTask {
     ApiInvokeApplyMapper apiInvokeApplyMapper;
     private static final Logger logger = LogManager.getLogger(ApiInvokeApplyTask.class);
 
-    @Scheduled(cron = "0 1 * * * *")
+    //@Scheduled(cron = "0 1 * * * *")
+    @Scheduled(cron = "0 0/1 * * * ?")
     void updateInvokeStatus() { // 整点运行
         // 筛选出所有申请状态为ALLOW, 且调用状态为PENDING, 且当前时间介于有效期内的请求
         QueryWrapper query1 = QueryWrapper.create()
