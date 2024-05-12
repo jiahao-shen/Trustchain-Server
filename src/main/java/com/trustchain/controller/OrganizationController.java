@@ -85,14 +85,14 @@ public class OrganizationController {
     public BaseResponse<Page<OrganizationRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         logger.info(request);
         List<String> applyIds = request.getList("applyIds", String.class);
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
         Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
-        Page<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
+        Page<OrganizationRegister> orgRegs = orgService.registerApplyList(applyIds, pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
                 new Page(OrganizationConvert.INSTANCE.orgRegListToOrgRegVOList(orgRegs.getRecords()),
@@ -113,7 +113,7 @@ public class OrganizationController {
     @PostMapping("/register/approval/list")
     @ResponseBody
     public BaseResponse<Page<OrganizationRegisterVO>> registerList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -126,7 +126,7 @@ public class OrganizationController {
             throw new NoPermissionException("非管理员无法获取机构注册审批列表");
         }
 
-        Page<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
+        Page<OrganizationRegister> orgRegs = orgService.registerApprovalList(user.getOrganizationId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
                 new Page(OrganizationConvert.INSTANCE.orgRegListToOrgRegVOList(orgRegs.getRecords()),
@@ -247,7 +247,7 @@ public class OrganizationController {
     @PostMapping("/subordinate/list")
     @ResponseBody
     public BaseResponse<Page<OrganizationVO>> subordinateList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -260,7 +260,7 @@ public class OrganizationController {
             throw new NoPermissionException("非管理员无法查看下级机构列表");
         }
 
-        Page<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
+        Page<Organization> subOrgs = orgService.subordinateList(user.getOrganizationId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
                 new Page(OrganizationConvert.INSTANCE.orgListToOrgVOList(subOrgs.getRecords()),

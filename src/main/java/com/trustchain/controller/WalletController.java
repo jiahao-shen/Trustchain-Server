@@ -76,7 +76,7 @@ public class WalletController {
 
     @PostMapping("/transaction/list")
     public BaseResponse<Page<TransactionVO>> transactionList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -85,7 +85,7 @@ public class WalletController {
 
         User user = AuthUtil.getUser();
 
-        Page<Transaction> transactions = walletService.transactionList(user.getId(), pageNumebr, pageSize, filter, sort);
+        Page<Transaction> transactions = walletService.transactionList(user.getId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
                 new Page(WalletConvert.INSTANCE.toTransactionVOList(transactions.getRecords()),

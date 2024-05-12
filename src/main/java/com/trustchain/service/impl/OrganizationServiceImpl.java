@@ -18,6 +18,7 @@ import com.trustchain.service.ChainService;
 import com.trustchain.service.EmailSerivce;
 import com.trustchain.service.MinioService;
 import com.trustchain.service.OrganizationService;
+import lombok.SneakyThrows;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,6 +216,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         return orgRegMapper.selectOneById(applyId);
     }
 
+    @SneakyThrows
     @Override
     @Transactional
     public void registerReply(String applyId, ApplyStatus reply, String reason) {
@@ -295,11 +297,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             organizationDTO.setSuperior(OrganizationConvert.INSTANCE.orgToOrgDTO(superior));
         }
 
-        if (organizationDTO.getVersion().equals(latest.getVersion())) {
-            organizationDTO.setLatest(true);
-        } else {
-            organizationDTO.setLatest(false);
-        }
+        organizationDTO.setLatest(organizationDTO.getVersion().equals(latest.getVersion()));
 
         return organizationDTO;
     }
@@ -345,22 +343,13 @@ public class OrganizationServiceImpl implements OrganizationService {
         histories.forEach(item -> {
             JSONObject tmp = (JSONObject) item;
             OrganizationDTO org = JSON.parseObject(tmp.getString("value"), OrganizationDTO.class);
-            if (org.getVersion().equals(latest.getVersion())) {
-                org.setLatest(true);
-            } else {
-                org.setLatest(false);
-            }
+            org.setLatest(org.getVersion().equals(latest.getVersion()));
             organizations.add(org);
         });
 
         organizations.sort(Comparator.comparing(OrganizationDTO::getLastModified).reversed());
 
         return organizations;
-    }
-
-    @Override
-    public Page<Organization> informationHistory(String orgId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
-        return null;
     }
 
     @Override

@@ -1,8 +1,8 @@
-package com.trustchain.model.vo;
+package com.trustchain.model.dto;
 
-import com.alibaba.fastjson2.annotation.JSONField;
+import com.trustchain.model.entity.Organization;
+import com.trustchain.model.entity.Wallet;
 import com.trustchain.model.enums.UserRole;
-import com.trustchain.model.serializer.MinioUrlSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserVO {
+public class UserDTO {
     private String id;  // 用户ID
 
     private String username;    // 用户名
@@ -23,18 +23,21 @@ public class UserVO {
 
     private UserRole role; // 角色
 
-    private OrganizationVO organization;  // 所属机构
+    private String organizationId;  // 机构ID
 
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private OrganizationDTO organization;  // 所属机构
+
     private Date registrationTime;  // 注册时间
 
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date lastModified;  // 最后修改时间
 
-    @JSONField(serializeUsing = MinioUrlSerializer.class)
     private String logo; // 用户Logo
 
     private String version; // 版本号
+
+    private String walletId;    // 钱包ID
+
+    private Wallet wallet;  // 钱包
 
     private Boolean latest; // 是否为最新
 }

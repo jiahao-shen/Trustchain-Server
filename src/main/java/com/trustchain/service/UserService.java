@@ -1,6 +1,7 @@
 package com.trustchain.service;
 
 import com.mybatisflex.core.paginate.Page;
+import com.trustchain.model.dto.UserDTO;
 import com.trustchain.model.entity.Transaction;
 import com.trustchain.model.entity.Wallet;
 import com.trustchain.model.enums.ApplyStatus;
@@ -143,7 +144,7 @@ public interface UserService {
      * @param userId 用户ID
      * @return 用户详情
      */
-    User informationDetail(String userId, String version);
+    UserDTO informationDetail(String userId, String version);
 
     /**
      * @param user 用户
@@ -155,21 +156,7 @@ public interface UserService {
      * @param userId 用户ID
      * @return 页数
      */
-    List<User> informationHistory(String userId);
-
-    /**
-     * @param userId     用户ID
-     * @param pageNumber 页数
-     * @param pageSize   页大小
-     * @param filter     过滤
-     * @param sort       排序
-     * @return 用户信息历史记录
-     */
-    Page<User> informationHistory(String userId,
-                                  Integer pageNumber,
-                                  Integer pageSize,
-                                  Map<String, List<String>> filter,
-                                  Map<String, String> sort);
+    List<UserDTO> informationHistory(String userId);
 
     /**
      * @param userId  用户ID

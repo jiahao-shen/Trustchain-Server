@@ -1,12 +1,9 @@
 package com.trustchain.model.convert;
 
-import com.trustchain.model.entity.Transaction;
+import com.trustchain.model.dto.UserDTO;
 import com.trustchain.model.entity.UserRegister;
-import com.trustchain.model.entity.Wallet;
-import com.trustchain.model.vo.TransactionVO;
 import com.trustchain.model.vo.UserRegisterVO;
 import com.trustchain.model.vo.UserVO;
-import com.trustchain.model.vo.WalletVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import com.trustchain.model.entity.User;
@@ -17,13 +14,21 @@ import java.util.List;
 public interface UserConvert {
     UserConvert INSTANCE = Mappers.getMapper(UserConvert.class);
 
-    User toUser(UserRegister userRegister);
+    User userRegToUser(UserRegister userRegister);
 
-    UserVO toUserVO(User user);
+    UserDTO userToUserDTO(User user);
 
-    List<UserVO> toUserVOList(List<User> userList);
+    List<UserDTO> userListToUserDTOList(List<User> userList);
 
-    UserRegisterVO toUserRegisterVO(UserRegister userRegister);
+    UserVO userDTOToUserVO(UserDTO userDTO);
 
-    List<UserRegisterVO> toUserRegisterVOList(List<UserRegister> userRegisterList);
+    List<UserVO> userDTOListToUserVOList(List<UserDTO> userDTOList);
+
+    UserVO userToUserVO(User user);
+
+    List<UserVO> userListToUserVOList(List<User> userList);
+
+    UserRegisterVO userRegToUserRegVO(UserRegister userRegister);
+
+    List<UserRegisterVO> userRegListToUserRegVOList(List<UserRegister> userRegisterList);
 }

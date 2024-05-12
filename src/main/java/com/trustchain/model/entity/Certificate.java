@@ -6,49 +6,19 @@ import com.trustchain.model.enums.CertificateStatus;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
-@Table("certificate")
 public class Certificate {
-    @Id(keyType = KeyType.Generator, value = KeyGenerators.uuid)
-    @Column("id")
-    @ColumnAlias("certificate_id")
-    private String id;  // 合格证ID
+    private String id;  // 合格证标识符
 
-    @Column("version")
-    @ColumnAlias("certificate_version")
-    private String version; // 合格证版本
+    private String productionId;    // 产品编号
 
-    @Column("type")
-    @ColumnAlias("certificate_type")
-    private String type;
+    private String productionType;  // 产品型号
 
-    @Column("production_unit")
-    @ColumnAlias("certificate_production_unit")
-    private String productionUnit;
+    private Date productionDate;    // 生产日期
 
-    @Column(value = "production_date", onInsertValue = "now()")
-    @ColumnAlias("certificate_production_date")
-    private Date productionDate;
+    private String currentState;    // 当前状态
 
-    @Column("check_standard")
-    @ColumnAlias("certificate_check_standard")
-    private String checkStandard;
-
-    @Column("check_user")
-    @ColumnAlias("certificate_check_user")
-    private String checkUser;
-
-    @Column(value = "check_date", onInsertValue = "now()")
-    @ColumnAlias("certificate_check_date")
-    private Date checkDate;
-
-    @Column("status")
-    @ColumnAlias("certificate_status")
-    private CertificateStatus certificateStatus;
-
-    @Column("part_list")
-    @ColumnAlias("certificate_part_list")
-    private String partList;
-
+    private List<String> fuck;
 }

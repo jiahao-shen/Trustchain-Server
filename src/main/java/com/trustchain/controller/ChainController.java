@@ -1,31 +1,49 @@
 package com.trustchain.controller;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.trustchain.mapper.OrganizationMapper;
+import com.trustchain.model.enums.StatusCode;
+import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.ChainService;
-import com.trustchain.service.OrganizationService;
-import org.chainmaker.pb.common.ChainmakerTransaction;
-import org.chainmaker.pb.common.ContractOuterClass;
-import org.chainmaker.pb.common.ResultOuterClass;
-import org.chainmaker.pb.config.ChainConfigOuterClass;
+import org.chainmaker.sdk.ChainClientException;
+import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
-@RestController
-public class ChainCodeController {
+@RestController("/chain")
+public class ChainController {
     @Autowired
-    private ChainService ChainService;
+    private ChainService chainService;
 
-    @Autowired
-    private OrganizationService organizationService;
+    @PostMapping("/putState")
+    @ResponseBody
+    public BaseResponse<String> putState(@RequestBody JSONObject request) {
+        String key = request.getString("key");
+        String field = request.getString("field");
+        String value = request.getString("value");
 
-    @Autowired
-    private OrganizationMapper organizationMapper;
+        String txId = chainService.putState(key, field, value);
+        return new BaseResponse(StatusCode.SUCCESS, "", txId);
+    }
 
+    @PostMapping("/getState")
+    @ResponseBody
+    public BaseResponse<String> getState(@RequestBody JSONObject request) {
+        String key = request.getString("key");
+        String field = request.getString("field");
+
+        String result = chainService.getState(key, field);
+        return new BaseResponse(StatusCode.SUCCESS, "", result);
+    }
+
+    @PostMapping("/getHistory")
+    public BaseResponse<String> getHistory(@RequestBody JSONObject request) {
+        String key = request.getString("key");
+        String field = request.getString("field");
+
+        String result = chainService.getHistory(key, field);
+        return new BaseResponse(StatusCode.SUCCESS, "", result);
+    }
     //save the org information to the chain
 //    @PostMapping("/chaincode/uploadOrg")
 //    public ResponseEntity<Object> uploadOrgToChain(@RequestBody JSONObject request){

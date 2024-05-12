@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.ApiConvert;
+import com.trustchain.model.dto.ApiDTO;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.model.vo.*;
@@ -60,19 +61,19 @@ public class ApiController {
     @PostMapping("/register/apply/list")
     @ResponseBody
     public BaseResponse<Page<ApiRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
-        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String,List<String>>>(){
+        Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
         Map<String, String> sort = request.getObject("sort", new TypeReference<Map<String, String>>() {
         });
 
         User user = AuthUtil.getUser();
 
-        Page<ApiRegister> apiRegs = apiService.registerApplyList(user.getId(), pageNumebr, pageSize, filter, sort);
+        Page<ApiRegister> apiRegs = apiService.registerApplyList(user.getId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiRegisterVOList(apiRegs.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiRegListToApiRegVOList(apiRegs.getRecords()),
                         apiRegs.getPageNumber(), apiRegs.getPageSize(), apiRegs.getTotalRow()));
     }
 
@@ -86,13 +87,13 @@ public class ApiController {
         ApiRegister apiReg = apiService.registerApplyDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                ApiConvert.INSTANCE.toApiRegisterVO(apiReg));
+                ApiConvert.INSTANCE.apiRegToApiRegVO(apiReg));
     }
 
     @PostMapping("/register/approval/list")
     @ResponseBody
     public BaseResponse<Page<ApiRegisterVO>> registerApprovalList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -105,10 +106,10 @@ public class ApiController {
             throw new NoPermissionException("非管理员无法查看API注册审批列表");
         }
 
-        Page<ApiRegister> apiRegs = apiService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
+        Page<ApiRegister> apiRegs = apiService.registerApprovalList(user.getOrganizationId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiRegisterVOList(apiRegs.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiRegListToApiRegVOList(apiRegs.getRecords()),
                         apiRegs.getPageNumber(), apiRegs.getPageSize(), apiRegs.getTotalRow()));
     }
 
@@ -124,7 +125,7 @@ public class ApiController {
         ApiRegister apiReg = apiService.registerApprovalDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                ApiConvert.INSTANCE.toApiRegisterVO(apiReg));
+                ApiConvert.INSTANCE.apiRegToApiRegVO(apiReg));
     }
 
     @PostMapping("/register/reply")
@@ -149,7 +150,7 @@ public class ApiController {
     @PostMapping("/list/my")
     @ResponseBody
     public BaseResponse<Page<ApiVO>> myApiList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -158,10 +159,10 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<Api> apis = apiService.myApiList(user, pageNumebr, pageSize, filter, sort);
+        Page<Api> apis = apiService.myApiList(user, pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiVOList(apis.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiListToApiVOList(apis.getRecords()),
                         apis.getPageNumber(), apis.getPageSize(), apis.getTotalRow()));
     }
 
@@ -169,7 +170,7 @@ public class ApiController {
     @ResponseBody
     public BaseResponse<Page<ApiVO>> allApiList(@RequestBody JSONObject request) {
         String search = request.getString("search");
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -178,10 +179,10 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<Api> apis = apiService.allApiList(user, search, pageNumebr, pageSize, filter, sort);
+        Page<Api> apis = apiService.allApiList(user, search, pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiVOList(apis.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiListToApiVOList(apis.getRecords()),
                         apis.getPageNumber(), apis.getPageSize(), apis.getTotalRow()));
     }
 
@@ -193,9 +194,9 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Api api = apiService.informationDetail(apiId, version, user.getId());
+        ApiDTO apiDTO = apiService.informationDetail(apiId, version, user.getId());
 
-        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVO(api));
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.apiDTOToApiVO(apiDTO));
     }
 
     @PutMapping("/information/update")
@@ -233,9 +234,9 @@ public class ApiController {
     public BaseResponse<List<ApiVO>> informationHistory(@RequestBody JSONObject request) {
         String apiId = request.getString("apiId");
 
-        List<Api> apis = apiService.informationHistory(apiId);
+        List<ApiDTO> apis = apiService.informationHistory(apiId);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiVOList(apis));
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.apiDTOListToApiVOList(apis));
     }
 
     @PostMapping("/information/rollback")
@@ -252,7 +253,7 @@ public class ApiController {
     @PostMapping("/invoke/apply/list")
     @ResponseBody
     public BaseResponse<Page<ApiInvokeApplyVO>> invokeApplyList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -261,10 +262,10 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<ApiInvokeApply> apiInvokeApplyList = apiService.invokeApplyList(user.getId(), pageNumebr, pageSize, filter, sort);
+        Page<ApiInvokeApply> apiInvokeApplyList = apiService.invokeApplyList(user.getId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiInvokeApplyVOList(apiInvokeApplyList.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiInvokeApplyListToApiInvokeApplyVOList(apiInvokeApplyList.getRecords()),
                         apiInvokeApplyList.getPageNumber(), apiInvokeApplyList.getPageSize(), apiInvokeApplyList.getTotalRow()));
     }
 
@@ -294,13 +295,13 @@ public class ApiController {
         ApiInvokeApply apiInvokeApply = apiService.invokeApplyDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply));
+                ApiConvert.INSTANCE.apiInvokeApplyToApiInvokeApplyVO(apiInvokeApply));
     }
 
     @PostMapping("/invoke/approval/list")
     @ResponseBody
     public BaseResponse<Page<ApiInvokeApplyVO>> invokeApprovalList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -309,10 +310,10 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<ApiInvokeApply> apiInvokeApprovalList = apiService.invokeApprovalList(user.getId(), pageNumebr, pageSize, filter, sort);
+        Page<ApiInvokeApply> apiInvokeApprovalList = apiService.invokeApprovalList(user.getId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiInvokeApplyVOList(apiInvokeApprovalList.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiInvokeApplyListToApiInvokeApplyVOList(apiInvokeApprovalList.getRecords()),
                         apiInvokeApprovalList.getPageNumber(), apiInvokeApprovalList.getPageSize(), apiInvokeApprovalList.getTotalRow()));
     }
 
@@ -324,7 +325,7 @@ public class ApiController {
         ApiInvokeApply apiInvokeApply = apiService.invokeApprovalDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply));
+                ApiConvert.INSTANCE.apiInvokeApplyToApiInvokeApplyVO(apiInvokeApply));
     }
 
     @PostMapping("/invoke/reply")
@@ -349,7 +350,7 @@ public class ApiController {
 
         ApiInvokeApply apiInvokeApply = apiService.invokeInitialize(applyId);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiInvokeApplyVO(apiInvokeApply));
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.apiInvokeApplyToApiInvokeApplyVO(apiInvokeApply));
     }
 
     @PostMapping("/invoke/web")
@@ -371,7 +372,7 @@ public class ApiController {
     public BaseResponse<List<ApiInvokeLogVO>> invokeLogList(@RequestBody JSONObject request) {
         String applyId = request.getString("applyId");
         String search = request.getString("search");
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -380,10 +381,10 @@ public class ApiController {
 
         User user = AuthUtil.getUser();
 
-        Page<ApiInvokeLog> apiInvokeLogList = apiService.invokeLogList(user.getId(), applyId, search, pageNumebr, pageSize, filter, sort);
+        Page<ApiInvokeLog> apiInvokeLogList = apiService.invokeLogList(user.getId(), applyId, search, pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(ApiConvert.INSTANCE.toApiInvokeLogVOList(apiInvokeLogList.getRecords()),
+                new Page(ApiConvert.INSTANCE.apiInvokeLogListToApiInvokeLogVOList(apiInvokeLogList.getRecords()),
                         apiInvokeLogList.getPageNumber(), apiInvokeLogList.getPageSize(), apiInvokeLogList.getTotalRow()));
     }
 
@@ -394,7 +395,7 @@ public class ApiController {
 
         ApiInvokeLog apiInvokeLog = apiService.invokeLogDetail(id);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.toApiInvokeLogVO(apiInvokeLog));
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.apiInvokeLogToApiInvokeLogVO(apiInvokeLog));
     }
 
 }

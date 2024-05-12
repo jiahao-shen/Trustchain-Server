@@ -5,11 +5,9 @@ import com.alibaba.fastjson2.TypeReference;
 import com.mybatisflex.core.paginate.Page;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.model.convert.UserConvert;
-import com.trustchain.model.entity.Transaction;
-import com.trustchain.model.entity.Wallet;
+import com.trustchain.model.dto.UserDTO;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.enums.StatusCode;
-import com.trustchain.model.enums.TransactionMethod;
 import com.trustchain.model.enums.UserRole;
 import com.trustchain.model.entity.User;
 import com.trustchain.model.entity.UserRegister;
@@ -25,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -155,7 +152,7 @@ public class UserController {
     @ResponseBody
     public BaseResponse<Page<UserRegisterVO>> registerApplyList(@RequestBody JSONObject request) {
         List<String> applyIds = request.getList("applyIds", String.class);
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -163,10 +160,10 @@ public class UserController {
         });
 
 
-        Page<UserRegister> userRegs = userService.registerApplyList(applyIds, pageNumebr, pageSize, filter, sort);
+        Page<UserRegister> userRegs = userService.registerApplyList(applyIds, pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(UserConvert.INSTANCE.toUserRegisterVOList(userRegs.getRecords()),
+                new Page(UserConvert.INSTANCE.userRegListToUserRegVOList(userRegs.getRecords()),
                         userRegs.getPageNumber(), userRegs.getPageSize(), userRegs.getTotalRow()));
     }
 
@@ -178,14 +175,14 @@ public class UserController {
         UserRegister userReg = userService.registerApplyDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                UserConvert.INSTANCE.toUserRegisterVO(userReg));
+                UserConvert.INSTANCE.userRegToUserRegVO(userReg));
 
     }
 
     @PostMapping("/register/approval/list")
     @ResponseBody
     public BaseResponse<Page<UserRegisterVO>> registerApprovalList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -197,10 +194,10 @@ public class UserController {
             throw new NoPermissionException("非管理员用户无法查看用户注册审批列表");
         }
 
-        Page<UserRegister> userRegs = userService.registerApprovalList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
+        Page<UserRegister> userRegs = userService.registerApprovalList(user.getOrganizationId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(UserConvert.INSTANCE.toUserRegisterVOList(userRegs.getRecords()),
+                new Page(UserConvert.INSTANCE.userRegListToUserRegVOList(userRegs.getRecords()),
                         userRegs.getPageNumber(), userRegs.getPageSize(), userRegs.getTotalRow()));
     }
 
@@ -215,7 +212,7 @@ public class UserController {
         UserRegister userReg = userService.registerDetail(applyId);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                UserConvert.INSTANCE.toUserRegisterVO(userReg));
+                UserConvert.INSTANCE.userRegToUserRegVO(userReg));
     }
 
     @PostMapping("/register/reply")
@@ -240,7 +237,7 @@ public class UserController {
     @PostMapping("/subordinate/list")
     @ResponseBody
     public BaseResponse<Page<UserVO>> subordindateList(@RequestBody JSONObject request) {
-        Integer pageNumebr = request.getInteger("pageNumber");
+        Integer pageNumber = request.getInteger("pageNumber");
         Integer pageSize = request.getInteger("pageSize");
         Map<String, List<String>> filter = request.getObject("filter", new TypeReference<Map<String, List<String>>>() {
         });
@@ -252,10 +249,10 @@ public class UserController {
             throw new NoPermissionException("非管理员用户无法查看用户列表");
         }
 
-        Page<User> users = userService.subordinateList(user.getOrganizationId(), pageNumebr, pageSize, filter, sort);
+        Page<User> users = userService.subordinateList(user.getOrganizationId(), pageNumber, pageSize, filter, sort);
 
         return new BaseResponse(StatusCode.SUCCESS, "",
-                new Page(UserConvert.INSTANCE.toUserVOList(users.getRecords()),
+                new Page(UserConvert.INSTANCE.userListToUserVOList(users.getRecords()),
                         users.getPageNumber(), users.getPageSize(), users.getTotalRow()));
     }
 
@@ -266,7 +263,7 @@ public class UserController {
 
         User user = userService.subordinateDetail(userId);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(user));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.userToUserVO(user));
     }
 
     @PostMapping("/information/detail")
@@ -274,11 +271,9 @@ public class UserController {
     public BaseResponse<UserVO> informationDetail(@RequestBody JSONObject request) {
         String userId = request.getString("userId");
         String version = request.getString("version");
-        User user = userService.informationDetail(userId, version);
-        UserVO userInfo = UserConvert.INSTANCE.toUserVO(user);
-        userInfo.setLatest(true);
+        UserDTO userDTO = userService.informationDetail(userId, version);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", userInfo);
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.userDTOToUserVO(userDTO));
     }
 
     @PutMapping("/information/update")
@@ -297,7 +292,7 @@ public class UserController {
         User updateUser = userService.informationUpdate(user);
         AuthUtil.setUser(user);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVO(updateUser));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.userToUserVO(updateUser));
     }
 
     @PostMapping("/information/history")
@@ -311,9 +306,9 @@ public class UserController {
             throw new NoPermissionException("非本用户无法查看用户信息历史记录");
         }
 
-        List<User> users = userService.informationHistory(userId);
+        List<UserDTO> userDTOList = userService.informationHistory(userId);
 
-        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.toUserVOList(users));
+        return new BaseResponse(StatusCode.SUCCESS, "", UserConvert.INSTANCE.userDTOListToUserVOList(userDTOList));
     }
 
     @PostMapping("/information/rollback")

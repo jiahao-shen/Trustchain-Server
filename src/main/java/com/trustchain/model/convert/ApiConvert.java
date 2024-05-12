@@ -1,5 +1,6 @@
 package com.trustchain.model.convert;
 
+import com.trustchain.model.dto.ApiDTO;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.vo.*;
 import org.mapstruct.Mapper;
@@ -11,47 +12,55 @@ import java.util.List;
 public interface ApiConvert {
     ApiConvert INSTANCE = Mappers.getMapper(ApiConvert.class);
 
-    Api toApi(ApiRegister api);
+    Api apiRegToApi(ApiRegister api);
 
-    ApiRegisterVO toApiRegisterVO(ApiRegister apiRegister);
+    ApiRegisterVO apiRegToApiRegVO(ApiRegister apiRegister);
 
-    List<ApiRegisterVO> toApiRegisterVOList(List<ApiRegister> apiRegisterList);
+    List<ApiRegisterVO> apiRegListToApiRegVOList(List<ApiRegister> apiRegisterList);
 
-    ApiVO toApiVO(Api api);
+    ApiVO apiToApiVO(Api api);
 
-    List<ApiVO> toApiVOList(List<Api> apiList);
+    ApiDTO apiToApiDTO(Api api);
 
-    ApiInvokeApplyVO toApiInvokeApplyVO(ApiInvokeApply apiInvokeApply);
+    List<ApiDTO> apiListToApiDTOList(List<Api> apiList);
 
-    List<ApiInvokeApplyVO> toApiInvokeApplyVOList(List<ApiInvokeApply> apiInvokeApplyList);
+    ApiVO apiDTOToApiVO(ApiDTO apiDTO);
 
-    ApiInvokeLogVO toApiInvokeLogVO(ApiInvokeLog apiInvokeLog);
+    List<ApiVO> apiDTOListToApiVOList(List<ApiDTO> apiDTOList);
 
-    List<ApiInvokeLogVO> toApiInvokeLogVOList(List<ApiInvokeLog> apiInvokeLogList);
+    List<ApiVO> apiListToApiVOList(List<Api> apiList);
 
-    ApiParamItemVO toApiParamItemVO(ApiParamItem apiParamItem);
+    ApiInvokeApplyVO apiInvokeApplyToApiInvokeApplyVO(ApiInvokeApply apiInvokeApply);
 
-    List<ApiParamItemVO> toApiParamItemVOList(List<ApiParamItem> apiParamItemList);
+    List<ApiInvokeApplyVO> apiInvokeApplyListToApiInvokeApplyVOList(List<ApiInvokeApply> apiInvokeApplyList);
 
-    ApiQueryItemVO toApiQueryItemVO(ApiQueryItem apiQueryItem);
+    ApiInvokeLogVO apiInvokeLogToApiInvokeLogVO(ApiInvokeLog apiInvokeLog);
 
-    List<ApiQueryItemVO> toApiQueryItemVOList(List<ApiQueryItem> apiQueryItemList);
+    List<ApiInvokeLogVO> apiInvokeLogListToApiInvokeLogVOList(List<ApiInvokeLog> apiInvokeLogList);
 
-    ApiHeaderItemVO toApiHeaderItemVO(ApiHeaderItem apiHeaderItem);
+    ApiParamItemVO apiParamItemToApiParamItemVO(ApiParamItem apiParamItem);
 
-    List<ApiHeaderItemVO> toApiHeaderItemVOList(List<ApiHeaderItem> apiHeaderItemList);
+    List<ApiParamItemVO> apiParamItemListToApiParamItemVOList(List<ApiParamItem> apiParamItemList);
 
-    ApiRequestBodyVO toApiRequestBodyVO(ApiRequestBody apiRequestBody);
+    ApiQueryItemVO apiQueryItemToApiQueryItemVO(ApiQueryItem apiQueryItem);
 
-    ApiResponseBodyVO toApiResponseBodyVO(ApiResponseBody apiResponseBody);
+    List<ApiQueryItemVO> apiQueryItemListToApiQueryItemVOList(List<ApiQueryItem> apiQueryItemList);
 
-    ApiFormDataItemVO toApiFormDataItemVO(ApiFormDataItem apiFormDataItem);
+    ApiHeaderItemVO apiHeaderItemToApiHeaderItemVO(ApiHeaderItem apiHeaderItem);
 
-    List<ApiFormDataItemVO> toApiFormDataItemVOList(List<ApiFormDataItem> apiFormDataItemList);
+    List<ApiHeaderItemVO> apiHeaderItemListToApiHeaderItemVOList(List<ApiHeaderItem> apiHeaderItemList);
 
-    ApiXwwwFormUrlEncodedItemVO toApiXwwwFormUrlEncodedItemVO(ApiXwwwFormUrlEncodedItem apiXwwwFormUrlEncodedItem);
+    ApiRequestBodyVO apiRequestBodyToApiRequestBodyVO(ApiRequestBody apiRequestBody);
 
-    List<ApiXwwwFormUrlEncodedItemVO> toApiXwwwFormUrlEncodedItemVOList(List<ApiXwwwFormUrlEncodedItem> apiXwwwFormUrlEncodedItemList);
+    ApiResponseBodyVO apiResponseBodyToApiResponseBodyVO(ApiResponseBody apiResponseBody);
 
-    ApiRawBodyVO toApiRawBodyVO(ApiRawBody apiRawBody);
+    ApiFormDataItemVO apiFormDataItemToApiFormDataItemVO(ApiFormDataItem apiFormDataItem);
+
+    List<ApiFormDataItemVO> apiFormDataItemListToApiFormDataItemVOList(List<ApiFormDataItem> apiFormDataItemList);
+
+    ApiXwwwFormUrlEncodedItemVO apiXwwwFormUrlEncodedItemToApiXwwwFormUrlEncodedItemVO(ApiXwwwFormUrlEncodedItem apiXwwwFormUrlEncodedItem);
+
+    List<ApiXwwwFormUrlEncodedItemVO> apiXwwwFormUrlEncodedItemToApiXwwwFormUrlEncodedItemVOList(List<ApiXwwwFormUrlEncodedItem> apiXwwwFormUrlEncodedItemList);
+
+    ApiRawBodyVO apiRawBodyToApiRawBodyVO(ApiRawBody apiRawBody);
 }

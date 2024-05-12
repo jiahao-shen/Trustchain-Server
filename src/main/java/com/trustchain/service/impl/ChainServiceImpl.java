@@ -5,6 +5,8 @@ import lombok.SneakyThrows;
 import org.chainmaker.pb.common.ChainmakerTransaction;
 import org.chainmaker.pb.common.ResultOuterClass;
 import org.chainmaker.sdk.ChainClient;
+import org.chainmaker.sdk.ChainClientException;
+import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +22,12 @@ public class ChainServiceImpl implements ChainService {
     @Autowired
     private ChainClient chainClient;
 
-    public ResultOuterClass.ContractResult putState(String key, String field, String value) {
+    public String putState(String key, String field, String value) {
         return putState(key, field, value, null);
     }
 
     @SneakyThrows
-    public ResultOuterClass.ContractResult putState(String key, String field, String value, String txId) {
+    public String putState(String key, String field, String value, String txId) {
         ResultOuterClass.TxResponse txRes;
 
         Map<String, byte[]> params = new HashMap<>();
@@ -34,8 +36,7 @@ public class ChainServiceImpl implements ChainService {
         params.put("value", value.getBytes());
 
         txRes = chainClient.invokeContract(CONTRACT_NAME, "put_state", txId, params, RPC_CALL_TIMEOUT, SYNC_RESULT_TIMEOUT);
-
-        return txRes.getContractResult();
+        return txRes.getTxId();
     }
 
     @SneakyThrows

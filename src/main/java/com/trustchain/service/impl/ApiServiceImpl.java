@@ -9,6 +9,8 @@ import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.exception.NoPermissionException;
 import com.trustchain.mapper.*;
 import com.trustchain.model.convert.ApiConvert;
+import com.trustchain.model.convert.UserConvert;
+import com.trustchain.model.dto.ApiDTO;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.*;
 import com.trustchain.service.ApiService;
@@ -21,8 +23,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
-import org.chainmaker.pb.common.ChainmakerTransaction;
-import org.chainmaker.pb.common.ResultOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -228,37 +228,31 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     @Transactional
-    public ResultOuterClass.ContractResult registerReply(String applyId, ApplyStatus reply, String reason) {
+    public void registerReply(String applyId, ApplyStatus reply, String reason) {
         ApiRegister apiReg = apiRegMapper.selectOneById(applyId);
-        ResultOuterClass.ContractResult contractResult = null;
         if (apiReg == null) {
             throw new RuntimeException("API注册申请不存在");
         }
-
         if (reply == ApplyStatus.ALLOW) {
-            Api api = ApiConvert.INSTANCE.toApi(apiReg);
-            apiMapper.insert(api);
+            Api api = ApiConvert.INSTANCE.apiRegToApi(apiReg);
+            api.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
 
-            // 对接长安链
-            JSONObject jsonObject = JSONObject.from(api);
-            String field = "api";
-//            try{
-//                contractResult = ChainService.invokeContractUpload(api.getId(),field, jsonObject);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
+            apiMapper.insert(api);
+            api = apiMapper.selectOneById(api.getId());
+
+            chainService.putState(api.getId(), "api", JSON.toJSONString(api), api.getVersion());
+
             apiReg.setId(api.getId());
             apiReg.setApplyStatus(ApplyStatus.ALLOW);
             apiReg.setReplyTime(new Date());
-            apiRegMapper.update(apiReg);
 
+            apiRegMapper.update(apiReg);
         } else if (reply == ApplyStatus.REJECT) {
             apiReg.setApplyStatus(ApplyStatus.REJECT);
             apiReg.setReplyTime(new Date());
             apiReg.setReplyReason(reason);
             apiRegMapper.update(apiReg);
         }
-        return contractResult;
     }
 
     @Override
@@ -406,92 +400,63 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public Api informationDetail(String apiId, String version, String userId) {
+    public ApiDTO informationDetail(String apiId, String version, String userId) {
+        ApiDTO apiDTO;
         // TODO: 对接长安链
         RelationManager.setMaxDepth(1);
-        Api api = apiMapper.selectOneWithRelationsById(apiId);
-        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfoWithRWSet = null;
-        Api api1 = null;
-        String res = "";
-//        try{
-//            if(version.equals("@latest")){
-//                res = ChainService.getNewVersion(apiId, "api");
-//            }else{
-//                res = ChainService.getTxByTxId(version).getRwSet().getTxWrites(0).getValue().toStringUtf8();
-//            }
-////            transactionInfoWithRWSet = ChainService.getTxByTxId(version);
-////            String apiInfo = transactionInfoWithRWSet.getRwSet().getTxWrites(0).getValue().toStringUtf8();
-//            //JSONObject jsonObject = JSON.parseObject(apiInfo);
-//            if(res.equals("")){
-//                api1 = apiMapper.selectOneById(apiId);
-//            }else{
-//                api1 = JSON.parseObject(res, Api.class);
-//            }
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return null;
-//        }
-//        if (!api.getUserId().equals(userId)) {
-//            // 如果不是自己的API则隐藏Url
-//            api.setUrl(null);
-//        }
-        return api1;
+        Api latest = apiMapper.selectOneWithRelationsById(apiId);
+
+        if (version.equals("@latest")) {
+            apiDTO = ApiConvert.INSTANCE.apiToApiDTO(latest);
+        } else {
+            apiDTO = JSON.parseObject(chainService.getState(version), ApiDTO.class);
+            User user = userMapper.selectOneById(apiDTO.getUserId());
+            apiDTO.setUser(UserConvert.INSTANCE.userToUserDTO(user));
+        }
+
+        apiDTO.setLatest(apiDTO.getVersion().equals(latest.getVersion()));
+
+        return apiDTO;
     }
 
     @Override
     public boolean informationUpdate(Api api) {
-        // TODO: 对接长安链
         if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneByEntityId(api).getUserId())) {
             throw new NoPermissionException("非API的所有者无法修改API信息");
         }
-        JSONObject jsonObject = JSONObject.from(api);
-        ResultOuterClass.ContractResult contractResult = null;
-        String field = "api";
-//        try{
-//            contractResult = ChainService.invokeContractUpload(api.getId(),field,jsonObject);
-//        }catch (Exception e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-        int count = apiMapper.update(api, true);
-        return count != 0;
+
+        api.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+        if (apiMapper.update(api, true) != 0) {
+            api = apiMapper.selectOneById(api.getId());
+            try {
+                chainService.putState(api.getId(), "api", JSON.toJSONString(api), api.getVersion());
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public List<Api> informationHistory(String apiId) {
-//        if (!AuthUtil.getUser().getId().equals(apiMapper.selectOneById(apiId).getUserId())) {
-//            throw new NoPermissionException("非API的所有者无法查看API信息历史记录");
-//        }
-//        // 对接长安链
-//        ResultOuterClass.ContractResult contractResult = null;
-//        JSONArray jsonArray = null;
-//        String field = "api";
-//        List<Api> apiList = new ArrayList<>();
-//        try{
-//            contractResult = ChainService.getKeyHistory(apiId,field);
-//            byte[] data = contractResult.toByteArray();
-//            String res = new String(data);
-//            String[] temp1 = res.split("\\[");
-//            if(temp1.length < 2){
-//                Api api = apiMapper.selectOneById(apiId);
-//                apiList.add(api);
-//            }else{
-//                String[] temp2 = temp1[1].split("\\]");
-//                String jsonMess = temp2[0];
-//                String jsonStr = "["+jsonMess+"]";
-//                jsonArray = JSONArray.parseArray(jsonStr);
-//                apiList = JSON.parseArray(jsonArray.toJSONString(),Api.class);
-//            }
-//        } catch(Exception e){
-//            e.printStackTrace();
-//        }
-//        return apiList;
-        return null;
-    }
+    public List<ApiDTO> informationHistory(String apiId) {
+        Api latest = apiMapper.selectOneById(apiId);
 
-    @Override
-    public Page<Api> informationHistory(String apiId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
-        return null;
+        List<ApiDTO> apis = new ArrayList<>();
+
+        JSONArray histories = JSON.parseArray(chainService.getHistory(apiId, "api"));
+
+        histories.forEach(item -> {
+            JSONObject tmp = (JSONObject) item;
+            ApiDTO api = JSON.parseObject(tmp.getString("value"), ApiDTO.class);
+            api.setLatest(api.getVersion().equals(latest.getVersion()));
+            apis.add(api);
+        });
+
+        apis.sort(Comparator.comparing(ApiDTO::getLastModified).reversed());
+
+        return apis;
     }
 
     @Override
@@ -816,7 +781,7 @@ public class ApiServiceImpl implements ApiService {
         // 处理调用
         Response response = handleMethodAndExcute(api.getMethod(), requestBuilder, requestBody);
         // 处理响应并写入日志
-        handleReponse(apiInvokeApply, invokeUser, ApiInvokeMethod.WEB, param, query, header, body, response);
+        handleResponse(apiInvokeApply, invokeUser, ApiInvokeMethod.WEB, param, query, header, body, response);
     }
 
     /**
@@ -998,24 +963,24 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * 处理响应
+     * <p>
+     * applyId  调用申请号
      *
-     *  applyId  调用申请号
      * @param param    请求Param参数
      * @param query    请求Query参数
      * @param header   请求标头
      * @param body     请求体
      * @param response 响应体
-     * @throws IOException
      */
     @Transactional
-    public void handleReponse(ApiInvokeApply apiInvokeApply,
-                              User invokeUser,
-                              ApiInvokeMethod invokeMethod,
-                              List<ApiParamItem> param,
-                              List<ApiQueryItem> query,
-                              List<ApiHeaderItem> header,
-                              ApiRequestBody body,
-                              Response response) throws IOException {
+    public void handleResponse(ApiInvokeApply apiInvokeApply,
+                               User invokeUser,
+                               ApiInvokeMethod invokeMethod,
+                               List<ApiParamItem> param,
+                               List<ApiQueryItem> query,
+                               List<ApiHeaderItem> header,
+                               ApiRequestBody body,
+                               Response response) throws IOException {
         // 创建调用日志
         ApiInvokeLog apiInvokeLog = new ApiInvokeLog();
         apiInvokeLog.setId(UUID.randomUUID().toString().replaceAll("-", ""));

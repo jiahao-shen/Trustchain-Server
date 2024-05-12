@@ -8,6 +8,8 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.relation.RelationManager;
 import com.trustchain.mapper.*;
+import com.trustchain.model.convert.OrganizationConvert;
+import com.trustchain.model.dto.UserDTO;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.ApplyStatus;
 import com.trustchain.model.convert.UserConvert;
@@ -59,7 +61,7 @@ public class UserServiceImpl implements UserService {
             StpUtil.login(user.getId());
             AuthUtil.setUser(user);
 
-            return new UserLogin(UserConvert.INSTANCE.toUserVO(user), StpUtil.getTokenInfo());
+            return new UserLogin(UserConvert.INSTANCE.userToUserVO(user), StpUtil.getTokenInfo());
         } else {
             return null;
         }
@@ -161,7 +163,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户注册申请不存在");
         }
         if (reply == ApplyStatus.ALLOW) {
-            User user = UserConvert.INSTANCE.toUser(userReg);
+            User user = UserConvert.INSTANCE.userRegToUser(userReg);
             user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
 
             // 移动Logo
@@ -367,17 +369,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User informationDetail(String userId, String version) {
-        User user;
+    public UserDTO informationDetail(String userId, String version) {
+        UserDTO userDTO;
+
+        RelationManager.setMaxDepth(1);
+        User latest = userMapper.selectOneWithRelationsById(userId);
 
         if (version.equals("@latest")) {
             // TODO: 链上版本和数据库对比
-            RelationManager.setMaxDepth(1);
-            user = userMapper.selectOneWithRelationsById(userId);
+            userDTO = UserConvert.INSTANCE.userToUserDTO(latest);
         } else {
-            user = JSON.parseObject(chainService.getState(version), User.class);
+            userDTO = JSON.parseObject(chainService.getState(version), UserDTO.class);
+            Organization org = orgMapper.selectOneById(userDTO.getOrganizationId());
+            userDTO.setOrganization(OrganizationConvert.INSTANCE.orgToOrgDTO(org));
         }
-        return user;
+
+        userDTO.setLatest(userDTO.getVersion().equals(latest.getVersion()));
+
+        return userDTO;
     }
 
     @Override
@@ -397,28 +406,29 @@ public class UserServiceImpl implements UserService {
 
         chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
 
+        // TODO:
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsById(user.getId());
     }
 
     @Override
-    public List<User> informationHistory(String userId) {
-        List<User> users = new ArrayList<>();
+    public List<UserDTO> informationHistory(String userId) {
+        User latest = userMapper.selectOneById(userId);
+
+        List<UserDTO> users = new ArrayList<>();
 
         JSONArray histories = JSON.parseArray(chainService.getHistory(userId, "user"));
 
         histories.forEach(item -> {
             JSONObject tmp = (JSONObject) item;
-            User user = JSON.parseObject(tmp.getString("value"), User.class);
+            UserDTO user = JSON.parseObject(tmp.getString("value"), UserDTO.class);
+            user.setLatest(user.getVersion().equals(latest.getVersion()));
             users.add(user);
         });
 
-        return users;
-    }
+        users.sort(Comparator.comparing(UserDTO::getLastModified).reversed());
 
-    @Override
-    public Page<User> informationHistory(String userId, Integer pageNumber, Integer pageSize, Map<String, List<String>> filter, Map<String, String> sort) {
-        return null;
+        return users;
     }
 
     @Override

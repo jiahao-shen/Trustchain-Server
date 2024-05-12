@@ -1,6 +1,7 @@
 package com.trustchain.service;
 
 import com.mybatisflex.core.paginate.Page;
+import com.trustchain.model.dto.ApiDTO;
 import com.trustchain.model.entity.ApiRequestBody;
 import com.trustchain.model.entity.ApiHeaderItem;
 import com.trustchain.model.entity.ApiParamItem;
@@ -83,7 +84,7 @@ public interface ApiService {
      * @param reply   回复类型
      * @param reason  回复理由
      */
-    ResultOuterClass.ContractResult registerReply(String applyId, ApplyStatus reply, String reason);
+    void registerReply(String applyId, ApplyStatus reply, String reason);
 
     /**
      * @param user 用户
@@ -128,7 +129,7 @@ public interface ApiService {
      * @param userId  用户ID
      * @return API信息
      */
-    Api informationDetail(String apiId, String version, String userId);
+    ApiDTO informationDetail(String apiId, String version, String userId);
 
     /**
      * @param api API对象
@@ -140,21 +141,7 @@ public interface ApiService {
      * @param apiId API的ID
      * @return API信息的历史记录
      */
-    List<Api> informationHistory(String apiId);
-
-    /**
-     * @param apiId      API的ID
-     * @param pageNumber 页数
-     * @param pageSize   页大小
-     * @param filter     过滤
-     * @param sort       排序
-     * @return API信息的历史记录
-     */
-    Page<Api> informationHistory(String apiId,
-                                 Integer pageNumber,
-                                 Integer pageSize,
-                                 Map<String, List<String>> filter,
-                                 Map<String, String> sort);
+    List<ApiDTO> informationHistory(String apiId);
 
     /**
      * @param apiId   API的ID

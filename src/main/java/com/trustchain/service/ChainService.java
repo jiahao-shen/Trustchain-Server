@@ -2,6 +2,8 @@ package com.trustchain.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.chainmaker.pb.common.ResultOuterClass;
+import org.chainmaker.sdk.ChainClientException;
+import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
 
 public interface ChainService {
 
@@ -11,7 +13,7 @@ public interface ChainService {
      * @param value 存入区块链账本的值
      * @return 是否调用合约成功
      */
-    ResultOuterClass.ContractResult putState(String key, String field, String value);
+    String putState(String key, String field, String value);
 
     /**
      * @param key   存入区块链账本的键
@@ -20,7 +22,7 @@ public interface ChainService {
      * @param txId  写入区块链的交易号
      * @return 是否调用合约成功
      */
-    ResultOuterClass.ContractResult putState(String key, String field, String value, String txId);
+    String putState(String key, String field, String value, String txId);
 
     /**
      * @param key   存入区块链账本的键

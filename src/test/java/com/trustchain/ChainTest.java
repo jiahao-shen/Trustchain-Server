@@ -29,14 +29,14 @@ public class ChainTest {
 
     @Test
     void testUpdate() {
-        ResultOuterClass.ContractResult res = chainService.putState("123456", "test", "good");
-        logger.info(res);
+        String txId = chainService.putState("123456", "test", "good");
+        logger.info(txId);
     }
 
     @Test
     void testHistory() {
-      String res = chainService.getHistory("e675a62fa8f24e9ebc0cff4e1a1634c5", "organization");
-      logger.info(res);
+        String res = chainService.getHistory("e675a62fa8f24e9ebc0cff4e1a1634c5", "organization");
+        logger.info(res);
 //      String fuck = new String(res.toByteArray(), StandardCharsets.UTF_8);
 //      logger.info(fuck);
     }

@@ -134,20 +134,6 @@ public interface OrganizationService {
     List<OrganizationDTO> informationHistory(String orgId);
 
     /**
-     * @param orgId      机构ID
-     * @param pageNumber 页数
-     * @param pageSize   页大小
-     * @param filter     过滤
-     * @param sort       排序
-     * @return 机构信息历史记录
-     */
-    Page<Organization> informationHistory(String orgId,
-                                          Integer pageNumber,
-                                          Integer pageSize,
-                                          Map<String, List<String>> filter,
-                                          Map<String, String> sort);
-
-    /**
      * 机构信息回滚
      *
      * @param orgId   机构ID
