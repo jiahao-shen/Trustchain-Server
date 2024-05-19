@@ -43,7 +43,8 @@ public class ChainTest {
 
     @Test
     void testGet() {
-
+        String res = chainService.getState("d74dfc93e4974f369f5aea9311fd41b9", "api");
+        logger.info(res);
     }
 
     @Test

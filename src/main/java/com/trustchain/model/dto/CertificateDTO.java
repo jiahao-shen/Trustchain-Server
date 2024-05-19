@@ -1,4 +1,4 @@
-package com.trustchain.model.entity;
+package com.trustchain.model.dto;
 
 import com.alibaba.fastjson2.JSONObject;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Certificate {
+public class CertificateDTO {
     private String productionId;  // 产品编号
 
     private String productionModel;  // 产品型号
@@ -31,4 +31,6 @@ public class Certificate {
     private Date lastModified;  // 最后更新时间
 
     private String version; // 版本号
+
+    private Boolean latest; // 是否最新
 }

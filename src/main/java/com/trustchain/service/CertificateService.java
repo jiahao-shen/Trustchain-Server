@@ -1,17 +1,18 @@
 package com.trustchain.service;
 
+import com.trustchain.model.dto.CertificateDTO;
 import com.trustchain.model.entity.Certificate;
 
 import java.util.List;
 
 public interface CertificateService {
 
-    boolean generate(Certificate certificate);
+    String generate(Certificate certificate);
 
-    List<Certificate> getCertificateHistory(String certificateId);
+    List<CertificateDTO> history(String productionId);
 
-    Certificate informationDetail(String certificateId, String version);
+    CertificateDTO detail(String productionId, String version);
 
-    Certificate informationUpdate(Certificate certificate);
+    String update(Certificate certificate);
 
 }

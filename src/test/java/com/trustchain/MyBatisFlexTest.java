@@ -18,9 +18,12 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.trustchain.model.entity.table.ApiTableDef.API;
@@ -122,6 +125,15 @@ public class MyBatisFlexTest {
 
         List<Api> apis = apiMapper.selectListByQuery(query);
         apis.forEach(logger::info);
+    }
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Test
+    void testRedis() {
+        User user = new User();
+        redisTemplate.opsForValue().set("user", String.valueOf(user));
     }
 
 }

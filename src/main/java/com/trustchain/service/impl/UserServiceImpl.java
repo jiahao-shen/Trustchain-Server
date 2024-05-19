@@ -75,8 +75,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean resetPassword(User user, String password) {
         user.setPassword(PasswordUtil.encrypt(password));
+        user.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
 
-        return userMapper.update(user, true) != 0;
+        if (userMapper.update(user, true) != 0) {
+            user = userMapper.selectOneById(user.getId());
+            chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -447,6 +454,4 @@ public class UserServiceImpl implements UserService {
         RelationManager.setMaxDepth(1);
         return userMapper.selectOneWithRelationsByQuery(query);
     }
-
-
 }

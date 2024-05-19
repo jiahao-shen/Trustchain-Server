@@ -3,106 +3,75 @@ package com.trustchain.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.mybatisflex.core.relation.RelationManager;
-import com.trustchain.mapper.CertificateMapper;
+import com.trustchain.model.convert.CertificateConvert;
+import com.trustchain.model.dto.CertificateDTO;
 import com.trustchain.model.entity.Certificate;
 import com.trustchain.service.CertificateService;
 import com.trustchain.service.ChainService;
-import org.chainmaker.pb.common.ResultOuterClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class CertificateServiceImpl implements CertificateService {
 
     @Autowired
-    private CertificateMapper certificateMapper;
+    private ChainService chainService;
 
-    @Autowired
-    private ChainService ChainService;
-
+    private static final Logger logger = LogManager.getLogger(CertificateServiceImpl.class);
 
     @Override
-    public boolean generate(Certificate certificate) {
-//        int count = certificateMapper.insert(certificate);
-//        if(count < 0){
-//            return false;
-//        }
-//        ResultOuterClass.ContractResult contractResult = null;
-//        String field = "certificate";
-//        JSONObject jsonObject = JSONObject.from(certificate);
-//        try{
-//            contractResult = ChainService.invokeContractUpload(certificate.getId(), field, jsonObject);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return false;
-//        }
-        return true;
+    public String generate(Certificate certificate) {
+        certificate.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+        certificate.setCreationTime(new Date());
+        certificate.setLastModified(new Date());
+        return chainService.putState(certificate.getProductionId(), "certificate", JSON.toJSONString(certificate), certificate.getVersion());
     }
 
     @Override
-    public List<Certificate> getCertificateHistory(String certificateId) {
-//
-//        String field = "certificate";
-//        ResultOuterClass.ContractResult contractResult = null;
-//        List<Certificate> certificates = new ArrayList<>();
-//        try{
-//            contractResult = ChainService.getKeyHistory(certificateId, field);
-//            byte[] data = contractResult.toByteArray();
-//            String res = new String(data);
-//            String[] temp1 = res.split("\\[");
-//            if(temp1.length < 2){
-//                certificates.add(certificateMapper.selectOneById(certificateId));
-//            }else{
-//                String[] temp2 = temp1[1].split("\\]");
-//                String jsonMess = temp2[0];
-//                String jsonStr = "["+jsonMess+"]";
-//                JSONArray jsonArray = JSONArray.parseArray(jsonStr);
-//                for(int i=0; i < jsonArray.size(); i++){
-//                    JSONObject tmp = jsonArray.getJSONObject(i);
-//                    if(tmp.containsKey("value")){
-//                        certificates.add(JSON.parseObject(tmp.getString("value"), Certificate.class));
-//                    }
-//                }
-//            }
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return null;
-//        }
-//        return certificates;
-        return null;
+    public List<CertificateDTO> history(String productionId) {
+        Certificate latest = JSON.parseObject(chainService.getState(productionId, "certificate"), Certificate.class);
+
+        JSONArray histories = JSON.parseArray(chainService.getHistory(productionId, "certificate"));
+
+        List<CertificateDTO> certificates = new ArrayList<>();
+
+        histories.forEach(item -> {
+            JSONObject tmp = (JSONObject) item;
+            CertificateDTO cert = JSON.parseObject(tmp.getString("value"), CertificateDTO.class);
+            cert.setLatest(cert.getVersion().equals(latest.getVersion()));
+            certificates.add(cert);
+        });
+
+        certificates.sort(Comparator.comparing(CertificateDTO::getLastModified).reversed());
+
+        return certificates;
     }
 
     @Override
-    public Certificate informationDetail(String certificateId, String version) {
-//
-//        if(version.equals("@latest")){
-//
-//        }
-//        String res = ChainService.getTxByTxId(version).getRwSet().getTxWrites(0).getValue().toStringUtf8();
-//        Certificate certificate = JSON.parseObject(res, Certificate.class);
-//        return certificate;
-        return null;
+    public CertificateDTO detail(String productionId, String version) {
+        Certificate latest = JSON.parseObject(chainService.getState(productionId, "certificate"), Certificate.class);
+
+        CertificateDTO cert;
+
+        if (version.isEmpty() || version.equals("@latest")) {
+            cert = CertificateConvert.INSTANCE.certificateToCertificateDTO((latest));
+        } else {
+            cert = JSON.parseObject(chainService.getState(version), CertificateDTO.class);
+        }
+
+        cert.setLatest(cert.getVersion().equals(latest.getVersion()));
+
+        return cert;
     }
 
     @Override
-    public Certificate informationUpdate(Certificate certificate) {
-//        ResultOuterClass.ContractResult contractResult = null;
-//        String field = "certificate";
-//        JSONObject jsonObject = JSONObject.from(certificate);
-//        try{
-//            contractResult = ChainService.invokeContractUpload(certificate.getId(), field, jsonObject);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return null;
-//        }
-//        certificateMapper.update(certificate);
-//        RelationManager.setMaxDepth(1);
-//        return certificateMapper.selectOneWithRelationsById(certificate.getId());
-        return null;
+    public String update(Certificate certificate) {
+        certificate.setVersion(UUID.randomUUID().toString().replaceAll("-", "").toLowerCase());
+        certificate.setLastModified(new Date());
+        return chainService.putState(certificate.getProductionId(), "certificate", JSON.toJSONString(certificate), certificate.getVersion());
     }
-
 }

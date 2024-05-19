@@ -20,7 +20,8 @@ import static com.trustchain.model.entity.table.ApiInvokeApplyTableDef.API_INVOK
 @Component
 public class ApiInvokeApplyTask {
     @Autowired
-    ApiInvokeApplyMapper apiInvokeApplyMapper;
+    private ApiInvokeApplyMapper apiInvokeApplyMapper;
+
     private static final Logger logger = LogManager.getLogger(ApiInvokeApplyTask.class);
 
     //@Scheduled(cron = "0 1 * * * *")
@@ -34,13 +35,11 @@ public class ApiInvokeApplyTask {
                 .and(API_INVOKE_APPLY.START_TIME.le(new Date()))
                 .and(API_INVOKE_APPLY.END_TIME.ge(new Date()));
 
-        logger.info("Pending Applys");
-
-        List<ApiInvokeApply> pendingApplys = apiInvokeApplyMapper.selectListByQuery(query1);
-        pendingApplys.forEach(item -> {
+        List<ApiInvokeApply> pendingApples = apiInvokeApplyMapper.selectListByQuery(query1);
+        pendingApples.forEach(item -> {
             // 将调用状态更新为VALID
             item.setInvokeStatus(ApiInvokeStatus.VALID);
-            apiInvokeApplyMapper.update(item);
+            apiInvokeApplyMapper.update(item, true);
         });
 
         // 筛选出所有调用状态为VALID, 且当前时间超出有效期内的请求
@@ -49,10 +48,8 @@ public class ApiInvokeApplyTask {
                 .where(API_INVOKE_APPLY.INVOKE_STATUS.eq(ApiInvokeStatus.VALID))
                 .and(API_INVOKE_APPLY.START_TIME.gt(new Date()).or(API_INVOKE_APPLY.END_TIME.lt(new Date())));
 
-        logger.info("Valid Applys");
-
-        List<ApiInvokeApply> validApplys = apiInvokeApplyMapper.selectListByQuery(query2);
-        validApplys.forEach(item -> {
+        List<ApiInvokeApply> validApples = apiInvokeApplyMapper.selectListByQuery(query2);
+        validApples.forEach(item -> {
             if (item.getStartTime().after(new Date())) {
                 // 未到开始时间的调用状态更新为PENDING
                 item.setInvokeStatus(ApiInvokeStatus.PENDING);
@@ -60,7 +57,7 @@ public class ApiInvokeApplyTask {
                 // 已过结束时间的调用状态更新为EXPIRED
                 item.setInvokeStatus(ApiInvokeStatus.EXPIRED);
             }
-            apiInvokeApplyMapper.update(item);
+            apiInvokeApplyMapper.update(item, true);
         });
     }
 }

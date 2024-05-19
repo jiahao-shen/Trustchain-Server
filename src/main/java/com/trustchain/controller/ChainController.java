@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.trustchain.model.enums.StatusCode;
 import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.ChainService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.chainmaker.sdk.ChainClientException;
 import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 public class ChainController {
     @Autowired
     private ChainService chainService;
+
+    private static final Logger logger = LogManager.getLogger(ChainController.class);
 
     @PostMapping("/putState")
     @ResponseBody

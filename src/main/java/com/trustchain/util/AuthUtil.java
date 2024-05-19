@@ -12,5 +12,4 @@ public class AuthUtil {
     public static User getUser() {
         return JSON.parseObject((String) StpUtil.getSession().get("user"), User.class);
     }
-
 }

@@ -1,8 +1,8 @@
 package com.trustchain.model.convert;
 
 
+import com.trustchain.model.dto.CertificateDTO;
 import com.trustchain.model.entity.Certificate;
-import com.trustchain.model.vo.CertificateVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -10,5 +10,5 @@ import org.mapstruct.factory.Mappers;
 public interface CertificateConvert {
     CertificateConvert INSTANCE = Mappers.getMapper(CertificateConvert.class);
 
-    CertificateVO toCertificateVO(Certificate certificate);
+    CertificateDTO certificateToCertificateDTO(Certificate certificate);
 }

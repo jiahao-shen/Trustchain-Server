@@ -657,6 +657,15 @@ public class ApiServiceImpl implements ApiService {
         if (reply == ApplyStatus.ALLOW) {
             apiInvokeApply.setAppKey(UUID.randomUUID().toString().replace("-", "").toLowerCase());
             apiInvokeApply.setSecretKey(UUID.randomUUID().toString().replace("-", "").toLowerCase());
+
+            Date now = new Date();
+            if (now.after(apiInvokeApply.getStartTime()) && now.before(apiInvokeApply.getEndTime())) {
+                apiInvokeApply.setInvokeStatus(ApiInvokeStatus.VALID);
+            } else if (now.before(apiInvokeApply.getStartTime())) {
+                apiInvokeApply.setInvokeStatus(ApiInvokeStatus.PENDING);
+            } else if (now.after(apiInvokeApply.getEndTime())) {
+                apiInvokeApply.setInvokeStatus(ApiInvokeStatus.EXPIRED);
+            }
         } else if (reply == ApplyStatus.REJECT) {
             apiInvokeApply.setReplyReason(reason);
         }
