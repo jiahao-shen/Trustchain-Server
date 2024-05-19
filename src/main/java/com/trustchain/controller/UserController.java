@@ -104,7 +104,7 @@ public class UserController {
 
         boolean success = userService.resetPassword(user, password);
 
-        return new BaseResponse<>(StatusCode.SUCCESS, "密码重置成功", success);
+        return new BaseResponse(StatusCode.SUCCESS, "密码重置成功", success);
     }
 
     @PostMapping("/register")
@@ -125,7 +125,7 @@ public class UserController {
         logger.info(user);
         boolean success = userService.register(user);
 
-        return new BaseResponse<>(StatusCode.SUCCESS, "", success);
+        return new BaseResponse(StatusCode.SUCCESS, "", success);
     }
 
     @PostMapping("/register/apply")
@@ -145,7 +145,7 @@ public class UserController {
 
         String applyId = userService.registerApply(userReg);
 
-        return new BaseResponse<>(StatusCode.SUCCESS, "", applyId);
+        return new BaseResponse(StatusCode.SUCCESS, "", applyId);
     }
 
     @PostMapping("/register/apply/list")

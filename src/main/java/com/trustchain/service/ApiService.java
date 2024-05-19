@@ -8,6 +8,7 @@ import com.trustchain.model.entity.ApiParamItem;
 import com.trustchain.model.entity.ApiQueryItem;
 import com.trustchain.model.entity.*;
 import com.trustchain.model.enums.ApplyStatus;
+import okhttp3.Response;
 import org.chainmaker.pb.common.ResultOuterClass;
 
 import java.io.IOException;
@@ -230,6 +231,16 @@ public interface ApiService {
      * @param body         请求体
      */
     void invokeWeb(String applyId, String invokeUserId, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body) throws IOException;
+
+    /**
+     * @param appKey    调用申请号
+     * @param secretKey 调用人ID
+     * @param param     请求路径参数
+     * @param query     请求参数
+     * @param header    请求标头
+     * @param body      请求体
+     */
+    ApiInvokeLog invokeSDK(String appKey, String secretKey, List<ApiParamItem> param, List<ApiQueryItem> query, List<ApiHeaderItem> header, ApiRequestBody body);
 
     /**
      * @param userId  用户ID

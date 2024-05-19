@@ -106,7 +106,7 @@ public class OrganizationController {
 
         OrganizationRegister orgReg = orgService.registerApplyDetail(applyId);
 
-        return new BaseResponse<>(StatusCode.SUCCESS, "",
+        return new BaseResponse(StatusCode.SUCCESS, "",
                 OrganizationConvert.INSTANCE.orgRegToOrgRegVO(orgReg));
     }
 

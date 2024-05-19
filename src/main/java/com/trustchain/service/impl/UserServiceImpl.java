@@ -391,7 +391,15 @@ public class UserServiceImpl implements UserService {
             userDTO.setOrganization(OrganizationConvert.INSTANCE.orgToOrgDTO(org));
         }
 
-        userDTO.setLatest(userDTO.getVersion().equals(latest.getVersion()));
+        if (userDTO == null) {
+            userDTO.setLatest(true);
+        } else {
+            if (userDTO.getLatest() != null && latest.getVersion() != null) {
+                userDTO.setLatest(userDTO.getVersion().equals(latest.getVersion()));
+            } else {
+                userDTO.setLatest(true);
+            }
+        }
 
         return userDTO;
     }

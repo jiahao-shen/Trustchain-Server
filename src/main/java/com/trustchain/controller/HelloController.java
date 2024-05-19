@@ -30,7 +30,7 @@ public class HelloController {
 
         return users;
 //        service.testAsync();
-//        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(StatusCode.SUCCESS, "good", null));
+//        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse(StatusCode.SUCCESS, "good", null));
 
     }
 

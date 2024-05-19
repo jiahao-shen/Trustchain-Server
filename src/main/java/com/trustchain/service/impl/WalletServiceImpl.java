@@ -285,7 +285,6 @@ public class WalletServiceImpl implements WalletService {
     public Map<String, TransactionStatisticsItemDTO> transactionStatistics(String userId, DateRange range) {
         RelationManager.setMaxDepth(0);
         User user = userMapper.selectOneWithRelationsById(userId);
-        logger.info("fuck: " + user.getWalletId());
 
         QueryWrapper query = QueryWrapper.create()
                 .select(TRANSACTION.AMOUNT,

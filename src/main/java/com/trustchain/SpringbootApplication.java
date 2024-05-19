@@ -142,7 +142,9 @@ public class SpringbootApplication extends WebMvcConfigurationSupport {
                         "/organization/selectList",
                         "/organization/exist",
                         "/organization/register/apply",
-                        "/organization/register/apply/list"
+                        "/organization/register/apply/list",
+                        "/api/invoke/sdk",
+                        "/chain/**"
                 )
                 .order(0);//执行顺序
         super.addInterceptors(registry);

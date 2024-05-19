@@ -11,8 +11,8 @@ import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin
-@RestController("/chain")
+@RestController
+@RequestMapping("/chain")
 public class ChainController {
     @Autowired
     private ChainService chainService;
@@ -25,18 +25,32 @@ public class ChainController {
         String key = request.getString("key");
         String field = request.getString("field");
         String value = request.getString("value");
+        String txId;
+        if (request.containsKey("txId")) {
+            txId = request.getString("txId");
+            txId = chainService.putState(key, field, value, txId);
+        } else {
+            txId = chainService.putState(key, field, value);
+        }
 
-        String txId = chainService.putState(key, field, value);
+        logger.info("putState:" + txId);
+
         return new BaseResponse(StatusCode.SUCCESS, "", txId);
     }
 
     @PostMapping("/getState")
     @ResponseBody
     public BaseResponse<String> getState(@RequestBody JSONObject request) {
-        String key = request.getString("key");
-        String field = request.getString("field");
+        String result;
+        if (request.containsKey("key") && request.containsKey("field")) {
+            String key = request.getString("key");
+            String field = request.getString("field");
+            result = chainService.getState(key, field);
+        } else {
+            String txId = request.getString("txId");
+            result = chainService.getState(txId);
+        }
 
-        String result = chainService.getState(key, field);
         return new BaseResponse(StatusCode.SUCCESS, "", result);
     }
 

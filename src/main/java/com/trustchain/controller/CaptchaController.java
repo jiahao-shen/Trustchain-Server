@@ -29,7 +29,7 @@ public class CaptchaController {
         if (success) {
             return new BaseResponse(StatusCode.SUCCESS, "", null);
         } else {
-            return new BaseResponse<>(StatusCode.SEND_CAPTCHA_FAILED, "未知错误", null);
+            return new BaseResponse(StatusCode.SEND_CAPTCHA_FAILED, "未知错误", null);
         }
     }
 }

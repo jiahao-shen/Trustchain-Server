@@ -12,6 +12,7 @@ import com.trustchain.model.vo.*;
 import com.trustchain.service.ApiService;
 import com.trustchain.service.CaptchaService;
 import com.trustchain.util.AuthUtil;
+import okhttp3.Response;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -365,6 +366,23 @@ public class ApiController {
         apiService.invokeWeb(applyId, AuthUtil.getUser().getId(), param, query, requestHeader, requestBody);
 
         return new BaseResponse(StatusCode.SUCCESS, "", null);
+    }
+
+    @PostMapping("/invoke/sdk")
+    @ResponseBody
+    public BaseResponse<ApiInvokeLogVO> invokeSDK(@RequestBody JSONObject request) {
+        String appKey = request.getString("appKey");
+        String secretKey = request.getString("secretKey");
+
+        List<ApiParamItem> param = request.getList("param", ApiParamItem.class);
+        List<ApiQueryItem> query = request.getList("query", ApiQueryItem.class);
+        List<ApiHeaderItem> requestHeader = request.getList("requestHeader", ApiHeaderItem.class);
+        ApiRequestBody requestBody = request.getObject("requestBody", ApiRequestBody.class);
+
+        ApiInvokeLog log = apiService.invokeSDK(appKey, secretKey, param, query, requestHeader, requestBody);
+        log.setInvokeApply(null);
+
+        return new BaseResponse(StatusCode.SUCCESS, "", ApiConvert.INSTANCE.apiInvokeLogToApiInvokeLogVO(log));
     }
 
     @PostMapping("/invoke/log/list")
