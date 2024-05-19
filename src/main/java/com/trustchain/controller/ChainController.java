@@ -33,8 +33,6 @@ public class ChainController {
             txId = chainService.putState(key, field, value);
         }
 
-        logger.info("putState:" + txId);
-
         return new BaseResponse(StatusCode.SUCCESS, "", txId);
     }
 
