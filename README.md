@@ -15,6 +15,7 @@
 - [Sa-Token](https://sa-token.cc/): 登录, 权限认证工具
 - [Tika](https://tika.apache.org/): 文件分析工具
 - [OkHttp](https://square.github.io/okhttp/): Http请求工具
+- [xjar](https://github.com/core-lib/xjar-maven-plugin): jar加密工具
 
 ## TODO
 
@@ -23,7 +24,6 @@
 - 小功能: 例如删除, 撤回, 首页推荐等
 
 ## 部署注意事项
-
 - 安装Mariadb并修改application.yaml中的字段
     - spring.datasouce.url
     - spring.datasouce.username
@@ -36,3 +36,7 @@
     - spring.redis.host
     - spring.redis.port
     - spring.redis.password
+- 加密打包:
+  - mvn clean package -Dxjar.password={密码}
+  - cd target && go build xjar.go
+  - xjar java -jar *******.xjar
