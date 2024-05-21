@@ -1,5 +1,6 @@
 package com.trustchain.model.vo;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.ApiInvokeMethod;
 import com.trustchain.util.AuthUtil;
@@ -44,8 +45,8 @@ public class ApiInvokeLogVO {
 
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date time;  // 调用时间
-
-    public Boolean isFrom() {
-        return invokeUserId.equals(AuthUtil.getUser().getId());
-    }
+//
+//    public Boolean isFrom() {
+//        return invokeUserId.equals(AuthUtil.getUser().getId());
+//    }
 }

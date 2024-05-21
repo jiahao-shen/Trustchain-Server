@@ -23,7 +23,7 @@ public class CaptchaController {
     @ResponseBody
     public BaseResponse<?> send(@RequestBody JSONObject request) {
         String email = request.getString("email");
-        System.out.println("ttt"+email);
+
         boolean success = captchaService.send(email);
 
         if (success) {

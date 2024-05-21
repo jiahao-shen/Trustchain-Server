@@ -229,15 +229,16 @@ public class UserServiceImpl implements UserService {
         minioService.copy(oldLogoPath, newLogoPath);
         user.setLogo(newLogoPath);
 
-        Wallet wallet = new Wallet();
-        wallet.setUserId(user.getId());
-        walletMapper.insert(wallet);
-
         // 插入新用户
         userMapper.insert(user);
         user = userMapper.selectOneById(user.getId());
         // 写入链
         chainService.putState(user.getId(), "user", JSON.toJSONString(user), user.getVersion());
+
+        // 生成钱包
+        Wallet wallet = new Wallet();
+        wallet.setUserId(user.getId());
+        walletMapper.insert(wallet);
 
         return true;
     }

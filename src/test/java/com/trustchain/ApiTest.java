@@ -35,9 +35,13 @@ public class ApiTest {
             if (response.isSuccessful()) {
                 logger.info("Success");
                 logger.info(response.body().string());
+            } else {
+                logger.error("failed");
+                logger.error(response.message());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

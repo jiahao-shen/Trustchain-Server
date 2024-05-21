@@ -4,6 +4,7 @@ package com.trustchain;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson2.JSONWriter.Feature;
 import com.alibaba.fastjson2.support.config.FastJsonConfig;
+import com.alibaba.fastjson2.support.spring.http.converter.FastJsonHttpMessageConverter;
 import com.trustchain.chainmaker.GlobalVariable;
 import com.trustchain.util.AuthUtil;
 import org.apache.logging.log4j.Logger;
@@ -22,8 +23,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-//import com.alibaba.fastjson2.support.spring5.http.converter.FastJsonHttpMessageConverter;
-import com.alibaba.fastjson2.support.spring.http.converter.FastJsonHttpMessageConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -24,7 +24,6 @@ public class FileController {
     @PostMapping("/upload")
     @ResponseBody
     public BaseResponse<String> upload(@RequestPart MultipartFile file) {
-        System.out.println("1111");
         logger.info("fileSize: " + file.getSize());
         String url = minioService.upload(file);
         if (url != null) {

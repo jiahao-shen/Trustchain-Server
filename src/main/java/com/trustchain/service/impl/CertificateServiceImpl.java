@@ -173,8 +173,9 @@ public class CertificateServiceImpl implements CertificateService {
                     .build()).execute();
             if (response.isSuccessful()) {
                 String body = response.body().string();
-//                logger.info(body);
                 return JSONObject.parseObject(body).getJSONObject("data").getJSONObject("responseBody").getJSONObject("rawBody").getJSONObject("body").getString("data");
+            } else {
+                logger.info(response.message());
             }
         } catch (IOException e) {
             e.printStackTrace();

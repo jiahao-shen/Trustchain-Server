@@ -1,6 +1,5 @@
 package com.trustchain.model.vo;
 
-import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.trustchain.model.enums.HttpBodyRawType;
 

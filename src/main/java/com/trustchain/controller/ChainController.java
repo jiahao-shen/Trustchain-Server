@@ -6,8 +6,16 @@ import com.trustchain.model.vo.BaseResponse;
 import com.trustchain.service.ChainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.chainmaker.pb.common.ContractOuterClass;
+import org.chainmaker.pb.common.Request;
+import org.chainmaker.pb.common.ResultOuterClass;
+import org.chainmaker.sdk.ChainClient;
 import org.chainmaker.sdk.ChainClientException;
+import org.chainmaker.sdk.User;
 import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
+import org.chainmaker.sdk.utils.FileUtils;
+import org.chainmaker.sdk.utils.SdkUtils;
+import org.chainmaker.sdk.utils.UtilsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 public class ChainController {
     @Autowired
     private ChainService chainService;
+    @Autowired
+    private ChainClient chainClient;
 
     private static final Logger logger = LogManager.getLogger(ChainController.class);
 
@@ -53,6 +63,7 @@ public class ChainController {
     }
 
     @PostMapping("/getHistory")
+    @ResponseBody
     public BaseResponse<String> getHistory(@RequestBody JSONObject request) {
         String key = request.getString("key");
         String field = request.getString("field");
@@ -60,6 +71,20 @@ public class ChainController {
         String result = chainService.getHistory(key, field);
         return new BaseResponse(StatusCode.SUCCESS, "", result);
     }
+
+//    @PostMapping("/loadContract")
+//    public BaseResponse<String> loadContract() throws UtilsException, ChainMakerCryptoSuiteException, ChainClientException {
+//        String basic = "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/";
+//        User user = new User("test", FileUtils.getResourceFileBytes(basic + "testClient.sign.key"),
+//                FileUtils.getResourceFileBytes(basic + "testClient.cert.key"),
+//                FileUtils.getResourceFileBytes(basic + "testClient.tls.key"),
+//                FileUtils.getResourceFileBytes(basic + "testClient.tls.cert"), false);
+//        byte[] bytes = FileUtils.getResourceFileBytes("testOrg.7z");
+//        Request.Payload payload = chainClient.createContractCreatePayload("testOrg2","1.0",bytes, ContractOuterClass.RuntimeType.DOCKER_GO,null);
+//        Request.EndorsementEntry[] endorsementEntries = SdkUtils.getEndorsers(payload,new User[]{user});
+//        ResultOuterClass.TxResponse responseInfo = chainClient.sendContractManageRequest(payload, endorsementEntries, 10000, 10000);
+//        return new BaseResponse(StatusCode.SUCCESS, "", responseInfo.getContractResult());
+//    }
     //save the org information to the chain
 //    @PostMapping("/chaincode/uploadOrg")
 //    public ResponseEntity<Object> uploadOrgToChain(@RequestBody JSONObject request){
