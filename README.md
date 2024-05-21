@@ -24,19 +24,20 @@
 - 小功能: 例如删除, 撤回, 首页推荐等
 
 ## 部署注意事项
-- 安装Mariadb并修改application.yaml中的字段
+
+- 修改application.yaml中数据库相关的配置字段
     - spring.datasouce.url
     - spring.datasouce.username
     - spring.datasouce.password
-- 安装Minio并修改application.yaml中的字段
+- 修改application.yaml中MinIO相关的配置字段
     - minio.endpoint
     - minio.accessKey
     - minio.secretkey
-- 安装Redis并修改application.yaml中的字段
+- 修改application.yaml中Redis相关的配置字段
     - spring.redis.host
     - spring.redis.port
     - spring.redis.password
 - 加密打包:
-  - mvn clean package -Dxjar.password={密码}
-  - cd target && go build xjar.go
-  - xjar java -jar *******.xjar
+    - `mvn clean package -Dxjar.password={密码}`
+    - `cd target && go build xjar.go`
+    - `./xjar java -jar *******.xjar`
