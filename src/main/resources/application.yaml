@@ -2,9 +2,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/trustchain?characterEncoding=UTF-8&allowMultiQueries=true
     username: root
-    password: Beihang2022
+    password: 123456
 
   servlet:
     multipart:
@@ -30,9 +30,9 @@ spring:
               class: java.net.ssl.SSLSocketFactory
   redis:
     database: 0
-    host: 127.0.0.1
+    host: localhost
     port: 6379
-    password: Beihang2022
+    password: 123456
     lettuce:
       pool:
         min-idle: 0
@@ -53,8 +53,11 @@ server:
 minio:
   endpoint: http://localhost:9000
   bucket: trustchain
-  accessKey: WYssTYzRTjt3sM86qFGA
-  secretKey: dfZp9AqyGSkw2d0gkeButajpDUD6zmgRLC3oC43K
+  accessKey: QFYg9M2sWKIQrSSgXcF2
+  secretKey: zA10Wv0csS7ZV8PB2AKqrvxEh7UGvdulrisWcQsh
+  # Node7
+  #  accessKey: WYssTYzRTjt3sM86qFGA
+  #  secretKey: dfZp9AqyGSkw2d0gkeButajpDUD6zmgRLC3oC43K
   # MacPro
   #  accessKey: cW3wffjaswmJBZEnBU2j
   #  secretKey: uh65qRkPcWDTMlQLqQ2lXqfupZWwBdN39FTKcdlT

@@ -44,13 +44,13 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     @Override
     public void verify(String email, String code) {
-        // TODO: 开发调用
-        email = "1843781563@qq.com";
-        // TODO: 开发调试用
-        String value = redisTemplate.opsForValue().get("captcha:" + email);
-
-        if (!code.equals(value)) {
-            throw new CaptchaException();
-        }
+//        // TODO: 开发调用
+//        email = "1843781563@qq.com";
+//        // TODO: 开发调试用
+//        String value = redisTemplate.opsForValue().get("captcha:" + email);
+//
+//        if (!code.equals(value)) {
+//            throw new CaptchaException();
+//        }
     }
 }

@@ -6,16 +6,28 @@ import com.hawkeye.model.vo.BaseResponse;
 import com.hawkeye.service.ChainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.chainmaker.pb.common.ContractOuterClass;
+import org.chainmaker.pb.common.Request;
+import org.chainmaker.pb.common.ResultOuterClass;
+import org.chainmaker.sdk.ChainClient;
+import org.chainmaker.sdk.ChainClientException;
+import org.chainmaker.sdk.User;
+import org.chainmaker.sdk.crypto.ChainMakerCryptoSuiteException;
+import org.chainmaker.sdk.utils.FileUtils;
+import org.chainmaker.sdk.utils.SdkUtils;
+import org.chainmaker.sdk.utils.UtilsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.Files;
 
 @RestController
 @RequestMapping("/chain")
 public class ChainController {
     @Autowired
     private ChainService chainService;
-//    @Autowired
-//    private ChainClient chainClient;
+    @Autowired
+    private ChainClient chainClient;
 
     private static final Logger logger = LogManager.getLogger(ChainController.class);
 
@@ -62,156 +74,17 @@ public class ChainController {
         return new BaseResponse(StatusCode.SUCCESS, "", result);
     }
 
-//    @PostMapping("/loadContract")
-//    public BaseResponse<String> loadContract() throws UtilsException, ChainMakerCryptoSuiteException, ChainClientException {
-//        String basic = "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/";
-//        User user = new User("test", FileUtils.getResourceFileBytes(basic + "testClient.sign.key"),
-//                FileUtils.getResourceFileBytes(basic + "testClient.cert.key"),
-//                FileUtils.getResourceFileBytes(basic + "testClient.tls.key"),
-//                FileUtils.getResourceFileBytes(basic + "testClient.tls.cert"), false);
-//        byte[] bytes = FileUtils.getResourceFileBytes("testOrg.7z");
-//        Request.Payload payload = chainClient.createContractCreatePayload("testOrg2","1.0",bytes, ContractOuterClass.RuntimeType.DOCKER_GO,null);
-//        Request.EndorsementEntry[] endorsementEntries = SdkUtils.getEndorsers(payload,new User[]{user});
-//        ResultOuterClass.TxResponse responseInfo = chainClient.sendContractManageRequest(payload, endorsementEntries, 10000, 10000);
-//        return new BaseResponse(StatusCode.SUCCESS, "", responseInfo.getContractResult());
-//    }
-    //save the org information to the chain
-//    @PostMapping("/chaincode/uploadOrg")
-//    public ResponseEntity<Object> uploadOrgToChain(@RequestBody JSONObject request){
-//        ResultOuterClass.ContractResult responseInfo = null;
-//        String orgId = request.getString("orgId");
-//        String field = "organization";
-////        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
-////        queryWrapper.eq(Organization::getId,orgId);
-////        Organization organization = organizationMapper.selectOne(queryWrapper);
-////        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(organization);
-//        JSONObject jsonObject = null;
-//        try{
-//            responseInfo = ChainService.invokeContractUpload(orgId, field, jsonObject);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
-//    }
-//
-//    //get the history information of organization
-//    @PostMapping("/chaincode/getOrgHistory")
-//    public ResponseEntity<Object> checkOrgHistory(@RequestBody JSONObject request){
-//        ResultOuterClass.ContractResult contractResult = null;
-//        String orgId = request.getString("orgId");
-//        JSONArray jsonArray = null;
-//        try {
-//            contractResult = ChainService.getKeyHistory(orgId,"organization");
-//            byte[] data = contractResult.toByteArray();
-//            String res = new String(data);
-//            String[] temp1 = res.split("\\[");
-//            String[] temp2 = temp1[1].split("\\]");
-//            String jsonMess = temp2[0];
-//            String jsonStr = "["+jsonMess+"]";
-//            jsonArray = JSONArray.parseArray(jsonStr);
-//        }catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(jsonArray);
-//    }
-//
-//    @PostMapping("/chaincode/getSpecialOrg")
-//    public ResponseEntity<Object> getSpecialOrg(@RequestBody JSONObject request){
-//        String txId = request.getString("txId");
-//        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfo = null;
-//        String writeSetInfo = null;
-//        try{
-//            transactionInfo = ChainService.getTxByTxId(txId);
-//            writeSetInfo = transactionInfo.getRwSet().getTxWrites(0).getValue().toStringUtf8();
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(writeSetInfo);
-//    }
-//
-//    @PostMapping("/chaincode/getNewestOrg")
-//    public ResponseEntity<Object> getNewestOrg(@RequestBody JSONObject request){
-//            String res = null;
-//            String orgId = request.getString("orgId");
-//            String field = "organization";
-//        try{
-//            res = ChainService.getNewVersion(orgId, field);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chain error");
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(res);
-//    }
-//
-//    @PostMapping("/chaincode/test/getChainConfig")
-//    public ResponseEntity<Object> GetChainConfig(){
-//        ChainConfigOuterClass.ChainConfig responseInfo;
-//        try {
-//            responseInfo = ChainService.getChainConfig();
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
-//    }
-//
-//    @PostMapping("/chaincode/test/getContractByName/{contractName}")
-//    public ResponseEntity<Object> GetContractByName(@PathVariable String contractName){
-//        ContractOuterClass.Contract responseInfo;
-//        try {
-//            responseInfo = ChainService.getContractByName(contractName);
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(responseInfo);
-//    }
-//
-//    @PostMapping("/chaincode/test/getTransactionById/{txid}")
-//    public ResponseEntity<Object> GetTransactionById(@PathVariable String txid){
-//        ChainmakerTransaction.TransactionInfoWithRWSet transactionInfo;
-//        String writeSetInfo = null;
-//        try {
-//            transactionInfo = ChainService.getTxByTxId(txid);
-//            writeSetInfo = transactionInfo.getRwSet().getTxWrites(0).getValue().toStringUtf8();
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(writeSetInfo);
-//    }
-//
-//    @GetMapping("/chaincode/test/getState/{key}")
-//    public ResponseEntity<Object> GetState(@PathVariable String key){
-//        ResultOuterClass.ContractResult state=null;
-//        try {
-//            state = ChainService.getState(key);
-//            System.out.println(state.toString());
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(state.toString());
-//    }
-//
-//    @PostMapping("/chaincode/test/putState/{key}")
-//    public ResponseEntity<Object> PutState(@PathVariable String key, @RequestParam String value){
-//        ResultOuterClass.ContractResult state;
-//        try {
-//            state = ChainService.putState(key, value);
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(state.toString());
-//    }
-//
-//    @GetMapping("/chaincode/test/getHistoryByKey/{key}")
-//    public ResponseEntity<Object> GetHistoryByKey(@PathVariable String key){
-//        ResultOuterClass.ContractResult state;
-//        try {
-//            state = ChainService.getHistoryByKey(key);
-//        } catch(Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("chaincode error:  " + e);
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(state.toString());
-//    }
+    @GetMapping("/loadContract/{contractName}")
+    @ResponseBody
+    public BaseResponse<String> loadContract(@PathVariable String contractName) throws UtilsException, ChainMakerCryptoSuiteException, ChainClientException {
+        User user = new User("test", FileUtils.getFileBytes("/root/release/crypto-config/test/user/testAdmin/testAdmin.sign.key"),
+                FileUtils.getFileBytes("/root/release/crypto-config/test/user/testAdmin/testAdmin.sign.crt"),
+                FileUtils.getFileBytes("/root/release/crypto-config/test/user/testAdmin/testAdmin.tls.key"),
+                FileUtils.getFileBytes("/root/release/crypto-config/test/user/testAdmin/testAdmin.tls.crt"), false);
+        byte[] bytes = FileUtils.getFileBytes("/root/release/testOrg.7z");
+        Request.Payload payload = chainClient.createContractCreatePayload(contractName, "1.0", bytes, ContractOuterClass.RuntimeType.DOCKER_GO, null);
+        Request.EndorsementEntry[] endorsementEntries = SdkUtils.getEndorsers(payload, new User[]{user});
+        ResultOuterClass.TxResponse responseInfo = chainClient.sendContractManageRequest(payload, endorsementEntries, 10000, 10000);
+        return new BaseResponse(StatusCode.SUCCESS, "", responseInfo.getContractResult());
+    }
 }

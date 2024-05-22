@@ -2,7 +2,9 @@ package com.hawkeye.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.hawkeye.model.entity.User;
+import com.hawkeye.model.enums.StatusCode;
 import com.hawkeye.model.enums.UserRole;
+import com.hawkeye.model.vo.BaseResponse;
 import com.hawkeye.service.MinioService;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +29,12 @@ public class TestController {
     @Autowired
     private MinioService minioService;
     private static final Logger logger = LogManager.getLogger(TestController.class);
+
+    @GetMapping("/hello")
+    @ResponseBody
+    public BaseResponse<String> hello() throws Exception {
+        return new BaseResponse(StatusCode.SUCCESS, "", "hello world");
+    }
 
     @GetMapping("/get/id/{id}")
     public ResponseEntity<String> testGet(@PathVariable String id,

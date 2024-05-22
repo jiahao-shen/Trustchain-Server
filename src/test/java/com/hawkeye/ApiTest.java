@@ -26,7 +26,7 @@ public class ApiTest {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url("http://localhost:8081/api/invoke/sdk")
+                .url("http://localhost:8080/api/invoke/sdk")
                 .post(RequestBody.create(MediaType.get("application/json"), requestBody.toJSONString()))
                 .build();
 

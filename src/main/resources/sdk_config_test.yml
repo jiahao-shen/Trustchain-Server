@@ -4,13 +4,17 @@ chain_client:
   # 组织ID
   org_id: "test"
   # 客户端用户私钥路径
-  user_key_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.tls.key"
+  user_key_file_path: "/root/release/test-test/config/test/certs/user/testClient/testClient.tls.key"
+#  user_key_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.tls.key"
   # 客户端用户证书路径
-  user_crt_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.tls.crt"
+  user_crt_file_path: "/root/release/test-test/config/test/certs/user/testClient/testClient.tls.crt"
+#  user_crt_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.tls.crt"
   # 客户端用户交易签名私钥路径(若未设置，将使用user_key_file_path)
-  user_sign_key_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.sign.key"
+  user_sign_key_file_path: "/root/release/test-test/config/test/certs/user/testClient/testClient.sign.key"
+#  user_sign_key_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.sign.key"
   # 客户端用户交易签名证书路径(若未设置，将使用user_crt_file_path)
-  user_sign_crt_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.sign.crt"
+  user_sign_crt_file_path: "/root/release/test-test/config/test/certs/user/testClient/testClient.sign.crt"
+#  user_sign_crt_file_path: "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/user/testClient/testClient.sign.crt"
   # 同步交易结果模式下，轮询获取交易结果时的最大轮询次数，删除此项或设为<=0则使用默认值 10
   retry_limit: 50
   # 同步交易结果模式下，每次轮询交易结果时的等待时间，单位：ms 删除此项或设为<=0则使用默认值 500
@@ -18,14 +22,15 @@ chain_client:
 
   nodes:
     - # 节点地址，格式为：IP:端口:连接数 Peer1
-      node_addr: "192.168.3.35:20203"
+      node_addr: "127.0.0.1:20203"
       # 节点连接数
       conn_cnt: 10
       # RPC连接是否启用双向TLS认证
       enable_tls: true
       # 信任证书池路径
       trust_root_paths:
-        - "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/ca"
+        - "/root/release/test-test/config/test/certs/ca/test"
+#        - "/home/node7/Trustchain-Server/src/main/resources/crypto-config/test/ca"
       # TLS hostname
       tls_host_name: "chainmaker.org"
   archive:

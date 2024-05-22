@@ -384,19 +384,13 @@ public class UserServiceImpl implements UserService {
         if (version.equals("@latest")) {
             // TODO: 链上版本和数据库对比
             userDTO = UserConvert.INSTANCE.userToUserDTO(latest);
+            userDTO.setLatest(true);
         } else {
             userDTO = JSON.parseObject(chainService.getState(version), UserDTO.class);
             Organization org = orgMapper.selectOneById(userDTO.getOrganizationId());
             userDTO.setOrganization(OrganizationConvert.INSTANCE.orgToOrgDTO(org));
-        }
-
-        if (userDTO == null) {
-            userDTO.setLatest(true);
-        } else {
             if (userDTO.getLatest() != null && latest.getVersion() != null) {
                 userDTO.setLatest(userDTO.getVersion().equals(latest.getVersion()));
-            } else {
-                userDTO.setLatest(true);
             }
         }
 
