@@ -25,6 +25,7 @@
 
 ## 部署注意事项
 
+- Java版本: 1.8.0_402
 - 修改application.yaml中数据库相关的配置字段
     - spring.datasouce.url
     - spring.datasouce.username
